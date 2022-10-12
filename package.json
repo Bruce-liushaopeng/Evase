@@ -1,5 +1,13 @@
 {
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.6"
-  }
+  },
+  "proxy": "http://localhost:5000",
+  "scripts": {
+    "start": "react-scripts start",
+    "start-api": "cd api && venv/bin/flask run --no-debugger",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
 }

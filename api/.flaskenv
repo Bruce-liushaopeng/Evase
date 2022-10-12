@@ -1,0 +1,2 @@
+FLASK_APP=apiTest.py
+FLASK_ENV=development
