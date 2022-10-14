@@ -51,8 +51,7 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
-
-                <p>Please choose the project file in zip.</p>
+                <p>Please choose a project to analysis (zip file) </p>
             </header>
             <input type="file" name="file" onChange={handleFileChange} />
             <button onClick={cancelFile}>
