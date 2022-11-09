@@ -14,6 +14,7 @@ UPLOAD_FOLDER = 'User File'
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
 @app.route('/upload', methods=['POST'])
 def fileUpload():
     file = request.files['file']  # get the file from post request

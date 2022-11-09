@@ -4,7 +4,7 @@ from api.utils import Module
 
 class TestUtilsModule(unittest.TestCase):
 
-    def test_module_dependencies(self):
+    def test_module_dependencies_inline(self):
         # case 1, from import with as on function
         testmodl = Module("random path", ast.parse("from alpha import beta as charlie"))
         dep = testmodl.dependencies
@@ -34,6 +34,15 @@ class TestUtilsModule(unittest.TestCase):
         self.assertTrue("utils" in dep)
         self.assertEqual(dep['utils']['as'], "u")
         self.assertEqual(len(dep['utils']['funcs']), 0)
+
+    def test_module_dependencies_resource(self):
+        with open("resources/testmodule1.py", "r") as f:
+            testmodl1 = Module("testmodule1", ast.parse(f.read()))
+        with open("resources/testmodule1.py", "r") as f:
+            testmodl2 = Module("testmodule2", ast.parse(f.read()))
+        fn2 = testmodl2.getFunctions()
+        self.assertEqual(len(fn2), 2)
+
 
 if __name__ == '__main__':
     unittest.main()

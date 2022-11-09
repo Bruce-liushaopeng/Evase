@@ -5,8 +5,16 @@ import ast
 import os
 
 def parseInformation(tree: ast):
-    fns = {}
-    dep = {}
+    infoTree = {
+        "functions": {},
+        "dependencies": {},
+        "classes": {},
+        "globals": {}
+    }
+    fns = infoTree['functions']
+    dep = infoTree['dependencies']
+    clss = infoTree['classes']
+    glbls = infoTree['globals']
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -26,7 +34,10 @@ def parseInformation(tree: ast):
         elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
             fns[node.name] = node.body
 
-    return dep, fns
+        elif isinstance(node, ast.ClassDef):
+            clss[node.name] = node
+
+    return infoTree
 
 class Module:
 
@@ -34,10 +45,11 @@ class Module:
         self.name = ".".join(path.split(os.sep)[1:])    # put it in package format
         self.tree = tree
         
-        dep, fns = parseInformation(tree)
+        infoTree = parseInformation(tree)
 
-        self.dependencies = dep
-        self.functions = fns
+        self.dependencies = infoTree['dependencies']
+        self.functions = infoTree['functions']
+        self.classes = infoTree['classes']
 
     def getName(self) -> str:
         return self.name
@@ -50,6 +62,9 @@ class Module:
 
     def getTree(self):
         return self.tree
+
+    def getClasses(self):
+        return self.classes
 
     def __eq__(self, __o: object) -> bool:
         if (isinstance(__o, Module)):
