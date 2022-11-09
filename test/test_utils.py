@@ -1,6 +1,6 @@
 import unittest
 import ast
-from utils import Module
+from api.utils import Module
 
 class TestUtilsModule(unittest.TestCase):
 
