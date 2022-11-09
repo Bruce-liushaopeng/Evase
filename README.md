@@ -1,3 +1,5 @@
+[![CI Backend Tests](https://github.com/Bruce-liushaopeng/Evase/actions/workflows/ci_tests.yml/badge.svg?branch=main)](https://github.com/Bruce-liushaopeng/Evase/actions/workflows/ci_tests.yml)
+
 Steps for run Evase project:
 
 1. install nodeJs, to enable npm command. link:  https://nodejs.org/en/download/
