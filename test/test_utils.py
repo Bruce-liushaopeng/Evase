@@ -2,6 +2,7 @@ import unittest
 import ast
 from api.utils import Module
 
+
 class TestUtilsModule(unittest.TestCase):
 
     def test_module_dependencies_inline(self):
@@ -38,10 +39,37 @@ class TestUtilsModule(unittest.TestCase):
     def test_module_dependencies_resource(self):
         with open("resources/testmodule1.py", "r") as f:
             testmodl1 = Module("testmodule1", ast.parse(f.read()))
-        with open("resources/testmodule1.py", "r") as f:
+        with open("resources/testmodule2.py", "r") as f:
             testmodl2 = Module("testmodule2", ast.parse(f.read()))
-        fn2 = testmodl2.getFunctions()
-        self.assertEqual(len(fn2), 2)
+
+        dep1 = testmodl1.get_dependencies()
+        dep2 = testmodl2.get_dependencies()
+
+        self.assertEqual(len(dep1), 1)
+        self.assertEqual(dep1['testmodule2']['as'], 'tm2')
+        fnname, fnasname = dep1['testmodule2']['funcs'][0]
+        self.assertEqual(fnname, "add")
+        self.assertEqual(fnasname, "plus")
+        self.assertEqual(len(dep2), 0)
+
+    def test_module_functions_resource(self):
+        with open("resources/testmodule1.py", "r") as f:
+            testmodl1 = Module("testmodule1", ast.parse(f.read()))
+        with open("resources/testmodule2.py", "r") as f:
+            testmodl2 = Module("testmodule2", ast.parse(f.read()))
+
+        fn1 = testmodl1.get_functions()
+        fn2 = testmodl2.get_functions()
+
+        self.assertEqual(len(fn1), 4)
+        self.assertIn("__init__", fn1)
+        self.assertIn("perform_comp", fn1)
+        self.assertIn("get_name", fn1)
+        self.assertIn("main", fn1)
+
+        self.assertEqual(len(fn2), 2)  # ensure second test module only has 2 functions in it
+        self.assertIn("add", fn2)  # ensure correct function names
+        self.assertIn("sub", fn2)  # ensure correct function names
 
 
 if __name__ == '__main__':

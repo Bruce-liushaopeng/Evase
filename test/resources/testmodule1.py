@@ -1,4 +1,5 @@
 import testmodule2 as tm2
+from testmodule2 import add as plus
 
 
 class Test:
@@ -9,7 +10,7 @@ class Test:
         return self.name
 
     def perform_comp(self, x: int, y: int) -> int:
-        return tm2.add(x, y) + tm2.sub(x, y)
+        return plus(x, y) + tm2.sub(x, y)
 
 
 def main():
