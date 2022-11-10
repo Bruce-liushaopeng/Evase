@@ -19,7 +19,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def fileUpload():
     file = request.files['file']  # get the file from post request
     filename = secure_filename(file.filename)  # get the fileName
-    _, fileExtension = os.path.splittext(filename)
+    # _, fileExtension = os.path.splittext(filename)
+    fileExtension = filename[-3:]
     if (fileExtension != "zip"):  # ensure upload type by checking the last three char
         return "please upload in a zip format"
     if not os.path.isdir(UPLOAD_FOLDER):  # create folder if folder doesn't exist
