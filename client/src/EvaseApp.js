@@ -9,6 +9,7 @@ function App() {
     const [respond, setRespond] = useState("");
 
     const uploadFile = (file) => {
+        console.log(typeof file)
         console.log("Upload function triggered.")
         const formData = new FormData();
         formData.append(

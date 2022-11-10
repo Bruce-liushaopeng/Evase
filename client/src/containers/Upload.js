@@ -24,7 +24,8 @@ const Upload = (props) => {
 
     const handleSubmission = (e) => {
         e.preventDefault()
-        return props.onSubmission(selectedFile)
+
+        props.onSubmission(selectedFile)
     }
 
 
@@ -49,7 +50,7 @@ const Upload = (props) => {
         )}
         {isFilePicked ? (
             <div>
-                <button onClick={props.onSubmission}>Upload!</button>
+                <button onClick={handleSubmission}>Upload!</button>
                 <button onClick={cancelFile}>Cancel</button>
             </div>
         ) :
