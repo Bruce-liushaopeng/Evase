@@ -18,7 +18,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "start-api": "cd .. && cd api && flask run",
+    "start-backend": "cd .. && cd api && python -m flask run",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
