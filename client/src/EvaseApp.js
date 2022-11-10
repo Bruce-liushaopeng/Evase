@@ -1,29 +1,20 @@
 import React, { useState } from 'react';
+import Upload from './containers/Upload'
+
 const axios = require('axios').default;
+
+
+
 function App() {
-    const [file, setFile] = useState(null);
-    const [fileName, setFileName] = useState(null);
     const [respond, setRespond] = useState("");
 
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-        console.log("handled")
-        setFileName(e.target.files[0].name);
-    }
-
-    const cancelFile = (e) => {
-        setFile(null)
-        setFileName('')
-    }
-
-    const uploadFile = (e) => {
-        console.log("uplaod function trigger")
-        e.preventDefault()
+    const uploadFile = (file) => {
+        console.log("Upload function triggered.")
         const formData = new FormData();
         formData.append(
             "file",
             file,
-            fileName
+            file.name
         );
         axios
             .post("/upload", formData)
@@ -33,16 +24,15 @@ function App() {
             .catch(err => console.warn(err));
     }
 
-    function fileData() {
-        if (!file) {
-            return <p> No File Uploaded Yet</p>
-        } else {
-            console.log(file)
-            return <p> File ready for upload:  {file.name}</p>
-        }
+    const cancelFile = () => {
+        setRespond("")
     }
 
-    function backendInfomation() {
+    const fileChanged = () => {
+        setRespond("")
+    }
+
+    function backendInformation() {
         if (respond) {
             return <p> Backend Reply: {respond}</p>
         }
@@ -50,21 +40,9 @@ function App() {
 
     return (
         <div className="App">
-            <header className="App-header">
-                <p>Please choose a project to analysis (zip file) </p>
-            </header>
-            <input type="file" name="file" onChange={handleFileChange} />
-            <button onClick={cancelFile}>
-                cancel
-            </button>
-            <button onClick={uploadFile}>
-                Upload!
-            </button>
-            <div>
-                {fileData()}
-            </div>
-            <div>
-                {backendInfomation()}
+            <Upload instruction="Input your source code in ZIP format." onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>
+            <div className="uploadResult">
+                {backendInformation()}
             </div>
         </div>
     );
