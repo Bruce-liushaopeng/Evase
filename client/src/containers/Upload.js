@@ -1,15 +1,14 @@
 import React, { useState } from 'react'
 import { DropzoneDialog } from "material-ui-dropzone"
-import { Button } from 'ui-neumorphism'
+import './styles.css'
 
 const Upload = (props) => {
 
-    const [selectedFile, setSelectedFile] = useState();
+    const [selectedFile, setSelectedFile] = useState(null);
     const [isFilePicked, setIsFilePicked] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const cancelFile = (e) => {
-        e.preventDefault()
         props.onCancel()
         setSelectedFile(null)
         setIsFilePicked(false)
@@ -17,7 +16,6 @@ const Upload = (props) => {
 
     const handleSubmission = (e) => {
         e.preventDefault()
-
         props.onSubmission(selectedFile)
     }
 
@@ -38,13 +36,13 @@ const Upload = (props) => {
 
 
     return (
-        <div>
+        <div className="neu-box">
             <header className="uploadInstruction">
                 <p>{props.instruction}</p>
             </header>
-            <Button onClick={showDialog} >
+            <button className="neu-btn" onClick={showDialog} >
                 Select file here
-            </Button>
+            </button>
             <DropzoneDialog
                 open={dialogOpen}
                 onSave={handleSave}
@@ -69,8 +67,8 @@ const Upload = (props) => {
             )}
             {isFilePicked ? (
                 <div>
-                    <button onClick={handleSubmission}>Upload!</button>
-                    <button onClick={cancelFile}>Cancel</button>
+                    <button className="neu-btn" onClick={handleSubmission}>Upload!</button>
+                    <button className="neu-btn" onClick={cancelFile}>Cancel</button>
                 </div>
             ) :
                 <div />
