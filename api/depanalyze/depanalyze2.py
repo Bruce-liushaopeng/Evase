@@ -20,22 +20,25 @@ class Node:
     def __init__(self):
         self.props = {}
 
+def make_dependency_graph(nodes: list, edges: list):
+    dct = {
+        "u"
+    }
 
 
-def make_dependency_graph():
+def get_dependency_relations():
 
-    filenames = glob(os.path.join(os.path.dirname(__file__), "User File/flask_webgoat/**/*.py"), recursive=True)
-    v = pyan.CallGraphVisitor(filenames)
+    filenames = glob(os.path.join(os.path.dirname(__file__), '..', 'User File/**/*.py'), recursive=True)
+    print(filenames)
+    v = pyan.CallGraphVisitor(filenames, root=os.path.join(os.path.dirname(__file__), '..', 'User File'))
 
     # collect and sort defined nodes
     edges = []
-    
     visited_nodes = []
     for name in v.nodes:
         for node in v.nodes[name]:
             if node.defined:
                 visited_nodes.append(node)
-    visited_nodes.sort(key=lambda x: (x.namespace, x.name))
 
     for n in v.defines_edges:
         if n.defined:
@@ -43,16 +46,23 @@ def make_dependency_graph():
                 if n2.defined:
                     edges.append((n, n2))
 
+
+
+    print("EDGES")
+    print(v.nodes)
+    print("DEFINES")
+    print(v.defines_edges)
+    print("USES")
+    print(v.uses_edges)
+
     dep_tree = {
         
     }
-
-    print(v.scopes)
 
     print(visited_nodes)
     print(edges)
 
     return visited_nodes, edges
 
-res = make_dependency_graph()
+res = get_dependency_relations()
 print(res[1])
