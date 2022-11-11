@@ -1,9 +1,7 @@
 # The purpose of this module is to provide functions
 # for the data structures
 
-import ast
-import os
-
+import ast, os
 
 def parse_syntax_information(tree: ast):
     info_tree = {
