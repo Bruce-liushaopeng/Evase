@@ -16,8 +16,7 @@ class AnalysisPanel extends React.Component {
     render() {
         return (
         <>
-            <H6>Evase Analysis Tool</H6>
-            <AnalysisForm></AnalysisForm>
+            <AnalysisForm title="Evase Analysis Tool" subtitle="Analyze the code you uploaded."></AnalysisForm>
         </>
         );
     }

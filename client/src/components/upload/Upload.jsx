@@ -80,6 +80,8 @@ class UploadForm extends React.Component {
 
         const chooseFile = (
             <IconButton
+                rounded
+                text={false}
                 onClick={this.showDialog}
                 className='nub-1'
             >
@@ -98,6 +100,8 @@ class UploadForm extends React.Component {
             if (!this.state.fileUploaded) {
                 uploadFile = (
                     <IconButton 
+                        rounded
+                        text={false}
                         className='nub-2'
                         onClick={this.handleUpload}
                     >
@@ -106,7 +110,9 @@ class UploadForm extends React.Component {
                 )
             }
             cancelFile = (
-                <IconButton 
+                <IconButton
+                    rounded
+                    text={false}
                     className='nub-3'
                     onClick={this.cancelFile}
                 >
@@ -115,11 +121,11 @@ class UploadForm extends React.Component {
             )
         }
         return (
-            <CardAction>
+            <CardContent>
                 {chooseFile}
                 {uploadFile}
                 {cancelFile}
-            </CardAction>
+            </CardContent>
         )
     }
 
