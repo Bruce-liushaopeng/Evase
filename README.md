@@ -10,7 +10,7 @@ Steps for run Evase project:
 6. back to the root folder, run command "npm install"
 7. nevigate to client folder, run command "npm install" (same command for install nodeJs package, but at different level)
 8. all package has been installed, next let's run it.
-9. nevigate to client folder, run command "npm run start-api", this will start the backend flask server
+9. nevigate to api folder, run command "npm run start-api", this will start the backend flask server
 10. stay in client folder, run "npm start", this will start react front end.
 11. Project should be up and runnning.
 
