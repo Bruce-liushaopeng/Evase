@@ -4,33 +4,11 @@ import pyan
 from glob import glob
 import os
 
+from typing import Dict
+
 from api.injection import InjectionDetectionVisitor
 from file_struct import FileStruct
-
-
-class DependencyTree:
-
-    def __init__(self):
-        self.nodes = {}
-        self.edges = {}
-
-
-class Module:
-
-    def __init__(self):
-        self.props = {}
-
-
-class Node:
-    def __init__(self):
-        self.props = {}
-
-
-def make_dependency_graph(nodes: list, edges: list):
-    dct = {
-        "u"
-    }
-
+from pprint import pprint
 
 def get_dependency_relations():
     filenames = glob(os.path.join(os.path.dirname(__file__), 'src/**/*.py'), recursive=True)
@@ -57,42 +35,29 @@ def get_dependency_relations():
                 if n2.defined:
                     uses_edges.append((n, n2))
 
-    print("EDGES")
-    print(v.nodes)
-    print("DEFINES")
-    print(v.defines_edges)
-    print("USES")
-    print(v.uses_edges)
-
-    dep_tree = {
-
-    }
-    print("next")
-    #print(visited_nodes)
-    #print(edges)
-
     return [visited_nodes, v, v.uses_edges]
 
 
-def iter(dir, id, asts):
-    with os.scandir(dir) as it:
+def dir_to_module_struct(dirpath: str) -> dict:
+    ast_trees = dict()
+    _iter_recursive(dirpath, "", ast_trees)
+    return ast_trees
+
+
+def _iter_recursive(dirpath: str, root: str, ast_trees: dict):
+    with os.scandir(dirpath) as it:
         for entry in it:
             if entry.is_dir():
-                iter(dir + "/" + entry.name, id + "." + entry.name, asts)
+                _iter_recursive(dirpath + "/" + entry.name, root + "." + entry.name, ast_trees)
 
             elif entry.name.endswith('.py') and entry.is_file():
-                name = entry.name[:len(entry.name) - 3]
-                print(entry.name + " " + id + "." + name + " "+dir + "/" + entry.name)
-                f = open(dir + "/" + entry.name, "r")
-                ast_file = ast.parse(f.read())
-                asts[id + "." + name] = FileStruct(ast_file)
-                f.close()
+                name, _ = os.path.splitext(entry.name)
+                print(entry.name + " " + root + "." + name + " " + dirpath + "/" + entry.name)
+                with open(dirpath + "/" + entry.name, "r") as f:
+                    ast_file = ast.parse(f.read())
+                    ast_trees[root + "." + name] = FileStruct(ast_file)
 
 
-asts = dict()
-
-print(os.path.dirname(__file__))
-iter(os.path.dirname(__file__) + "/src", "api.depanalyze.src", asts)
 
 res = get_dependency_relations()
 print(res[2])
@@ -101,7 +66,7 @@ for node in res[2]:
         node_name = node.__str__()
         if "<Node module" in node_name:
             file_name = node_name.split("<Node module:")[1]
-            file_name = file_name[: len(file_name)-1]
+            file_name = file_name[: len(file_name) - 1]
 
         elif "<Node function" in node_name:
             file_name = node_name.split("<Node function:")[1]
@@ -112,8 +77,13 @@ for node in res[2]:
         print(file_name)
         print(res[2].get(node))
 
-for x in asts.keys():
-    print(x)
-    detector = InjectionDetectionVisitor()
-    print(asts.get(x).get_ast())
-# print(res[1])
+
+if __name__ == '__main__':
+    ast_trees = dir_to_module_struct(os.path.join(os.path.dirname(__file__), "src"))
+    pprint(ast_trees)
+
+    for x in ast_trees.keys():
+        print(x)
+        detector = InjectionDetectionVisitor()
+        print(ast_trees.get(x).get_ast())
+
