@@ -11,7 +11,48 @@ from file_struct import FileStruct
 from pprint import pprint
 
 
-def get_dependency_relations():
+def _dir_to_module_structure(startpath: str) -> dict:
+    tree = {}
+
+    namesp = startpath
+    if "__init__.py" in os.listdir(startpath):  # check if the start path itself is a package
+        namesp = os.sep.join(startpath.split(os.sep)[:-1])
+
+    for root, dirs, files in os.walk(startpath):
+        for f in files:
+            fullpath = os.path.join(root, f)
+            filename, ext = os.path.splitext(fullpath)
+            if ext == ".py":
+                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
+                with open(fullpath, "r") as fr:
+                    tree[module_style] = FileStruct(ast.parse(fr.read()))
+
+    return tree
+
+
+class ProjectAnalysisStruct:
+
+    def __init__(self, prj_name: str, prj_root: str):
+        self.prj_name = prj_name
+
+        if not os.path.exists(prj_root):
+            raise ValueError("Can't accept a file path that doesn't exist.")
+
+        self._prj_root = prj_root
+        self.dependencies = {}  # to be kept none? may need it later
+        self._module_structure = {}
+
+    def process(self):
+        self._module_structure = _dir_to_module_structure(self._prj_root)
+
+    def get_prj_root(self):
+        return self._prj_root
+
+    def get_module_structure(self) -> dict:
+        return self._module_structure
+
+
+def _get_dependency_relations():
     filenames = glob(os.path.join(os.path.dirname(__file__), 'src/**/*.py'), recursive=True)
     v = pyan.CallGraphVisitor(filenames)
 
@@ -39,7 +80,7 @@ def get_dependency_relations():
     return [visited_nodes, v, v.uses_edges]
 
 
-def dir_to_module_struct(dirpath: str) -> dict:
+def _dir_to_module_struct(dirpath: str) -> dict:
     ast_trees = dict()
     _iter_recursive(dirpath, "", ast_trees)
     return ast_trees
@@ -59,28 +100,9 @@ def _iter_recursive(dirpath: str, root: str, ast_trees: dict):
                     ast_trees[root + "." + name] = FileStruct(ast_file)
 
 
-def dir_to_module_structure(startpath: str) -> dict:
-    tree = {}
-
-    namesp = startpath
-    if "__init__.py" in os.listdir(startpath):      # check if the start path itself is a package
-        namesp = os.sep.join(startpath.split(os.sep)[:-1])
-
-    for root, dirs, files in os.walk(startpath):
-        for f in files:
-            fullpath = os.path.join(root, f)
-            filename, ext = os.path.splitext(fullpath)
-            if ext == ".py":
-                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
-                with open(fullpath, "r") as fr:
-                    tree[module_style] = FileStruct(ast.parse(fr.read()))
-
-    return tree
-
-
-#res = get_dependency_relations()
-#print(res[2])
-#for node in res[2]:
+# res = get_dependency_relations()
+# print(res[2])
+# for node in res[2]:
 #    if node.defined:
 #        node_name = node.__str__()
 #        if "<Node module" in node_name:
@@ -98,12 +120,14 @@ def dir_to_module_structure(startpath: str) -> dict:
 
 if __name__ == '__main__':
 
-    pprint(dir_to_module_structure(os.path.join(os.path.dirname(__file__), "src")))
+    pas = ProjectAnalysisStruct("EvaseTest", os.path.join(os.path.dirname(__file__), "src"))
+    pas.process()
+    pprint(pas.get_module_structure())
 
-    #ast_trees = dir_to_module_struct(os.path.join(os.path.dirname(__file__), "src"))
-    #pprint(ast_trees)
+    # ast_trees = dir_to_module_struct(os.path.join(os.path.dirname(__file__), "src"))
+    # pprint(ast_trees)
 
-    #for x in ast_trees.keys():
+    # for x in ast_trees.keys():
     #    print(x)
     #    detector = InjectionDetectionVisitor()
     #    print(ast_trees.get(x).get_ast())
