@@ -1,109 +1,109 @@
 import ast
+
+import pyan
+from glob import glob
 import os
+
+from typing import Dict
+
+from api.injection import InjectionDetectionVisitor
+from file_struct import FileStruct
 from pprint import pprint
 
 
-class DependencyAnalysisVisitor(ast.NodeVisitor):
+def get_dependency_relations():
+    filenames = glob(os.path.join(os.path.dirname(__file__), 'src/**/*.py'), recursive=True)
+    v = pyan.CallGraphVisitor(filenames)
 
-    def __init__(self):
-        self.statement_stack = []
-        self.scope_stack = []
+    # collect and sort defined nodes
+    edges = []
+    uses_edges = []
+    visited_nodes = []
+    for name in v.nodes:
+        for node in v.nodes[name]:
+            if node.defined:
+                visited_nodes.append(node)
 
-        self.info_tree = {
-            "functions": {},
-            "dependencies": {},
-            "classes": {},
-            "globals": {}
-        }
-        self.fns = self.info_tree['functions']
-        self.dep = self.info_tree['dependencies']
-        self.clss = self.info_tree['classes']
-        self.glbls = self.info_tree['globals']
+    for n in v.defines_edges:
+        if n.defined:
+            for n2 in v.defines_edges[n]:
+                if n2.defined:
+                    edges.append((n, n2))
 
-    def reset(self):
-        self.statement_stack.clear()
-        self.scope_stack.clear()
+    for n in v.uses_edges:
+        if n.defined:
+            for n2 in v.uses_edges[n]:
+                if n2.defined:
+                    uses_edges.append((n, n2))
 
-    @classmethod
-    def printScopeNode(node: ast.AST):
-        info = {
-            'type': type(node),
-            'lineno': "unk"
-        }
-        if any(isinstance(node, t) for t in [ast.FunctionDef, ast.AsyncFunctionDef, ast.For, ast.AsyncFor, ast.With, ast.AsyncWith]):
-            info.lineno = node.lineno
-        
-        print("New scope encountered:")
-        pprint(info)
+    return [visited_nodes, v, v.uses_edges]
 
-    def add_scope_to_stack(self, node):
-        while not isinstance(node, type(self.scope_stack[0])) and len(self.scope_stack) > 0:
-            self.scope_stack.pop()
-        self.scope_stack.insert(0, node)
 
-    def get_node_scope(self):
-        return self.scope_stack[0]
+def dir_to_module_struct(dirpath: str) -> dict:
+    ast_trees = dict()
+    _iter_recursive(dirpath, "", ast_trees)
+    return ast_trees
 
-    # SCOPE FUNCTIONS
-    def visit_ClassDef(self, node):
-        DependencyAnalysisVisitor.printScopeNode(node)
-        self.add_scope_to_stack(node)
 
-    def visit_FunctionDef(self, node):
-        DependencyAnalysisVisitor.printScopeNode(node)
-        self.add_scope_to_stack(node)
-        # not this simple, need to find if it belongs to a class or to another function
-        inclass = False
-        for item in self.scope_stack:
-            if isinstance(item, ast.ClassDef):
-                self.fns[f'{item.name}.{node.name}'] = node.body
-                inclass=True
-                break
-                
-        if not inclass:
-            self.fns[node.name] = node.body
+def _iter_recursive(dirpath: str, root: str, ast_trees: dict):
+    with os.scandir(dirpath) as it:
+        for entry in it:
+            if entry.is_dir():
+                _iter_recursive(dirpath + "/" + entry.name, root + "." + entry.name, ast_trees)
 
-    def visit_For(self, node):
-        DependencyAnalysisVisitor.printScopeNode(node)
-        self.add_scope_to_stack(node)
+            elif entry.name.endswith('.py') and entry.is_file():
+                name, _ = os.path.splitext(entry.name)
+                print(entry.name + " " + root + "." + name + " " + dirpath + "/" + entry.name)
+                with open(dirpath + "/" + entry.name, "r") as f:
+                    ast_file = ast.parse(f.read())
+                    ast_trees[root + "." + name] = FileStruct(ast_file)
 
-    def visit_AsyncFor(self, node):
-        DependencyAnalysisVisitor.printScopeNode(node)
-        self.add_scope_to_stack(node)
 
-    def visit_With(self, node):
-        DependencyAnalysisVisitor.printScopeNode(node)
-        self.add_scope_to_stack(node)
+def dir_to_module_structure(startpath: str) -> dict:
+    tree = {}
 
-    def visit_AsyncWith(self, node):
-        DependencyAnalysisVisitor.printScopeNode(node)
-        self.add_scope_to_stack(node)
+    namesp = startpath
+    if "__init__.py" in os.listdir(startpath):      # check if the start path itself is a package
+        namesp = os.sep.join(startpath.split(os.sep)[:-1])
 
-    # IMPORT FUNCTIONS
-    def visit_Import(self, node):
-        
+    for root, dirs, files in os.walk(startpath):
+        for f in files:
+            fullpath = os.path.join(root, f)
+            filename, ext = os.path.splitext(fullpath)
+            if ext == ".py":
+                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
+                with open(fullpath, "r") as fr:
+                    tree[module_style] = FileStruct(ast.parse(fr.read()))
 
-    # VARIABLE FUNCTIONS
-    def visit_Assign(self, node):
-        # for alias in node.value:
-        #     print(alias.name, ' import')
-        print('Node type: Assign and fields: ', node._fields, node.value, node.targets)
-        ast.NodeVisitor.generic_visit(self, node)
+    return tree
 
-    def visit_BinOp(self, node):
-        print('Node type: BinOp and fields: ', node._fields, node._attributes)
-        ast.NodeVisitor.generic_visit(self, node)
 
-    def visit_Expr(self, node):
-        print('Node type: Expr and fields: ', node._fields, node._attributes)
-        ast.NodeVisitor.generic_visit(self, node)
+#res = get_dependency_relations()
+#print(res[2])
+#for node in res[2]:
+#    if node.defined:
+#        node_name = node.__str__()
+#        if "<Node module" in node_name:
+#            file_name = node_name.split("<Node module:")[1]
+#            file_name = file_name[: len(file_name) - 1]
+#
+#        elif "<Node function" in node_name:
+#            file_name = node_name.split("<Node function:")[1]
+#        elif "<Node class" in node_name:
+#            file_name = node_name.split("<Node class:")[1]
+#        elif "<Node method" in node_name:
+#            file_name = node_name.split("<Node method:")[1]
+#        print(file_name)
+#        print(res[2].get(node))
 
-    def visit_Num(self, node):
-        print('Node type: Num and fields: ', node._fields, node.value, node.kind)
+if __name__ == '__main__':
 
-    def visit_Name(self, node):
-        print('Node type: Name and fields: ', node._fields, node.id, node.ctx)
-        ast.NodeVisitor.generic_visit(self, node)
+    pprint(dir_to_module_structure(os.path.join(os.path.dirname(__file__), "src")))
 
-    def visit_Str(self, node):
-        print('Node type: Str and fields: ', node._fields, node._attributes)
+    #ast_trees = dir_to_module_struct(os.path.join(os.path.dirname(__file__), "src"))
+    #pprint(ast_trees)
+
+    #for x in ast_trees.keys():
+    #    print(x)
+    #    detector = InjectionDetectionVisitor()
+    #    print(ast_trees.get(x).get_ast())
