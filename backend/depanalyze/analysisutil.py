@@ -2,15 +2,18 @@ from typing import Dict, List
 import ast
 
 import pyan
-from pyan.node import Flavor
 from glob import glob
 import os
 from modulestructure import ModuleAnalysisStruct
-from pprint import pprint
-import code2flow
 
 
-def get_dependency_relations(dirpath: str):
+def get_dependency_relations(dirpath: str) -> Dict[str, List[str]]:
+    """
+    Using Pyan3 to convert a directory into a dependency/call graph.
+
+    :param dirpath: The path to the directory
+    :return: The mapping of use edges
+    """
     filenames = glob(os.path.join(dirpath, '**/*.py'), recursive=True)
 
     v = pyan.CallGraphVisitor(filenames)
