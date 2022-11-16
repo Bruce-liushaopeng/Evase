@@ -1,9 +1,11 @@
 from typing import Dict, List
 import ast
+import re
 
 import pyan
 from glob import glob
 import os
+from modulefinder import ModuleFinder
 from modulestructure import ModuleAnalysisStruct
 
 
@@ -69,3 +71,27 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
                     tree[module_style] = ModuleAnalysisStruct(ast.parse(fr.read()))
 
     return tree
+
+def find_star_imports(path: str):
+    """
+    Find the star imports for a python file
+
+    :param path:
+    :return:
+    """
+    imp_lst = []
+    if path.endswith(".py"):
+        patt = re.compile(r"from\s((.?\w+.?)+)\simport\s\*")
+        with open(path, "r") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                if line == "\n":
+                    continue
+                if line.endswith('*\n') or line.endswith('*'):
+                    match = patt.match(line)
+                    if match:
+                        imp_lst.append(match.group(1))
+    return imp_lst
+
+if __name__ == '__main__':
+    print(find_star_imports("C:/courses/SYSC_4907/Evase/backend/user_files/src/test.py"))
