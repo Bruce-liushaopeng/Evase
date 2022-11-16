@@ -54,6 +54,6 @@ class ProjectAnalysisStruct:
 
 
 if __name__ == '__main__':
-    test = ProjectAnalysisStruct("EvaseTest", "C:/courses/SYSC_4907/Evase/api/user_files")
+    test = ProjectAnalysisStruct("EvaseTest", "C:/courses/SYSC_4907/Evase/backend/user_files")
     test.process()
     pprint(test.get_dependencies())
