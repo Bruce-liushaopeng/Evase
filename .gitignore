@@ -1,5 +1,5 @@
 *.idea/
-/api/user file
+/api/user_files
 
 # dependencies
 /node_modules

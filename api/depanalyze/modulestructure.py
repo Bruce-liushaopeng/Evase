@@ -1,6 +1,7 @@
 import ast_scope
 from networkx import DiGraph
 
+
 class ModuleAnalysisStruct:
 
     def __init__(self, ast_file):

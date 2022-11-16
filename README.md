@@ -1,6 +1,16 @@
 [![CI Backend Tests](https://github.com/Bruce-liushaopeng/Evase/actions/workflows/ci_tests.yml/badge.svg?branch=main)](https://github.com/Bruce-liushaopeng/Evase/actions/workflows/ci_tests.yml)
 
-Steps for run Evase project:
+# Evase Project
+
+Welcome to the Evase project! Our aim is to detect attack vulnerabilities in your Python code.
+
+## Developer Instructions
+
+- Test code should only be placed in the `api/user_files` directory
+- Anthony's test code has been moved to a zip file under `examples/dool-test.zip`
+  - You need to reload it into the `user_files` directory
+
+## Installation and Setup Instructions
 
 1. install nodeJs, to enable npm command. link:  https://nodejs.org/en/download/
 2. install python3
@@ -13,10 +23,4 @@ Steps for run Evase project:
 9. nevigate to api folder, run command "npm run start-backend", this will start the backend flask server
 10. stay in client folder, run "npm start", this will start react front end.
 11. Project should be up and runnning.
-
-Note: 
-api folder is where flask and backend logic locate at
-client folder is where the ReactJs files at
-in api/api.py, the backend respond to file update is defined.
-in client/src/EvaseApp.js is where the front end pages defined.
 
