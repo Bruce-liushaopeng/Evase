@@ -1,63 +1,21 @@
+from typing import Dict, List
 import ast
 
 import pyan
+from pyan.node import Flavor
 from glob import glob
 import os
-
-from typing import Dict
-
-from api.injection import InjectionDetectionVisitor
-from file_struct import FileStruct
+from file_struct import ModuleAnalysisStruct
 from pprint import pprint
+import code2flow
 
+def _get_dependency_relations(dirpath: str):
+    filenames = glob(os.path.join(dirpath, '**/*.py'), recursive=True)
 
-def _dir_to_module_structure(startpath: str) -> dict:
-    tree = {}
-
-    namesp = startpath
-    if "__init__.py" in os.listdir(startpath):  # check if the start path itself is a package
-        namesp = os.sep.join(startpath.split(os.sep)[:-1])
-
-    for root, dirs, files in os.walk(startpath):
-        for f in files:
-            fullpath = os.path.join(root, f)
-            filename, ext = os.path.splitext(fullpath)
-            if ext == ".py":
-                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
-                with open(fullpath, "r") as fr:
-                    tree[module_style] = FileStruct(ast.parse(fr.read()))
-
-    return tree
-
-
-class ProjectAnalysisStruct:
-
-    def __init__(self, prj_name: str, prj_root: str):
-        self.prj_name = prj_name
-
-        if not os.path.exists(prj_root):
-            raise ValueError("Can't accept a file path that doesn't exist.")
-
-        self._prj_root = prj_root
-        self.dependencies = {}  # to be kept none? may need it later
-        self._module_structure = {}
-
-    def process(self):
-        self._module_structure = _dir_to_module_structure(self._prj_root)
-
-    def get_prj_root(self):
-        return self._prj_root
-
-    def get_module_structure(self) -> dict:
-        return self._module_structure
-
-
-def _get_dependency_relations():
-    filenames = glob(os.path.join(os.path.dirname(__file__), 'src/**/*.py'), recursive=True)
     v = pyan.CallGraphVisitor(filenames)
 
     # collect and sort defined nodes
-    edges = []
+    defines_edges = []
     uses_edges = []
     visited_nodes = []
     for name in v.nodes:
@@ -66,18 +24,95 @@ def _get_dependency_relations():
                 visited_nodes.append(node)
 
     for n in v.defines_edges:
-        if n.defined:
-            for n2 in v.defines_edges[n]:
-                if n2.defined:
-                    edges.append((n, n2))
+        for n2 in v.defines_edges[n]:
+                defines_edges.append((n, n2))
 
     for n in v.uses_edges:
-        if n.defined:
-            for n2 in v.uses_edges[n]:
-                if n2.defined:
-                    uses_edges.append((n, n2))
+        for n2 in v.uses_edges[n]:
+                uses_edges.append((n, n2))
 
-    return [visited_nodes, v, v.uses_edges]
+    deps = {}
+
+    for node, use in uses_edges:
+        if node.get_name() not in deps:
+            deps[node.get_name()] = []
+
+        deps[node.get_name()].append(use.get_name())
+
+    return deps
+
+class ProjectAnalysisStruct:
+
+    def __init__(self, prj_name: str, prj_root: str):
+        """
+        Constructor for instances of project analysis structure.
+
+        :param prj_name: The name of the project
+        :param prj_root: The root directory of the project
+        """
+        self.prj_name = prj_name
+
+        if not os.path.exists(prj_root):
+            raise ValueError("Can't accept a file path that doesn't exist.")
+
+        self._prj_root = prj_root
+        self._dependencies = {}  # to be kept none? may need it later
+        self._module_structure = {}
+
+    @classmethod
+    def dir_to_module_structure(cls, dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
+        """
+        Converts a directory into a mapping of package style names to module analysis structures
+
+        :param dirpath: The path to the directory of the code
+        :return: A mapping of module names to analysis structures
+        """
+        tree = {}
+
+        namesp = dirpath
+        if "__init__.py" in os.listdir(dirpath):  # check if the start path itself is a package
+            namesp = os.sep.join(dirpath.split(os.sep)[:-1])
+
+        for root, dirs, files in os.walk(dirpath):
+            for f in files:
+                fullpath = os.path.join(root, f)
+                filename, ext = os.path.splitext(fullpath)
+                if ext == ".py":
+                    module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
+                    with open(fullpath, "r") as fr:
+                        tree[module_style] = ModuleAnalysisStruct(ast.parse(fr.read()))
+
+        return tree
+
+    def process(self):
+        self._module_structure = ProjectAnalysisStruct.dir_to_module_structure(self._prj_root)
+        self._dependencies = _get_dependency_relations(self._prj_root)
+
+    def get_prj_root(self):
+        """
+        Retrieve the root given for the project.
+
+        :return: The root of the project
+        """
+        return self._prj_root
+
+    def get_module_structure(self) -> Dict[str, ModuleAnalysisStruct]:
+        """
+        Retrieve the structure of the modules (use after processing)
+
+        :return: Mapping of module names to analysis structures
+        """
+        return self._module_structure
+
+    def get_dependencies(self) -> Dict[str, List[str]]:
+        """
+        Retreive prototypical dependencies.
+
+        :return: A mapping of
+        """
+        return self._dependencies
+
+
 
 
 def _dir_to_module_struct(dirpath: str) -> dict:
@@ -97,37 +132,11 @@ def _iter_recursive(dirpath: str, root: str, ast_trees: dict):
                 print(entry.name + " " + root + "." + name + " " + dirpath + "/" + entry.name)
                 with open(dirpath + "/" + entry.name, "r") as f:
                     ast_file = ast.parse(f.read())
-                    ast_trees[root + "." + name] = FileStruct(ast_file)
+                    ast_trees[root + "." + name] = ModuleAnalysisStruct(ast_file)
 
 
-# res = get_dependency_relations()
-# print(res[2])
-# for node in res[2]:
-#    if node.defined:
-#        node_name = node.__str__()
-#        if "<Node module" in node_name:
-#            file_name = node_name.split("<Node module:")[1]
-#            file_name = file_name[: len(file_name) - 1]
-#
-#        elif "<Node function" in node_name:
-#            file_name = node_name.split("<Node function:")[1]
-#        elif "<Node class" in node_name:
-#            file_name = node_name.split("<Node class:")[1]
-#        elif "<Node method" in node_name:
-#            file_name = node_name.split("<Node method:")[1]
-#        print(file_name)
-#        print(res[2].get(node))
 
 if __name__ == '__main__':
-
-    pas = ProjectAnalysisStruct("EvaseTest", os.path.join(os.path.dirname(__file__), "src"))
-    pas.process()
-    pprint(pas.get_module_structure())
-
-    # ast_trees = dir_to_module_struct(os.path.join(os.path.dirname(__file__), "src"))
-    # pprint(ast_trees)
-
-    # for x in ast_trees.keys():
-    #    print(x)
-    #    detector = InjectionDetectionVisitor()
-    #    print(ast_trees.get(x).get_ast())
+    test = ProjectAnalysisStruct("EvaseTest", "C:/courses/SYSC_4907/Evase/api/User File")
+    test.process()
+    pprint(test.get_dependencies())

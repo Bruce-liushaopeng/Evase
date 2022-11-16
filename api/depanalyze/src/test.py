@@ -1,8 +1,7 @@
-from pprint import *
+# from pprint import *
 
 from api.depanalyze.src.test4 import Point2
-from api.depanalyze.src.test123.test2 import *
-import os
+from api.depanalyze.src.test123.test2 import Point2
 
 
 def pprint(msg):
@@ -22,8 +21,9 @@ class Point:
         self.y = y
 
     def build_word_list(self, str):
+
         pprint(str + " world")
         p = Point2()
-        p.print("2")
+        p.helper()
 
 Point(1,3).build_word_list("str")
