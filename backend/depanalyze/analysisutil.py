@@ -93,5 +93,32 @@ def find_star_imports(path: str):
                         imp_lst.append(match.group(1))
     return imp_lst
 
+def fix_relative_imports(paths: str, path: str, alt=False):
+    if alt:
+        splpath = path.split(os.altsep)
+    else:
+        splpath = path.split(os.sep)
+
+    if os.path.isabs(path):
+        splpath = splpath[1:-1]
+
+    lst = []
+
+    for k in paths:
+        print(k)
+        ic = 0
+        for c in k:
+            if c != '.':
+                break
+            ic += 1
+        if ic != 0:
+            lst.append('.'.join(splpath[-ic:]) + '.' + k[ic:])
+        else:
+            lst.append(k)
+
+    return lst
+
+
 if __name__ == '__main__':
-    print(find_star_imports("C:/courses/SYSC_4907/Evase/backend/user_files/src/test.py"))
+    #print(fix_paths("C:/courses/SYSC_4907/Evase/backend/user_files/src/test.py"))
+    print()
