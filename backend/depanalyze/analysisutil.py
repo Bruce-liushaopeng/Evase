@@ -6,6 +6,8 @@ import pyan
 from glob import glob
 import os
 from modulefinder import ModuleFinder
+from backend.depanalyze.surfacedetector import SurfaceLevelVisitor
+from backend.injection import InjectionDetectionVisitor
 from modulestructure import ModuleAnalysisStruct
 
 
@@ -72,6 +74,55 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
 
     return tree
 
+
+def clean_up_project_imports(path: str, asts: Dict[str, ModuleAnalysisStruct]):
+    """
+    removes redundant and star imports from the python files in the directory
+
+    :param asts:
+    :param path: The path to the directory of the code
+    """
+    namesp = path
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            fullpath = os.path.join(root, f)
+            filename, ext = os.path.splitext(fullpath)
+            if ext == ".py":
+                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
+                resolve_file_imports(fullpath, asts)
+
+
+def resolve_file_imports(fullpath: str, asts: Dict[str, ModuleAnalysisStruct]):
+    detector = SurfaceLevelVisitor()
+    seen_imports = set()
+    with open(fullpath, "r") as f:
+        data = f.readlines()
+
+    for i in range(len(data) - 1, -1, -1):
+        if data[i].startswith("from ") and data[i][len(data[i]) - 2] == "*":
+            parts = data[i].strip("\n").split(" ")
+            # do traversal on imported module
+            detector.visit(asts[parts[1]])
+            lst = unseen_imports(seen_imports, detector.get_surface_names())
+
+        elif data[i].startswith("from "):
+            print(data[i])
+            parts = data[i].strip("\n").split(" ")
+            lst = unseen_imports(seen_imports, parts[3:len(parts)])
+
+
+        # ast = dir_to_module_structure("C:/Users/Anthony/Desktop/Desktop/Proj/parser")["src.test"].get_ast()
+
+
+def unseen_imports(seen_imports: set, imprts: list):
+    new_imports = []
+    for x in imprts:
+        if x not in seen_imports:
+            seen_imports.add(x)
+            new_imports.append(x)
+    return new_imports
+
+
 def find_star_imports(path: str):
     """
     Find the star imports for a python file
@@ -92,6 +143,7 @@ def find_star_imports(path: str):
                     if match:
                         imp_lst.append(match.group(1))
     return imp_lst
+
 
 def fix_relative_imports(paths: str, path: str, alt=False):
     if alt:
@@ -120,5 +172,8 @@ def fix_relative_imports(paths: str, path: str, alt=False):
 
 
 if __name__ == '__main__':
-    #print(fix_paths("C:/courses/SYSC_4907/Evase/backend/user_files/src/test.py"))
-    print()
+    asts = dir_to_module_structure("C:/Users/Anthony/Desktop/Desktop/Proj/parser")
+    clean_up_project_imports("C:/Users/Anthony/Desktop/Desktop/Proj/parser", asts)
+    # ast = asts["src.test"].get_ast()
+    # p.visit(ast)
+    # print(p.get_surface_names())
