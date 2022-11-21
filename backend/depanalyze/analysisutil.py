@@ -9,6 +9,8 @@ from modulefinder import ModuleFinder
 from backend.depanalyze.surfacedetector import SurfaceLevelVisitor
 from backend.injection import InjectionDetectionVisitor
 from modulestructure import ModuleAnalysisStruct
+import subprocess
+
 
 
 def get_dependency_relations(dirpath: str) -> Dict[str, List[str]]:
@@ -75,30 +77,52 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     return tree
 
 
-def clean_up_project_imports(path: str, asts: Dict[str, ModuleAnalysisStruct]):
+imp_patt = re.compile(r"(from|import)\s((\.*)((\w+\.?)?)+)")
+
+
+def is_relative_import(rel_import_str: str):
+
+    ic = 0
+    for c in rel_import_str:
+        if c != '.':
+            break
+        ic += 1
+
+    return ic
+
+
+def clean_up_project_imports(root_path: str, asts: Dict[str, ModuleAnalysisStruct]):
     """
     removes redundant and star imports from the python files in the directory
 
     :param asts:
-    :param path: The path to the directory of the code
+    :param root: The path to the directory of the code
     """
-    namesp = path
-    for root, dirs, files in os.walk(path):
+    detector = SurfaceLevelVisitor()
+    for root, dirs, files in os.walk(root_path):
         for f in files:
             fullpath = os.path.join(root, f)
             filename, ext = os.path.splitext(fullpath)
             if ext == ".py":
-                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
-                resolve_file_imports(fullpath, asts)
+                print(fullpath)
+                resolve_file_imports(root_path, fullpath, asts, detector)
+                detector.clear_surface_names()
 
 
-def resolve_file_imports(fullpath: str, asts: Dict[str, ModuleAnalysisStruct]):
-    detector = SurfaceLevelVisitor()
+def resolve_file_imports(root: str, fullpath: str, asts: Dict[str, ModuleAnalysisStruct],
+                         detector: SurfaceLevelVisitor):
+
+    subprocess.run(f'absolufy-imports {fullpath} --application-directories {root}')
+
     seen_imports = set()
     with open(fullpath, "r") as f:
         data = f.readlines()
 
+    print(root, fullpath)
+
     for i in range(len(data) - 1, -1, -1):
+
+
         if data[i].startswith("from ") and data[i][len(data[i]) - 2] == "*":
             parts = data[i].strip("\n").split(" ")
             # do traversal on imported module
@@ -106,10 +130,8 @@ def resolve_file_imports(fullpath: str, asts: Dict[str, ModuleAnalysisStruct]):
             lst = unseen_imports(seen_imports, detector.get_surface_names())
 
         elif data[i].startswith("from "):
-            print(data[i])
             parts = data[i].strip("\n").split(" ")
             lst = unseen_imports(seen_imports, parts[3:len(parts)])
-
 
         # ast = dir_to_module_structure("C:/Users/Anthony/Desktop/Desktop/Proj/parser")["src.test"].get_ast()
 
@@ -172,8 +194,8 @@ def fix_relative_imports(paths: str, path: str, alt=False):
 
 
 if __name__ == '__main__':
-    asts = dir_to_module_structure("C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    clean_up_project_imports("C:/Users/Anthony/Desktop/Desktop/Proj/parser", asts)
+    asts = dir_to_module_structure(r"U:\courses\SYSC_4907\Evase\backend\user_files")
+    clean_up_project_imports(r"U:\courses\SYSC_4907\Evase\backend\user_files", asts)
     # ast = asts["src.test"].get_ast()
     # p.visit(ast)
     # print(p.get_surface_names())

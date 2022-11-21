@@ -1,4 +1,3 @@
-import ast_scope
 from networkx import DiGraph
 
 
@@ -15,15 +14,7 @@ class ModuleAnalysisStruct:
         self.static_dep = None
 
     def process(self):
-        self.scope_info = ast_scope.annotate(self.ast_file)
-        self.static_dep = self.scope_info.static_dependency_graph
-        uses = {}
-        for item in self.static_dep.edges():
-            if item[0] not in uses:
-                uses[item[0]] = []
-            uses[item[0]].append(item[1])
-        self.static_dep = uses
-
+        print()
     def get_ast(self):
         return self.ast_file
 
