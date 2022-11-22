@@ -13,7 +13,7 @@ import subprocess
 
 
 
-def get_dependency_relations(dirpath: str) -> Dict[str, List[str]]:
+def get_dependency_relations(dirpath: str, keep_defined: bool = False) -> Dict[str, List[str]]:
     """
     Using Pyan3 to convert a directory into a dependency/call graph.
 
@@ -34,12 +34,16 @@ def get_dependency_relations(dirpath: str) -> Dict[str, List[str]]:
                 visited_nodes.append(node)
 
     for n in v.defines_edges:
-        for n2 in v.defines_edges[n]:
-            defines_edges.append((n, n2))
+        if n.defined and keep_defined:
+            for n2 in v.defines_edges[n]:
+                if n2.defined and keep_defined:
+                    defines_edges.append((n, n2))
 
     for n in v.uses_edges:
-        for n2 in v.uses_edges[n]:
-            uses_edges.append((n, n2))
+        if n.defined and keep_defined:
+            for n2 in v.uses_edges[n]:
+                if n2.defined and keep_defined:
+                    uses_edges.append((n, n2))
 
     deps = {}
 
@@ -194,8 +198,11 @@ def fix_relative_imports(paths: str, path: str, alt=False):
 
 
 if __name__ == '__main__':
-    asts = dir_to_module_structure(r"U:\courses\SYSC_4907\Evase\backend\user_files")
-    clean_up_project_imports(r"U:\courses\SYSC_4907\Evase\backend\user_files", asts)
+    from pprint import pprint
+    pprint(get_dependency_relations(r"U:\courses\SYSC_4907\Evase\backend\user_files"))
+
+    #asts = dir_to_module_structure(r"U:\courses\SYSC_4907\Evase\backend\user_files")
+    #clean_up_project_imports(r"U:\courses\SYSC_4907\Evase\backend\user_files", asts)
     # ast = asts["src.test"].get_ast()
     # p.visit(ast)
     # print(p.get_surface_names())
