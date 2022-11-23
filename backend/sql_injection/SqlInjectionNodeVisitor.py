@@ -1,7 +1,9 @@
 import ast
-
+from pprint import pprint
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
+    # cursor_name = None
+    # sql_package_names = ["sqlite3", "mysql"]
 
     def __init__(self):
         self.funcDict = {}
@@ -9,23 +11,36 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
         self.currentFuncNode = None
         self.problemFunctions = {}  # functionName : FunctionNode
 
+    def assign_parent_nodes(self, root_module:ast.Module):
+        setattr(root_module, 'parent', None)
+        for node in ast.walk(root_module):
+            for child in ast.iter_child_nodes(node):
+                setattr(child, 'parent', node)
+        return root_module
+
     def generic_visit(self, node):
-        # visiting each node, top to buttom, left to right.
         if isinstance(node, ast.Expr):
+            print("Found expression node, finding parent node")
+            parent_node = node.parent
+            print("Parent: ", parent_node.__class__)
+
             try:
-                #print(f'entering {ast.dump(node, indent=2)}')
                 if isinstance(node.value, ast.Call):
                     callNode = node.value
+                    
+                    # callNode.args gives the arguments in a function call
                     functionAttributeNode = callNode.func
                     funcObj = functionAttributeNode.value.id
                     funcAttribute = functionAttributeNode.attr
+
                     if (funcAttribute == 'execute'):
-                        print(
-                            f"sql execute line found at line  {str(functionAttributeNode.lineno)}, within function {self.currentFunc}")
+                        # print(
+                        #     f"sql execute line found at line  {str(functionAttributeNode.lineno)}, within function {self.currentFunc}")
                         self.problemFunctions[self.currentFunc] = self.currentFuncNode
             except:
                 # attribute not found, could be optimized with diff approach other than try exept.
                 spaceholder = "spaceholder"
+        
         super().generic_visit(node)
 
     def visit_FunctionDef(self, node):
