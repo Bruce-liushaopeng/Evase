@@ -32,6 +32,29 @@ class HomeForm extends React.Component {
         return ((this.state.active+1)/2) * 100;
     }
 
+    onSuccessfulUpload = () => {
+        this.setState({uploadComplete: true})
+    }
+
+    onCancelUpload = () => {
+        this.setState({uploadComplete: false})
+    }
+
+    onCancelAnalysis = () => {
+        this.setState({analysisComplete: false})
+    }
+
+    getAnalyzer = () => {
+        if (this.state.uploadComplete) {
+            return (
+                <div>
+                    <EvaseAnalyzer/>
+                </div>
+            );
+        }
+        return (<div></div>);
+    }
+
 
     render() {
         const { active } = this.state
@@ -40,7 +63,7 @@ class HomeForm extends React.Component {
             <TabItems value={active} >
               <TabItem>
                 <div>
-                <EvaseUploader />
+                <EvaseUploader/>
                 </div>
               </TabItem>
               <TabItem>
@@ -67,9 +90,11 @@ class HomeForm extends React.Component {
             //</Card>
 
             <Card width={700}>
-                <EvaseUploader></EvaseUploader>
-                <EvaseAnalyzer></EvaseAnalyzer>
-                <EvaseCredits></EvaseCredits>
+                <EvaseUploader 
+                    onSuccessfulUpload={this.onSuccessfulUpload}
+                    onCancelUpload={this.onCancelUpload}
+                />
+                {this.getAnalyzer()}
             </Card>
         );
     }

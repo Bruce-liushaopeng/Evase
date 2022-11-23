@@ -39,6 +39,9 @@ class UploadPanel extends React.Component {
     }
 
     cancelFile = () => {
+
+        this.props.onCancel();
+
         this.setState({
             uploadAttempt: false,
             currentMessage: this.props.cancelMessage,

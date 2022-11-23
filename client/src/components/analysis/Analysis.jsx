@@ -31,6 +31,15 @@ class AnalysisForm extends React.Component {
         super(props);
     }
 
+    newState = (e) => {
+        let s = this.props.get_state;
+        return (
+            <H6>
+                {s}
+            </H6>
+        )
+    }
+
     render() {
         return (
         <>
@@ -46,7 +55,9 @@ class AnalysisForm extends React.Component {
             <CardContent>
                 <ProgressCircular
                     indeterminate={true}
+                    elevated={true}
                 />
+                {this.newState}
                 <RadioGroup vertical>
                     <Radio checked={false} label="SQL Injection"/>
                     <Radio checked={false} label="Deadlock"/>

@@ -2,17 +2,16 @@ import os
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 import zipfile
-import logging
-
-logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger('HELLO WORLD')
+import glob
 
 UPLOAD_FOLDER = 'user_files'
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# make directory upon startup
+if not os.path.exists(UPLOAD_FOLDER):
+    os.mkdir(UPLOAD_FOLDER)
 
 @app.route('/upload', methods=['POST'])
 def file_upload_hook():
@@ -27,7 +26,7 @@ def file_upload_hook():
     if file_extension != ".zip":  # ensure upload type by checking the last three char
         return "please upload in a zip format"
 
-    if not os.path.isdir(UPLOAD_FOLDER):  # create folder if folder doesn't exist
+    if not os.path.exists(UPLOAD_FOLDER):  # create folder if folder doesn't exist
         os.mkdir(UPLOAD_FOLDER)
     destination = os.path.join(UPLOAD_FOLDER, filename)
 
@@ -37,3 +36,14 @@ def file_upload_hook():
     os.remove(destination)  # delete the zip file after unziping it
     response = "upload successful, check backend folder for User Files"
     return response
+
+@app.route('/cancelupload', methods=['DELETE'])
+def cancel_upload_hook():
+    """
+    Hook that is called when the user wants to upload a new file (remove the current).
+    """
+    if not os.path.exists(UPLOAD_FOLDER):
+        return "no file present"
+    files = glob.glob(f'{UPLOAD_FOLDER}{os.sep}*')
+    for file in files:
+        os.remove(file)
