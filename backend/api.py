@@ -3,6 +3,8 @@ from flask import Flask, request
 from werkzeug.utils import secure_filename
 import zipfile
 import glob
+import shutil
+import atexit
 
 UPLOAD_FOLDER = 'user_files'
 
@@ -34,8 +36,7 @@ def file_upload_hook():
     with zipfile.ZipFile(destination, 'r') as zip_ref:  # unzip userfiles
         zip_ref.extractall(UPLOAD_FOLDER)
     os.remove(destination)  # delete the zip file after unziping it
-    response = "upload successful, check backend folder for User Files"
-    return response
+    return "upload successful, check backend folder for User Files"
 
 @app.route('/cancelupload', methods=['DELETE'])
 def cancel_upload_hook():
@@ -44,6 +45,8 @@ def cancel_upload_hook():
     """
     if not os.path.exists(UPLOAD_FOLDER):
         return "no file present"
-    files = glob.glob(f'{UPLOAD_FOLDER}{os.sep}*')
-    for file in files:
-        os.remove(file)
+    shutil.rmtree(UPLOAD_FOLDER)
+    return "internal directory deleted"
+
+
+

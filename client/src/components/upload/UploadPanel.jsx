@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState } from 'react'
 
 import UploadForm from './Upload'
 
@@ -11,82 +11,70 @@ import {
 } from 'ui-neumorphism'
 
 
-class UploadPanel extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            uploadAttempt: false,
-            currentMessage: "",
-            responseMessage: ""
-        };
-    }
+function UploadPanel(props) {
 
-    uploadFile = (file) => {
+    const [uploadAttempt, setUploadAttempt] = useState(false);
+    const [currentMessage, setCurrentMessage] =  useState("");
+    const [responseMessage, setResponseMessage] = useState("");
 
-        let result = this.props.onUpload(file)
+    const uploadFile = async (file) => {
+        console.log("UploadPanel: Upload function triggered.")
+        let result = await props.onUpload(file)
 
         if (!result) {
             result = "The server didn't receive your code."
         }
 
-        this.setState({
-            uploadAttempt: true,
-            currentMessage: this.props.uploadMessage,
-            responseMessage: result
-        });
+        setUploadAttempt(true);
+        setCurrentMessage(props.uploadMessage);
+        setResponseMessage(result);
 
         return result ? true : false
     }
 
-    cancelFile = () => {
+    const cancelFile = () => {
+        console.log("UploadPanel: Cancel function triggered.")
+        props.onCancel();
 
-        this.props.onCancel();
-
-        this.setState({
-            uploadAttempt: false,
-            currentMessage: this.props.cancelMessage,
-            responseMessage: ""
-        });
+        setUploadAttempt(false);
+        setCurrentMessage(props.cancelMessage);
+        setResponseMessage("");
     }
 
-    fileChanged = () => {
-        this.setState({
-            currentMessage: this.props.changeMessage,
-            responseMessage: ""
-        });
+    const fileChanged = () => {
+        setCurrentMessage(props.changeMessage);
+        setResponseMessage("");
     }
 
-    render() {
-        return (
-            <>
-                <UploadForm
-                    title={this.props.title}
-                    subtitle={this.props.subtitle}
-                    onUpload={this.uploadFile}
-                    onCancel={this.cancelFile}
-                    onChange={this.fileChanged}
-                />
-                <CardContent>
+    return (
+        <>
+            <UploadForm
+                title={props.title}
+                subtitle={props.subtitle}
+                onUpload={uploadFile}
+                onCancel={cancelFile}
+                onChange={fileChanged}
+            />
+            <CardContent>
+                <>
+                <Body2>
+                    {currentMessage}
+                </Body2>
+                {uploadAttempt ? (
                     <>
-                    <Body2>
-                        {this.state.currentMessage}
-                    </Body2>
-                    {this.state.uploadAttempt ? (
-                        <>
-                            <H6>Response Message</H6>
-                            <Body2>
-                                {this.state.responseMessage}
-                            </Body2>
-                        </>
-                        ) :
-                        (
-                            <></>
-                        )}
+                        <H6>Response Message</H6>
+                        <Body2>
+                            {responseMessage}
+                        </Body2>
                     </>
-                </CardContent>
-            </>
-        )
-    }
+                    ) :
+                    (
+                        <></>
+                    )}
+                </>
+            </CardContent>
+        </>
+    )
 }
 
-export default withResize(UploadPanel);
+export default UploadPanel;

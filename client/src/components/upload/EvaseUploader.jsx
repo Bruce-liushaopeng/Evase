@@ -6,38 +6,34 @@ const axios = require('axios').default;
 function EvaseUploader(props) {
 
     const cancelUpload = () => {
-        props.onCancelUpload();
-
-        let resp = null;
+        console.log("EvaseUploader: Cancel function triggered.")
         axios
             .delete("/cancelupload", "UPL_CANCEL")
-            .then(res => {
-                resp = res.data
-            })
             .catch(err => console.warn(err));
 
-        console.log(resp)
+        props.onCancelUpload();
     }
 
-    const uploadFile = (file) => {
-        console.log("Upload function triggered.")
+    const uploadFile = async (file) => {
+        console.log("EvaseUploader: Upload function triggered.")
         const formData = new FormData();
         formData.append(
             "file",
-            file
+            file,
+            file.name
         );
-        let resp = null;
-        axios
-            .post(url="/upload", data=formData)
-            .then(res => {
-                resp = res.data
-            })
-            .catch(err => console.warn(err));
+        const res = await axios
+            .post("/upload", formData)
+            .catch(err => {
+                console.log("ERROR")
+                console.warn(err)
+            });
 
-        if (resp) {
+        if (res.data) {
             props.onSuccessfulUpload();
         }
-        return resp;
+
+        return await res.data;
     }
 
     return (
@@ -47,6 +43,8 @@ function EvaseUploader(props) {
             onUpload={uploadFile}
             onCancel={cancelUpload}
         />
+
+        
     );
 }
 

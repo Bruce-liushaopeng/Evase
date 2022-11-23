@@ -3,6 +3,7 @@ import React from 'react'
 import EvaseUploader from '../upload/EvaseUploader'
 import EvaseAnalyzer from '../analysis/EvaseAnalyzer'
 import EvaseCredits from '../credits/EvaseCredits';
+import UploadFileForm from '../upload/UploadFile';
 
 import {
     H4,
@@ -90,10 +91,8 @@ class HomeForm extends React.Component {
             //</Card>
 
             <Card width={700}>
-                <EvaseUploader 
-                    onSuccessfulUpload={this.onSuccessfulUpload}
-                    onCancelUpload={this.onCancelUpload}
-                />
+                <UploadFileForm/>
+
                 {this.getAnalyzer()}
             </Card>
         );
