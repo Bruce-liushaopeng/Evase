@@ -1,46 +1,86 @@
+from typing import Dict, List
+import ast
+import ast_scope
 from networkx import DiGraph
 
 
 class ModuleAnalysisStruct:
 
-    def __init__(self, ast_file):
-        self.module_uses = dict()
-        self.func_uses = dict()
-        self.class_uses = dict()
-        self.method_uses = dict()
-        self.ast_file = ast_file
-        self.uses = None
+    def __init__(self, module_name: str, ast_tree: ast.AST):
+        """
+        A structure for the easier analysis of a single code module.
+        Contains properties of the module such as scoping information.
+        Initialize a module analysis structure with a tree.
+
+        :param ast_tree: The ast of the module
+        """
+        self.module_name = module_name
+        self.ast_tree = ast_tree
         self.scope_info = None
         self.static_dep = None
+        self.static_uses = None
+        self.process()
+
+    def get_name(self):
+        return self.module_name
 
     def process(self):
-        print()
-    def get_ast(self):
-        return self.ast_file
+        """
+        Process the tree and determine scopes.
+        """
+        self.scope_info = ast_scope.annotate(self.ast_tree)
+        self.static_dep = self.scope_info.static_dependency_graph
+        uses = {}
+        for item in self.static_dep.edges():
+            if item[0] not in uses:
+                uses[item[0]] = []
+            uses[item[0]].append(item[1])
+        self.static_uses = uses
 
-    def set_module_uses(self, uses):
-        self.uses = uses
+    def get_ast(self) -> ast.AST:
+        """
+        Retrieve the internal ast tree.
+    def get_ast(self) -> ast.AST:
+        :return: ast for the module
+        """
+        return self.ast_tree
 
-    def get_module_uses(self):
-        return self.uses
+    def get_scope_info(self):
+        """
+        Get the scope information object (ast_scope).
 
-    def set_func_uses(self, func_uses):
-        self.func_uses = func_uses
+        :return: Scope information for current module
+        """
+        return self.scope_info
 
-    def get_func_uses(self):
-        return self.func_uses
+    def get_scope_of_node(self, node: ast.AST):
+        """
+        THIS IS THE KICKER.
+        Get the scope information object (ast_scope) for a specific node.
 
-    def set_class_uses(self, uses):
-        self.uses = uses
+        :param node: The node for which to obtain scope
+        :return: The scope information for the node
+        """
+        return self.scope_info[node]
 
-    def get_class_uses(self):
-        return self.uses
+    def get_static_uses(self) -> Dict[ast.AST, List[ast.AST]]:
+        """
+        Get a mapping of use edges: nodes to use nodes (only in the same module).
 
-    def set_method_uses(self, uses):
-        self.uses = uses
+        main() calls foo() and bar().
+        {
+            Node of main(): [Node of foo(), Node of bar()]
+        }
 
-    def get_method_uses(self):
-        return self.uses
+        :return: The use edges of the current AST tree
+        """
+
+        return self.static_uses
 
     def get_static_deps(self) -> DiGraph:
+        """
+        Get the static dependency graph (equivalent to get_static_uses).
+
+        :return: Graph object representation of use edges
+        """
         return self.static_dep

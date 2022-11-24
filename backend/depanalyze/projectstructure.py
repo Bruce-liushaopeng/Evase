@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import os
 from modulestructure import ModuleAnalysisStruct
-from analysisutil import get_dependency_relations, dir_to_module_structure, clean_up_project_imports
+from analysisutil import get_dependency_relations, dir_to_module_structure
 from pprint import pprint
 
 
@@ -26,7 +26,6 @@ class ProjectAnalysisStruct:
 
     def process(self):
         self._module_structure = dir_to_module_structure(self._prj_root)
-        clean_up_project_imports(self._prj_root, self._module_structure)
         self._dependencies = get_dependency_relations(self._prj_root)
 
     def get_prj_root(self):
