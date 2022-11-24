@@ -3,8 +3,6 @@
 # detail of execution result can be found in Notion Resource.
 
 import ast
-import os
-import pprint
 
 
 def get_ast_from_filename(filename):
@@ -25,17 +23,17 @@ def isSqlStatementVunerable(astNode: ast.AST):
     return isSafe
 
 
-fileAddressVul1 = "sql_injection_vul1.py"
-fileAddressVul2 = "sql_injection_vul2.py"
-fileAddressVul3 = "sql_injection_vul3.py"
-fileAddressVul4 = "sql_injection_vul4.py"
-fileAddressVul5 = "sql_injection_vul5.py"
-fileAddressVul6 = "sql_injection_vul6.py"
-fileAddressSafe1 = "sql_injection_safe1.py"
-fileAddressSafe2 = "sql_injection_safe2.py"
+vul1_filename = "sql_injection_vul1.py"
+vul2_filename = "sql_injection_vul2.py"
+vul3_filename = "sql_injection_vul3.py"
+vul4_filename = "sql_injection_vul4.py"
+vul5_filename = "sql_injection_vul5.py"
+vul6_filename = "sql_injection_vul6.py"
+safe1_filename = "sql_injection_safe1.py"
+safe2_filename = "sql_injection_safe2.py"
 
 if __name__ == '__main__':
-    file = open(fileAddressVul5)
+    file = open(vul5_filename)
 
     parsedObj = ast.parse(file.read())
     print(parsedObj.body)
