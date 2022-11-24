@@ -13,9 +13,16 @@ def get_ast_from_filename(filename):
     return astNode
 
 
-def isSqlStatementVunerable(astNode):
+def isSqlStatementVunerable(astNode: ast.AST):
+    isSafe = False
+    if isinstance(astNode, list):
+        print("list")
+    elif isinstance(astNode, ast.Assign):
+        print("assign")
     stringCode = ast.unparse(astNode)
     print(stringCode)
+
+    return isSafe
 
 
 fileAddressVul1 = "sql_injection_vul1.py"

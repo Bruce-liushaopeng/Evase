@@ -53,4 +53,4 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
         print("visiting " + node.name)
         self.currentFunc = node.name
         self.currentFuncNode = node
-        self.generic_visit(node)
+        super().generic_visit(node)
