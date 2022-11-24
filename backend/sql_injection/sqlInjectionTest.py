@@ -2,7 +2,7 @@ import parseFile
 import ast
 from pprint import pprint
 from SqlInjectionNodeVisitor import SqlInjectionNodeVisitor
-from ..depanalyze.modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 
 ast1 = parseFile.get_ast_from_filename(parseFile.fileAddressVul5)
 
@@ -20,5 +20,5 @@ sqlVisitor.visit(ast1)
 
 print("execute are called in the following functions")
 print("=====================")
-for funcName in sqlVisitor.problemFunctions:
-    print(funcName)
+# for funcName in sqlVisitor.problemFunctions:
+#     print(funcName)
