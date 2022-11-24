@@ -8,6 +8,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
 
     def __init__(self, module_name, ast_tree):
         self.analysis_structure = ModuleAnalysisStruct(module_name, ast_tree)
+        self.process()
 
     def process(self):
         self.generic_visit(self.analysis_structure.get_ast())
