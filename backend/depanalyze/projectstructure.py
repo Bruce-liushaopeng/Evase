@@ -47,8 +47,20 @@ class ProjectAnalysisStruct:
     def get_dependencies(self) -> Dict[str, List[str]]:
         """
         Retreive prototypical dependencies.
+        
+        {'src.__init__': {},
+        'src.parse': {},
+        'src.test': {'cool2': ['src.parse', 'cool2'],
+              'os': 'os',
+              't': ['src.parse', 'cool']},
+        'src.test123.__init__': {},
+        'src.test123.os': {},
+        'src.test123.test2': {'p': ['src.test123.test4', 'p']},
+        'src.test123.test4': {},
+        'src.test4': {}}
 
-        :return: A mapping of
+        :return: A mapping of with module_key -> namespace of module -> tuple[module full path, module function or class or variable]
+
         """
         return self._dependencies
 
