@@ -1,5 +1,7 @@
 import ast
 from pprint import pprint
+from parseFile import isSqlStatementVunerable
+
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
@@ -11,7 +13,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
         self.currentFuncNode = None
         self.problemFunctions = {}  # functionName : FunctionNode
 
-    def assign_parent_nodes(self, root_module:ast.Module):
+    def assign_parent_nodes(self, root_module: ast.Module):
         setattr(root_module, 'parent', None)
         for node in ast.walk(root_module):
             for child in ast.iter_child_nodes(node):
@@ -27,7 +29,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
             try:
                 if isinstance(node.value, ast.Call):
                     callNode = node.value
-                    
+                    funcArgs = callNode.args
                     # callNode.args gives the arguments in a function call
                     functionAttributeNode = callNode.func
                     funcObj = functionAttributeNode.value.id
@@ -37,10 +39,13 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                         # print(
                         #     f"sql execute line found at line  {str(functionAttributeNode.lineno)}, within function {self.currentFunc}")
                         self.problemFunctions[self.currentFunc] = self.currentFuncNode
+                        print("calling check on callNode")
+                        isSqlStatementVunerable(callNode)
+
             except:
                 # attribute not found, could be optimized with diff approach other than try exept.
                 spaceholder = "spaceholder"
-        
+
         super().generic_visit(node)
 
     def visit_FunctionDef(self, node):
