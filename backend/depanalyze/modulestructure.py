@@ -64,8 +64,14 @@ class ModuleAnalysisStruct:
         """
         Get a mapping of use edges: nodes to use nodes (only in the same module).
 
+        main() calls foo() and bar().
+        {
+            Node of main(): [Node of foo(), Node of bar()]
+        }
+
         :return: The use edges of the current AST tree
         """
+
         return self.static_uses
 
     def get_static_deps(self) -> DiGraph:
