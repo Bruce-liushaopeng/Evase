@@ -1,6 +1,6 @@
 import ast
 from typing import List
-from parseFile import isSqlStatementVunerable
+from parseFile import is_query_vulnerable
 
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
@@ -41,7 +41,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                         #     f"sql execute line found at line  {str(function_attribute_node.lineno)}, within function {self.currentFunc}")
                         self.execute_funcs[self.current_func_scope] = self.current_func_scope
                         print("calling check on call_node")
-                        isSqlStatementVunerable(call_node)
+                        is_query_vulnerable(call_node)
 
             except:
                 # attribute not found, could be optimized with diff approach other than try exept.
