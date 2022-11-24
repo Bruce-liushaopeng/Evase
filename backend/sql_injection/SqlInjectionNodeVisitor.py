@@ -1,15 +1,16 @@
 import ast
 from pprint import pprint
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
 
-    def __init__(self):
-        self.funcDict = {}
-        self.currentFunc = None
-        self.currentFuncNode = None
-        self.problemFunctions = {}  # functionName : FunctionNode
+    def __init__(self, module_name, ast_tree):
+        self.analysis_structure = ModuleAnalysisStruct(module_name, ast_tree)
+
+    def process(self):
+        self.generic_visit(self.analysis_structure.get_ast())
 
     def assign_parent_nodes(self, root_module:ast.Module):
         setattr(root_module, 'parent', None)

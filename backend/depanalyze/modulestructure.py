@@ -7,7 +7,7 @@ from networkx import DiGraph
 
 class ModuleAnalysisStruct:
 
-    def __init__(self, ast_tree: ast.AST):
+    def __init__(self, module_name: str, ast_tree: ast.AST):
         """
         A structure for the easier analysis of a single code module.
         Contains properties of the module such as scoping information.
@@ -15,11 +15,15 @@ class ModuleAnalysisStruct:
 
         :param ast_tree: The ast of the module
         """
+        self.module_name = module_name
         self.ast_tree = ast_tree
         self.scope_info = None
         self.static_dep = None
         self.static_uses = None
         self.process()
+
+    def get_name(self):
+        return self.module_name
 
     def process(self):
         """
