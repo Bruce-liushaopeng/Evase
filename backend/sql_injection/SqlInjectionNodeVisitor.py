@@ -1,13 +1,13 @@
 import ast
 from pprint import pprint
-from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from ..depanalyze.modulestructure import ModuleAnalysisStruct
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
 
-    def __init__(self, module_name, ast_tree):
-        self.analysis_structure = ModuleAnalysisStruct(module_name, ast_tree)
+    def __init__(self, analysis_struct: ModuleAnalysisStruct):
+        self.analysis_structure = analysis_struct
         self.process()
 
     def process(self):

@@ -2,11 +2,12 @@ import parseFile
 import ast
 from pprint import pprint
 from SqlInjectionNodeVisitor import SqlInjectionNodeVisitor
-from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from ..depanalyze.modulestructure import ModuleAnalysisStruct
 
 ast1 = parseFile.get_ast_from_filename(parseFile.fileAddressVul5)
 
-sqlVisitor = SqlInjectionNodeVisitor(parseFile.fileAddressVul5, ast1)
+ma1 = ModuleAnalysisStruct(parseFile.fileAddressVul5, ast1)
+sqlVisitor = SqlInjectionNodeVisitor(ma1)
 
 new_ast1 = sqlVisitor.assign_parent_nodes(ast1)
 
