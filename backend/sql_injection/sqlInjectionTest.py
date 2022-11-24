@@ -6,8 +6,7 @@ from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 
 ast1 = parseFile.get_ast_from_filename(parseFile.fileAddressVul5)
 
-ma1 = ModuleAnalysisStruct(ast1)
-sqlVisitor = SqlInjectionNodeVisitor(parseFile.fileAddressVul5, ma1)
+sqlVisitor = SqlInjectionNodeVisitor(parseFile.fileAddressVul5, ast1)
 
 new_ast1 = sqlVisitor.assign_parent_nodes(ast1)
 
