@@ -6,18 +6,10 @@ from parseFile import isSqlStatementVunerable
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
-
-<<<<<<< HEAD
-    def assign_parent_nodes(self, root_module:ast.Module):
-=======
-    def __init__(self):
-        self.funcDict = {}
-        self.currentFunc = None
-        self.currentFuncNode = None
-        self.problemFunctions = {}  # functionName : FunctionNode
+    def __init__(self) -> None:
+        super().__init__() 
 
     def assign_parent_nodes(self, root_module: ast.Module):
->>>>>>> bruce-dev
         setattr(root_module, 'parent', None)
         for node in ast.walk(root_module):
             for child in ast.iter_child_nodes(node):
