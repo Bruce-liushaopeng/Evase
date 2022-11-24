@@ -11,14 +11,14 @@ sqlVisitor = SqlInjectionNodeVisitor(ma1)
 
 new_ast1 = sqlVisitor.assign_parent_nodes(ast1)
 
-print("Dumping initial AST")
-print("==========================")
-pprint(ast.dump(new_ast1, indent=2))
-print("==========================")
+#print("Dumping initial AST")
+# print("==========================")
+#pprint(ast.dump(new_ast1, indent=2))
+# print("==========================")
 
 sqlVisitor.visit(ast1)
 
-print("execute are called in the following functions")
-print("=====================")
+#print("execute are called in the following functions")
+# print("=====================")
 for funcName in sqlVisitor.problemFunctions:
     print(funcName)
