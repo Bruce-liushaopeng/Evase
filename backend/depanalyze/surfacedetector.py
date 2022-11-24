@@ -12,13 +12,12 @@ class SurfaceLevelVisitor(ast.NodeVisitor):
         if isinstance(node, ast.Module):
             super().generic_visit(node)
         elif isinstance(node, ast.Assign):
-            #only one assignment
+            # only one assignment
             if hasattr(node.targets[0], 'id'):
                 for val in node.targets:
                     self.surface_names.add(val.id)
-            #multiple assignments
+            # multiple assignments
             else:
-                print(node.targets[0].elts)
                 for val in node.targets[0].elts:
                     self.surface_names.add(val.id)
         else:
