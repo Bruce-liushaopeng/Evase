@@ -3,6 +3,8 @@
 # detail of execution result can be found in Notion Resource.
 
 import ast
+import re
+from typing import Tuple
 
 vul1_filename = "sql_injection_vul1.py"
 vul2_filename = "sql_injection_vul2.py"
@@ -24,9 +26,19 @@ def get_ast_from_filename(filepath) -> ast.AST:
     """
     with open(filepath, "r") as f:
         return ast.parse(f.read())
+def does_query_match(query: ast.AST):
+    """
+    =(\s+)?('"|'")(\s+)?\+(\s+)?(\w+)(\s+)?\+(\s+)?('"|'")
+
+    :param query:
+    :return:
+    """
+    query_str = ast.unparse(query)
+
+    print()
 
 
-def is_query_vulnerable(execute_args):
+def is_query_vulnerable(execute_args) -> Tuple[ast.AST, ...]:
     """
     Determine if the arguments of a query are DIRECTLY arguments.
 
@@ -55,9 +67,9 @@ def is_query_vulnerable(execute_args):
     Return type should be rethought.
 
     :param execute_args: Query arguments
-    :return: Whether the arguments pertain to something directly vulnerable
+    :return: The problematic node in the query
     """
-    is_safe = False
+    problem_node = None
     if isinstance(execute_args, list):
         print("list represents function arguments")
         if len(execute_args) == 1:
@@ -69,11 +81,11 @@ def is_query_vulnerable(execute_args):
                 if isinstance(exec_arg.op, ast.Mod):
                     print("modulo operator detected")
                     if isinstance(exec_arg.right, ast.Name):
-                        is_safe = False
+                        problem_node = exec_arg.left, exec_arg.right
                 elif isinstance(exec_arg.op, ast.Add):
                     print("add operator detected")
                     if isinstance(exec_arg.right, ast.Name):
-                        is_safe = False
+                        problem_node = exec_arg.left, exec_arg.right
 
     elif isinstance(execute_args, ast.Assign):
         print("assign")
@@ -85,4 +97,4 @@ def is_query_vulnerable(execute_args):
     string_code = ast.unparse(execute_args)
     print(string_code)
 
-    return is_safe
+    return problem_node
