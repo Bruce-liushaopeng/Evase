@@ -1,5 +1,5 @@
-import parseFile
-from SqlInjectionNodeVisitor import SqlInjectionNodeVisitor
+import injectionutil
+from injnodevisitor import SqlInjectionNodeVisitor
 
 
 def print_execute_funcs(visitor: SqlInjectionNodeVisitor):

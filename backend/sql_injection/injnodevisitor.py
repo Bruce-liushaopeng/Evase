@@ -1,6 +1,6 @@
 import ast
 from typing import List
-from parseFile import is_query_vulnerable
+from injectionutil import is_query_vulnerable
 
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
