@@ -15,6 +15,20 @@ vul6_filename = "sql_injection_vul6.py"
 safe1_filename = "sql_injection_safe1.py"
 safe2_filename = "sql_injection_safe2.py"
 
+"""
+.format calls:
+("|')(.+)("|').format\(([^\)]+)\)
+
+string concatenation:
+(\+\s+?)("|')|("|')(\s+?\+)
+
+modulo formatting:
+(\%\s+?)("|')|("|')(\s+?\%)
+"""
+
+mod_patt = re.compile(r"""(\%\s+?)("|')|("|')(\s+?\%)""")
+sconcat_patt = re.compile(r"""(\+\s+?)("|')|("|')(\s+?\+)""")
+fmt_patt = re.compile("""("|')(.+)("|').format\(([^\)]+)\)""")
 
 def get_ast_from_filename(filepath) -> ast.AST:
     """
@@ -30,14 +44,15 @@ def get_ast_from_filename(filepath) -> ast.AST:
 
 def does_query_match(query: ast.AST):
     """
-    =(\s+)?('"|'")(\s+)?\+(\s+)?(\w+)(\s+)?\+(\s+)?('"|'")
+
 
     :param query:
     :return:
     """
     query_str = ast.unparse(query)
+    print(sconcat_patt.search(query_str))
 
-    print()
+    return any([mod_patt.search(query_str),sconcat_patt.search(query_str),fmt_patt.search(query_str)])
 
 
 def is_sql_query_vulnerable(execute_args) -> Tuple[ast.AST, ...]:
@@ -100,3 +115,7 @@ def is_sql_query_vulnerable(execute_args) -> Tuple[ast.AST, ...]:
     print(string_code)
 
     return problem_node
+
+if __name__ == '__main__':
+    r = does_query_match(ast.parse("""cursor.execute("SELECT admin FROM users WHERE username = '" + username + "'")""", mode='eval'))
+    print(r)
