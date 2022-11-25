@@ -1,0 +1,44 @@
+{
+  "pyscopg2": {
+    "imports": ["pyscopg2"],
+    "init": ["connect"],
+    "obj": ["cursor"],
+    "exec": ["execute"]
+  },
+  "sqlite3": {
+    "imports": ["sqlite3"],
+    "init": ["connect"],
+    "obj": ["cursor"],
+    "exec": ["execute"]
+  },
+  "subprocess": {
+    "imports": ["subprocess"],
+    "init": [],
+    "obj": [],
+    "exec": ["run", "call"]
+  },
+  "os": {
+    "imports": ["os"],
+    "init": [],
+    "obj": [],
+    "exec": ["popen", "system", "spawnve", "spawnlpe", "execl", "execve"]
+  },
+  "asyncio": {
+    "imports": ["asyncio"],
+    "init": [],
+    "obj": ["subprocess"],
+    "exec": ["create_subprocess_shell", "create_subprocess_shell", "subprocess_exec", "subprocess_shell"]
+  },
+  "exec": {
+    "imports": [],
+    "init": [],
+    "obj": [],
+    "exec": ["exec"]
+  },
+  "eval": {
+    "imports": [],
+    "init": [],
+    "obj": [],
+    "exec": ["eval"]
+  }
+}

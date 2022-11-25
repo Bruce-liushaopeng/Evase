@@ -26,6 +26,8 @@ def get_ast_from_filename(filepath) -> ast.AST:
     """
     with open(filepath, "r") as f:
         return ast.parse(f.read())
+
+
 def does_query_match(query: ast.AST):
     """
     =(\s+)?('"|'")(\s+)?\+(\s+)?(\w+)(\s+)?\+(\s+)?('"|'")
@@ -38,7 +40,7 @@ def does_query_match(query: ast.AST):
     print()
 
 
-def is_query_vulnerable(execute_args) -> Tuple[ast.AST, ...]:
+def is_sql_query_vulnerable(execute_args) -> Tuple[ast.AST, ...]:
     """
     Determine if the arguments of a query are DIRECTLY arguments.
 
@@ -92,7 +94,7 @@ def is_query_vulnerable(execute_args) -> Tuple[ast.AST, ...]:
 
     elif isinstance(execute_args, ast.Return):
         # should be the same procedure as the list case of arguments, can't be an assign
-        return is_query_vulnerable([execute_args.value])
+        return is_sql_query_vulnerable([execute_args.value])
 
     string_code = ast.unparse(execute_args)
     print(string_code)
