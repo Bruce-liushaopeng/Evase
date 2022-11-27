@@ -14,13 +14,15 @@ class SqlMarked:
             for target in assignment.targets:
                 print(ast.dump(target, indent=2))
                 if hasattr(target, "id"):
+                    print("id block")
                     print("take out variable" + target.id)
                 elif hasattr(target, "elts"):
+                    print("elts block")
                     for val in target.elts():
                         if hasattr(val, "id"):
                             print("take out variable" + val.id)
                 print("walk")
-                #print(ast.dump(x))
+                # print(ast.dump(x))
             print("-----")
 
             #print(ast.dump(assignment, indent=2))
