@@ -43,18 +43,18 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                             if hasattr(x, "id"):
                                 arg_list.append(x.id)
 
-                        lst = reversed(self.lst_of_assignments.copy())
-                        self.marked_sql.vulnerableVariables(lst, self.current_func_node, arg_list)
                         print("calling sql")
                     # call_node.args gives the arguments in a function call
                     function_attribute_node = call_node.func
                     func_obj = function_attribute_node.value.id
                     func_attribute = function_attribute_node.attr
 
-
                     if func_attribute == 'execute':
                         # print(
                         #     f"sql execute line found at line  {str(function_attribute_node.lineno)}, within function {self.currentFunc}")
+                        lst = reversed(self.lst_of_assignments.copy())
+                        self.marked_sql.vulnerableVariables(
+                            lst, self.current_func_node, arg_list)
                         self.execute_funcs[self.current_func_scope] = self.current_func_scope
                         print("calling check on call_node")
                         is_query_vulnerable(call_node)
