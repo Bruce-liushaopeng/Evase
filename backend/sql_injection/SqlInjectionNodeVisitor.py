@@ -26,6 +26,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
     def generic_visit(self, node: ast.AST):
 
         if isinstance(node, ast.Assign):
+            print("here -------------------------")
             self.lst_of_assignments.append(node)
 
         if isinstance(node, ast.Expr):
@@ -33,7 +34,6 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
 
             try:
                 if isinstance(node.value, ast.Call):
-                    print(ast.dump(node, indent=2))
                     call_node = node.value
                     func_args = call_node.args
                     if len(call_node.args) > 0:
@@ -43,7 +43,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                             if hasattr(x, "id"):
                                 arg_list.append(x.id)
 
-                        lst = reversed(self.lst_of_assignments.copy())
+                        lst = self.lst_of_assignments.copy()
                         self.marked_sql.vulnerableVariables(lst, self.current_func_node, arg_list)
                         print("calling sql")
                     # call_node.args gives the arguments in a function call

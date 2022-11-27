@@ -9,18 +9,18 @@ class SqlMarked:
         parameters = self.get_parameter_args(func_node)
         marked_variables = set(list_of_variables)
         print(marked_variables)
-        for assignment in list_of_assignments:
+        for assignment in reversed(list_of_assignments):
             print("Assignment")
             for target in assignment.targets:
-                print(ast.dump(target, indent=2))
-                if hasattr(target, "id"):
-                    print("take out variable" + target.id)
-                elif hasattr(target, "elts"):
-                    for val in target.elts():
-                        if hasattr(val, "id"):
-                            print("take out variable" + val.id)
-                print("walk")
-                #print(ast.dump(x))
+                print(target.__dict__)
+            if hasattr(target, "id"):
+                print("take out variable" + target.id)
+            elif hasattr(target, "elts"):
+                print("take out variable")
+                
+            #     for val in target.elts():
+            #         if hasattr(val, "id"):
+            #             print("take out variable" + val.id)
             print("-----")
 
             #print(ast.dump(assignment, indent=2))
