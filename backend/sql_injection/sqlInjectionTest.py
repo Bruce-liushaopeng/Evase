@@ -1,6 +1,6 @@
 import parseFile
 from SqlInjectionNodeVisitor import SqlInjectionNodeVisitor
-
+from sqlMarked import SqlMarked
 
 def print_execute_funcs(visitor: SqlInjectionNodeVisitor):
     for func_name in visitor.get_execute_funcs():
@@ -56,7 +56,8 @@ def test_sql_injection_vul4():
 
 def test_sql_injection_vul5():
     print("Running test for test vulnerability file:", parseFile.vul5_filename)
-    visitor = SqlInjectionNodeVisitor()
+    sqlMarked = SqlMarked()
+    visitor = SqlInjectionNodeVisitor(sqlMarked)
     ast1 = parseFile.get_ast_from_filename(parseFile.vul5_filename)
     visitor.visit(ast1)
     print_execute_funcs(visitor)
