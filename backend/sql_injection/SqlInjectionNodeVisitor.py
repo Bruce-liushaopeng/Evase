@@ -50,8 +50,8 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                 if func_attribute == 'execute':
                     lst = self.lst_of_assignments.copy()
                     print("calling check on call_node11")
-                    self.sql_marker.collect_vulnerable_vars(
-                        lst, self.current_func_node, arg_list)
+                    print(self.sql_marker.collect_vulnerable_vars(
+                        lst, self.current_func_node, arg_list))
                     print("calling check on call_node22")
                     self.execute_funcs[self.current_func_scope] = self.current_func_node
                     print("calling check on call_node")

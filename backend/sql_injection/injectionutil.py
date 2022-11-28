@@ -115,7 +115,7 @@ class SqlMarker:
         :param assignment_nodes: The list of assignment nodes inside the function definition
         :param func_node: The node of the function definition
         :param injection_vars: The variables in the potential injection statement
-        :return:
+        :return: A list which correlates parameter numbers with
         """
         parameters = get_function_params(func_node)
         marked_variables = set(injection_vars)
@@ -131,8 +131,4 @@ class SqlMarker:
                     for vulnerable_var in val_lst[index]:
                         marked_variables.add(vulnerable_var)
 
-        vulnerable_parameter = []
-        for ind in range(0, len(parameters)):
-            if parameters[ind] in marked_variables:
-                vulnerable_parameter.append(ind)
-        return vulnerable_parameter
+        return parameters, [param in marked_variables for param in parameters]
