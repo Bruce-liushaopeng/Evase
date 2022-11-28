@@ -2,7 +2,7 @@ from typing import List, Collection
 import ast
 
 
-def get_function_params(node) -> set:
+def get_function_params(node: ast.AST) -> set:
     """
     Finds the set of function parameters from an ast node.
 
@@ -14,6 +14,61 @@ def get_function_params(node) -> set:
     for arg in args:
         params.add(arg.arg)
     return params
+
+
+def collect_all_vars(node: ast.AST) -> set:
+    """
+    Recursively looks at a node and collects the variables used in that node.
+
+    :param node: The node to look through
+    :return: The set of variable ids used inside a node
+    """
+
+    args = set()
+
+    if hasattr(node, "id"):
+        print("variable")
+        print(node.__dict__)
+        args.add(node.id)
+    elif hasattr(node, "elts"):
+        print("list-like")
+        print(node.__dict__)
+        for subarg in node.elts:
+            for subsubarg in collect_all_vars(subarg):
+                args.add(subsubarg)
+    elif isinstance(node, ast.Dict):
+        print("dict")
+        print(node.__dict__)
+        for subarg in node.values:
+            for subsubarg in collect_all_vars(subarg):
+                args.add(subsubarg)
+    elif isinstance(node, ast.BinOp):
+        for l_subarg in collect_all_vars(node.left):
+            args.add(l_subarg)
+        for r_subarg in collect_all_vars(node.right):
+            args.add(r_subarg)
+
+    elif hasattr(node, "args"):
+        print("function call")
+        print(node.__dict__)
+        for arg in node.args:
+            for subarg in collect_all_vars(arg):
+                args.add(subarg)
+
+    elif hasattr(node, "value"):
+        print("value?")
+        print(node.__dict__)
+        for subarg in collect_all_vars(node.value):
+            args.add(subarg)
+
+    return args
+
+
+def quicktest():
+    tst = ast.parse("password, b, c = a+c, c, '2'")
+    for nod in ast.walk(tst):
+        if isinstance(nod, ast.Assign):
+            print(collect_all_vars(nod))
 
 
 class SqlMarker:
@@ -38,7 +93,7 @@ class SqlMarker:
             print("Assignment")
             print(ast.dump(assignment, indent=2))
 
-            target_lst = []         # list of targets for this assignment
+            target_lst = []  # list of targets for this assignment
 
             for target in assignment.targets:
 
@@ -52,20 +107,9 @@ class SqlMarker:
 
             print("Assignment TARGETS", target_lst)
 
-            val_lst = []            # list of assignment values for each target
+            val_lst = collect_all_vars(assignment.value)  # collect all variables mention
 
-            if hasattr(assignment.value, "elts"):
-                for x in assignment.value.elts:
-                    lst = []
-                    for y in ast.walk(x):
-                        if isinstance(y, ast.Name):
-                            lst.append(y.id)
-                    val_lst.append(lst.copy())
-            else:
-                lst = []
-                for y in ast.walk(assignment.value):
-                    if isinstance(y, ast.Name):
-                        lst.append(y.id)
-                val_lst.append(lst)
+            print("Assignment VALUES", val_lst)
 
-            print("Assignment VALUES", target_lst)
+
+quicktest()
