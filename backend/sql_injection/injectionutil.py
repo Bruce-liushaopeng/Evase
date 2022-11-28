@@ -125,6 +125,8 @@ class SqlMarker:
             print("Assignment TARGETS", target_lst)
             print("Assignment VALUES", val_lst)
 
+            # TODO: Check for sanitization
+
             for index in range(len(target_lst) - 1, -1, -1):
                 if target_lst[index] in marked_variables:
                     marked_variables.remove(target_lst[index])
