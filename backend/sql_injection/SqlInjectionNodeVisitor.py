@@ -1,17 +1,19 @@
 import ast
 from typing import List
+
+from backend.sql_injection.injectionutil import SqlMarker
 from parseFile import is_query_vulnerable
 
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
-    def __init__(self, marked_sql):
+    def __init__(self):
         self.execute_funcs = {}
         self.current_func_scope = None
         self.current_func_node = None
         self.lst_of_assignments = []
-        self.marked_sql = marked_sql
+        self.sql_marker = SqlMarker()
 
     def assign_parent_nodes(self, root_module: ast.Module):
         setattr(root_module, 'parent', None)
@@ -53,7 +55,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                     #     f"sql execute line found at line  {str(function_attribute_node.lineno)}, within function {self.currentFunc}")
                     lst = self.lst_of_assignments.copy()
                     print("calling check on call_node11")
-                    self.marked_sql.collect_vulnerable_vars(
+                    self.sql_marker.collect_vulnerable_vars(
                         lst, self.current_func_node, arg_list)
                     print("calling check on call_node22")
                     self.execute_funcs[self.current_func_scope] = self.current_func_node

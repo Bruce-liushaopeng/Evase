@@ -58,8 +58,7 @@ def test_sql_injection_vul4():
 
 def test_sql_injection_vul5():
     print("Running test for test vulnerability file:", parseFile.vul5_filename)
-    sqlMarked = SqlMarker()
-    visitor = SqlInjectionNodeVisitor(sqlMarked)
+    visitor = SqlInjectionNodeVisitor()
     ast1 = parseFile.get_ast_from_filename(parseFile.vul5_filename)
     visitor.visit(ast1)
     print_execute_funcs(visitor)
