@@ -2,7 +2,7 @@ from typing import List, Collection
 import ast
 
 
-def get_function_params(node: ast.AST) -> set:
+def get_function_params(node) -> list:
     """
     Finds the set of function parameters from an ast node.
 
