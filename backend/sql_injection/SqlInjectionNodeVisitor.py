@@ -53,7 +53,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                     #     f"sql execute line found at line  {str(function_attribute_node.lineno)}, within function {self.currentFunc}")
                     lst = self.lst_of_assignments.copy()
                     print("calling check on call_node11")
-                    self.marked_sql.vulnerableVariables(
+                    self.marked_sql.collect_vulnerable_vars(
                         lst, self.current_func_node, arg_list)
                     print("calling check on call_node22")
                     self.execute_funcs[self.current_func_scope] = self.current_func_node
