@@ -38,31 +38,34 @@ class SqlMarker:
             print("Assignment")
             print(ast.dump(assignment, indent=2))
 
-            target_lst = []
+            target_lst = []         # list of targets for this assignment
+
             for target in assignment.targets:
-                if hasattr(target, "id"):
+
+                if isinstance(target, ast.Name):
                     target_lst.append(target.id)
+
                 elif hasattr(target, "elts"):
                     for val in target.elts:
                         if hasattr(val, "id"):
                             target_lst.append(val.id)
 
-            print(target_lst)
+            print("Assignment TARGETS", target_lst)
 
-            val_lst = []
+            val_lst = []            # list of assignment values for each target
+
             if hasattr(assignment.value, "elts"):
                 for x in assignment.value.elts:
                     lst = []
                     for y in ast.walk(x):
-                        if hasattr(y, "id"):
+                        if isinstance(y, ast.Name):
                             lst.append(y.id)
-
                     val_lst.append(lst.copy())
             else:
                 lst = []
                 for y in ast.walk(assignment.value):
-                    if hasattr(y, "id"):
+                    if isinstance(y, ast.Name):
                         lst.append(y.id)
                 val_lst.append(lst)
 
-            print(val_lst)
+            print("Assignment VALUES", target_lst)
