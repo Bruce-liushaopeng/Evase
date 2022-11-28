@@ -9,10 +9,10 @@ def get_function_params(node) -> set:
     :param node: An ast node representing a function definition
     :return: The set of the function parameters
     """
-    params = set()
+    params = []
     args = node.args.args
     for arg in args:
-        params.add(arg.arg)
+        params.append(arg.arg)
     return params
 
 
@@ -30,13 +30,9 @@ class SqlMarker:
         :param injection_vars: The variables in the potential injection statement
         :return:
         """
-        print("here inside vulnerable ----------")
         parameters = get_function_params(func_node)
         marked_variables = set(injection_vars)
-        print(marked_variables)
         for assignment in reversed(assignment_nodes):
-            print("Assignment")
-            print(ast.dump(assignment, indent=2))
 
             target_lst = []         # list of targets for this assignment
 
@@ -49,8 +45,6 @@ class SqlMarker:
                     for val in target.elts:
                         if hasattr(val, "id"):
                             target_lst.append(val.id)
-
-            print("Assignment TARGETS", target_lst)
 
             val_lst = []            # list of assignment values for each target
 
@@ -68,4 +62,15 @@ class SqlMarker:
                         lst.append(y.id)
                 val_lst.append(lst)
 
-            print("Assignment VALUES", target_lst)
+            for index in range(len(target_lst)-1, -1,-1):
+                if target_lst[index] in marked_variables:
+                    marked_variables.remove(target_lst[index])
+                    for vulnerable_var in val_lst[index]:
+                        marked_variables.add(vulnerable_var)
+
+        vulnerable_parameter = []
+        for ind in range(0,len(parameters)):
+            if parameters[ind] in marked_variables:
+                vulnerable_parameter.append(ind)
+        return vulnerable_parameter
+
