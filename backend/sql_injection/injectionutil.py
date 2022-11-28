@@ -16,9 +16,30 @@ def get_function_params(node) -> list:
     return params
 
 
-def collect_all_vars(node: ast.AST) -> set:
+def get_all_targets(node: ast.Assign) -> list:
     """
-    Recursively looks at a node and collects the variables used in that node.
+    Gets all the targets for an assignment.
+
+    :param node: The assignment node
+    :return: The list of assignment ids
+    """
+    target_lst = []
+
+    for target in node.targets:
+        if isinstance(target, ast.Name):
+            target_lst.append(target.id)
+
+        elif hasattr(target, "elts"):
+            for val in target.elts:
+                if hasattr(val, "id"):
+                    target_lst.append(val.id)
+
+    return target_lst
+
+
+def get_all_vars(node: ast.AST) -> set:
+    """
+    Recursively looks at a node and collects the variables used in that node (EXCLUDING THE BODY).
 
     :param node: The node to look through
     :return: The set of variable ids used inside a node
@@ -26,49 +47,60 @@ def collect_all_vars(node: ast.AST) -> set:
 
     args = set()
 
+    # base case 1, stop when the parameter has an ID
     if hasattr(node, "id"):
-        print("variable")
-        print(node.__dict__)
         args.add(node.id)
+
     elif hasattr(node, "elts"):
-        print("list-like")
-        print(node.__dict__)
         for subarg in node.elts:
-            for subsubarg in collect_all_vars(subarg):
+            for subsubarg in get_all_vars(subarg):
                 args.add(subsubarg)
+
     elif isinstance(node, ast.Dict):
-        print("dict")
-        print(node.__dict__)
         for subarg in node.values:
-            for subsubarg in collect_all_vars(subarg):
+            for subsubarg in get_all_vars(subarg):
                 args.add(subsubarg)
+
     elif isinstance(node, ast.BinOp):
-        for l_subarg in collect_all_vars(node.left):
+        for l_subarg in get_all_vars(node.left):
             args.add(l_subarg)
-        for r_subarg in collect_all_vars(node.right):
+        for r_subarg in get_all_vars(node.right):
             args.add(r_subarg)
 
     elif hasattr(node, "args"):
-        print("function call")
-        print(node.__dict__)
         for arg in node.args:
-            for subarg in collect_all_vars(arg):
+            for subarg in get_all_vars(arg):
                 args.add(subarg)
 
     elif hasattr(node, "value"):
-        print("value?")
-        print(node.__dict__)
-        for subarg in collect_all_vars(node.value):
+        for subarg in get_all_vars(node.value):
             args.add(subarg)
 
     return args
+
+
+def get_all_target_values(node: ast.Assign) -> list:
+    """
+    Gets the variables used in the assignment of each target.
+
+    :param node: The assignment node
+    :return: The list of values for each target, empty set signifies no variables
+    """
+    val_lst = []  # collect all variables mentioned for each assignment
+    try:
+        for val in node.value.elts:
+            val_lst.append(get_all_vars(val))
+    except AttributeError:
+        val_lst.append(get_all_vars(node.value))
+
+    return val_lst
 
 
 def quicktest():
     tst = ast.parse("password, b, c = a+c, c, '2'")
     for nod in ast.walk(tst):
         if isinstance(nod, ast.Assign):
-            print(collect_all_vars(nod))
+            print(get_all_vars(nod))
 
 
 class SqlMarker:
@@ -89,33 +121,18 @@ class SqlMarker:
         marked_variables = set(injection_vars)
         for assignment in reversed(assignment_nodes):
 
-            target_lst = []  # list of targets for this assignment
-
-            for target in assignment.targets:
-
-                if isinstance(target, ast.Name):
-                    target_lst.append(target.id)
-
-                elif hasattr(target, "elts"):
-                    for val in target.elts:
-                        if hasattr(val, "id"):
-                            target_lst.append(val.id)
-
+            target_lst, val_lst = get_all_targets(assignment), get_all_target_values(assignment)
             print("Assignment TARGETS", target_lst)
-
-            val_lst = collect_all_vars(assignment.value)  # collect all variables mention
-
             print("Assignment VALUES", val_lst)
 
-            for index in range(len(target_lst)-1, -1,-1):
+            for index in range(len(target_lst) - 1, -1, -1):
                 if target_lst[index] in marked_variables:
                     marked_variables.remove(target_lst[index])
                     for vulnerable_var in val_lst[index]:
                         marked_variables.add(vulnerable_var)
 
         vulnerable_parameter = []
-        for ind in range(0,len(parameters)):
+        for ind in range(0, len(parameters)):
             if parameters[ind] in marked_variables:
                 vulnerable_parameter.append(ind)
         return vulnerable_parameter
-
