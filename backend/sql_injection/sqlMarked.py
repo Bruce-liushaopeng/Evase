@@ -4,7 +4,6 @@ import ast
 class SqlMarked:
 
     def vulnerableVariables(self, list_of_assignments: list, func_node, list_of_variables):
-
         print("here inside vulnerable ----------")
         parameters = self.get_parameter_args(func_node)
         marked_variables = set(list_of_variables)
@@ -40,6 +39,7 @@ class SqlMarked:
                         lst.append(y.id)
                 val_lst.append(lst)
 
+            print(val_lst)
 
 
     def get_parameter_args(self, node):
