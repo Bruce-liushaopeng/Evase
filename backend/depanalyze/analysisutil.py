@@ -21,16 +21,16 @@ def get_dependency_relations(dirpath: str, module_mapping: Dict[str, ModuleAnaly
         surface_detector.visit(ast)
         surface_values[module_key] = surface_detector.get_surface_names()
 
-    dependencies = {}
     for module_key in module_mapping.keys():
         import_resolver = ModuleImportResolver(surface_values,dirpath)
         import_resolver.set_key(module_key)
         ast = module_mapping[module_key].get_ast()
         modified_ast = import_resolver.visit(ast)
-        module_mapping[module_key] = modified_ast
-        dependencies[module_key] = import_resolver.get_dependencies()
+        module_mapping[module_key].set_ast(modified_ast)
 
-    return dependencies
+        module_imports, local_imports = import_resolver.get_dependencies()
+        module_mapping[module_key].set_module_imports(module_imports)
+        module_mapping[module_key].set_local_imports(local_imports)
 
 
 def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
@@ -65,4 +65,8 @@ if __name__ == '__main__':
     asts = dir_to_module_structure(r"C:\Users\Anthony\Desktop\Desktop\Proj\parser")
     pprint(asts)
     print("asts")
-    pprint(get_dependency_relations(r"C:\Users\Anthony\Desktop\Desktop\Proj\parser", asts))
+    get_dependency_relations(r"C:\Users\Anthony\Desktop\Desktop\Proj\parser", asts)
+    for x in asts.keys():
+        print("key " + x)
+        print(asts[x].get_local_imports())
+        print(asts[x].get_module_imports())

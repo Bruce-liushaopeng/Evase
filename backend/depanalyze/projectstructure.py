@@ -21,12 +21,11 @@ class ProjectAnalysisStruct:
             raise ValueError("Can't accept a file path that doesn't exist.")
 
         self._prj_root = prj_root
-        self._dependencies = {}  # to be kept none? may need it later
         self._module_structure = {}
 
     def process(self):
         self._module_structure = dir_to_module_structure(self._prj_root)
-        self._dependencies = get_dependency_relations(self._prj_root)
+        get_dependency_relations(self._prj_root, self._module_structure)
 
     def get_prj_root(self):
         """
@@ -44,28 +43,16 @@ class ProjectAnalysisStruct:
         """
         return self._module_structure
 
-    def get_dependencies(self) -> Dict[str, List[str]]:
+    def get_module(self, module_key) -> ModuleAnalysisStruct:
         """
-        Retreive prototypical dependencies.
-        
-        {'src.__init__': {},
-        'src.parse': {},
-        'src.test': {'cool2': ['src.parse', 'cool2'],
-              'os': 'os',
-              't': ['src.parse', 'cool']},
-        'src.test123.__init__': {},
-        'src.test123.os': {},
-        'src.test123.test2': {'p': ['src.test123.test4', 'p']},
-        'src.test123.test4': {},
-        'src.test4': {}}
+        Retrieve the structure of the module
 
-        :return: A mapping of with module_key -> namespace of module -> tuple[module full path, module function or class or variable]
-
+        :return: module analysis structures
         """
-        return self._dependencies
-
+        if module_key not in self._module_structure.keys():
+            return None
+        return self._module_structure[module_key]
 
 if __name__ == '__main__':
     test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
     test.process()
-    pprint(test.get_dependencies())
