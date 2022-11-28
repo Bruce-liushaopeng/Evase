@@ -29,8 +29,7 @@ class SqlMarked:
                 for x in assignment.value.elts:
                     lst = []
                     for y in ast.walk(x):
-                        print(ast.dump(y,indent=2))
-                        if hasattr(y, id):
+                        if hasattr(y, "id"):
                             lst.append(y.id)
 
                     val_lst.append(lst.copy())
@@ -41,7 +40,6 @@ class SqlMarked:
                         lst.append(y.id)
                 val_lst.append(lst)
 
-            print(val_lst)
 
 
     def get_parameter_args(self, node):

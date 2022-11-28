@@ -7,7 +7,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
     def __init__(self, marked_sql):
-        self.execute_funcs = []
+        self.execute_funcs = {}
         self.current_func_scope = None
         self.current_func_node = None
         self.lst_of_assignments = []
@@ -31,33 +31,34 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
 
         if isinstance(node, ast.Expr):
             print("Found expression node, finding parent node")
+            if isinstance(node.value, ast.Call):
+                print(ast.dump(node, indent=2))
+                call_node = node.value
+                func_args = call_node.args
+                if len(call_node.args) > 0:
+                    arg_list = []
+                    args = call_node.args[0]
+                    for x in ast.walk(args):
+                        if hasattr(x, "id"):
+                            arg_list.append(x.id)
 
-            try:
-                if isinstance(node.value, ast.Call):
-                    call_node = node.value
-                    func_args = call_node.args
-
-                    # call_node.args gives the arguments in a function call
-                    function_attribute_node = call_node.func
-                    func_obj = function_attribute_node.value.id
-                    func_attribute = function_attribute_node.attr
-
-                    if func_attribute == 'execute':
-                        if len(call_node.args) > 0:
-                            arg_list = []
-                        args = call_node.args[0]
-                        for x in ast.walk(args):
-                            if hasattr(x, "id"):
-                                arg_list.append(x.id)
-                        lst = self.lst_of_assignments.copy()
-                        self.marked_sql.vulnerableVariables(lst, self.current_func_node, arg_list)
-                        self.execute_funcs[self.current_func_scope] = self.current_func_scope
-                        print("calling check on call_node")
-                        is_query_vulnerable(call_node)
-
-            except:
-                # attribute not found, could be optimized with diff approach other than try exept.
-                spaceholder = "spaceholder"
+                    print("calling sql")
+                # call_node.args gives the arguments in a function call
+                function_attribute_node = call_node.func
+                func_obj = function_attribute_node.value.id
+                func_attribute = function_attribute_node.attr
+                print("FUNCTION ATTRIBUTE: " + func_attribute)
+                if func_attribute == 'execute':
+                    # print(
+                    #     f"sql execute line found at line  {str(function_attribute_node.lineno)}, within function {self.currentFunc}")
+                    lst = self.lst_of_assignments.copy()
+                    print("calling check on call_node11")
+                    self.marked_sql.vulnerableVariables(
+                        lst, self.current_func_node, arg_list)
+                    print("calling check on call_node22")
+                    self.execute_funcs[self.current_func_scope] = self.current_func_node
+                    print("calling check on call_node")
+                    is_query_vulnerable(call_node)
 
         super().generic_visit(node)
 

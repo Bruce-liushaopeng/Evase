@@ -2,6 +2,7 @@ import parseFile
 from SqlInjectionNodeVisitor import SqlInjectionNodeVisitor
 from sqlMarked import SqlMarked
 
+
 def print_execute_funcs(visitor: SqlInjectionNodeVisitor):
     for func_name in visitor.get_execute_funcs():
         print("Execution found in:", func_name)
@@ -13,6 +14,7 @@ def test_sql_injection_safe1():
     ast1 = parseFile.get_ast_from_filename(parseFile.safe1_filename)
     visitor.visit(ast1)
     print_execute_funcs(visitor)
+
 
 def test_sql_injection_safe2():
     print("Running test for test vulnerability file:", parseFile.safe2_filename)
