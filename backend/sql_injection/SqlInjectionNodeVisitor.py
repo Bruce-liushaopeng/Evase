@@ -28,13 +28,11 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
     def generic_visit(self, node: ast.AST):
 
         if isinstance(node, ast.Assign):
-            print("here -------------------------")
             self.lst_of_assignments.append(node)
 
         if isinstance(node, ast.Expr):
             print("Found expression node, finding parent node")
             if isinstance(node.value, ast.Call):
-                print(ast.dump(node, indent=2))
                 call_node = node.value
                 func_args = call_node.args
                 if len(call_node.args) > 0:
@@ -44,15 +42,12 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
                         if hasattr(x, "id"):
                             arg_list.append(x.id)
 
-                    print("calling sql")
                 # call_node.args gives the arguments in a function call
                 function_attribute_node = call_node.func
                 func_obj = function_attribute_node.value.id
                 func_attribute = function_attribute_node.attr
                 print("FUNCTION ATTRIBUTE: " + func_attribute)
                 if func_attribute == 'execute':
-                    # print(
-                    #     f"sql execute line found at line  {str(function_attribute_node.lineno)}, within function {self.currentFunc}")
                     lst = self.lst_of_assignments.copy()
                     print("calling check on call_node11")
                     self.sql_marker.collect_vulnerable_vars(
