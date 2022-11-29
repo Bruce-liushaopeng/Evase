@@ -8,52 +8,36 @@ def print_execute_funcs(visitor: SqlInjectionNodeVisitor):
         print("Execution found in:", func_name)
 
 
-def test_sql_injection_safe1():
-    print("Running test for test vulnerability file:", parseFile.safe1_filename)
+def generic_test(filename: str):
+    print("Running test for test vulnerability file:", filename)
     visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.safe1_filename)
+    ast1 = parseFile.get_ast_from_filename(filename)
     visitor.visit(ast1)
     print_execute_funcs(visitor)
+
+
+def test_sql_injection_safe1():
+    generic_test(parseFile.safe1_filename)
 
 
 def test_sql_injection_safe2():
-    print("Running test for test vulnerability file:", parseFile.safe2_filename)
-    visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.safe2_filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
+    generic_test(parseFile.safe2_filename)
 
 
 def test_sql_injection_vul1():
-    print("Running test for test vulnerability file:", parseFile.vul1_filename)
-    visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.vul1_filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
+    generic_test(parseFile.vul1_filename)
 
 
 def test_sql_injection_vul2():
-    print("Running test for test vulnerability file:", parseFile.vul2_filename)
-    visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.vul2_filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
+    generic_test(parseFile.vul2_filename)
 
 
 def test_sql_injection_vul3():
-    print("Running test for test vulnerability file:", parseFile.vul3_filename)
-    visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.vul3_filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
+    generic_test(parseFile.vul3_filename)
 
 
 def test_sql_injection_vul4():
-    print("Running test for test vulnerability file:", parseFile.vul5_filename)
-    visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.vul4_filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
+    generic_test(parseFile.vul4_filename)
 
 
 def test_sql_injection_vul5():
@@ -65,11 +49,7 @@ def test_sql_injection_vul5():
 
 
 def test_sql_injection_vul6():
-    print("Running test for test vulnerability file:", parseFile.vul6_filename)
-    visitor = SqlInjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.vul6_filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
+    generic_test(parseFile.vul6_filename)
 
 
 if __name__ == '__main__':
