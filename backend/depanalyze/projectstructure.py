@@ -55,4 +55,5 @@ class ProjectAnalysisStruct:
 
 if __name__ == '__main__':
     test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
+    
     test.process()

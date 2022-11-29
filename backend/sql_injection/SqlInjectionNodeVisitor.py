@@ -1,8 +1,8 @@
-import ast
-from typing import List
-
-from backend.sql_injection.injectionutil import SqlMarker
 from parseFile import is_query_vulnerable
+from typing import List
+import ast
+import sys
+from injectionutil import SqlMarker
 
 
 class SqlInjectionNodeVisitor(ast.NodeVisitor):
@@ -67,3 +67,7 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
         self.current_func_node = node
         self.lst_of_assignments = []
         super().generic_visit(node)
+
+
+if __name__ == '__main__':
+    anyone = SqlInjectionNodeVisitor()
