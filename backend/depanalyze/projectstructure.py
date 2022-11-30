@@ -49,9 +49,7 @@ class ProjectAnalysisStruct:
 
         :return: module analysis structures
         """
-        if module_key not in self._module_structure.keys():
-            return None
-        return self._module_structure[module_key]
+        return self._module_structure.get(module_key)
 
 if __name__ == '__main__':
     test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
