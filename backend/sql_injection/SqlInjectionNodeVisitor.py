@@ -1,5 +1,5 @@
 from parseFile import is_query_vulnerable
-from typing import List
+from typing import List, Dict, Any
 import ast
 import sys
 from injectionutil import SqlMarker, get_all_vars
@@ -10,12 +10,11 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.execute_funcs = {}
         self.current_cls_node = None
-        self.current_func_scope = None
         self.current_func_node = None
         self.lst_of_assignments = []
         self.sql_marker = SqlMarker()
 
-    def get_execute_funcs(self) -> List[str]:
+    def get_execute_funcs(self) -> dict[Any, Any]:
         return self.execute_funcs
 
     def visit_Expr(self, node: ast.Expr):
