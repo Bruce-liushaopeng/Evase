@@ -68,9 +68,10 @@ def get_all_vars(node: ast.AST) -> set:
             args.add(r_subarg)
 
     elif hasattr(node, "args"):
-        for arg in node.args:
-            for subarg in get_all_vars(arg):
-                args.add(subarg)
+        args.add(node)
+        #for arg in node.args:
+        #    for subarg in get_all_vars(arg):
+        #        args.add(subarg)
 
     elif hasattr(node, "value"):
         for subarg in get_all_vars(node.value):
