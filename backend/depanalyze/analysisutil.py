@@ -1,6 +1,8 @@
 from typing import Dict, List
 import ast
 import os
+
+from backend.depanalyze.scoperesolver import ScopeResolver
 from importresolver import ModuleImportResolver
 from surfacedetector import SurfaceLevelVisitor
 from modulestructure import ModuleAnalysisStruct
@@ -46,15 +48,17 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     if "__init__.py" in os.listdir(dirpath):  # check if the start path itself is a package
         namesp = os.sep.join(dirpath.split(os.sep)[:-1])
 
+    scope_resolver = ScopeResolver()
+
     for root, dirs, files in os.walk(dirpath):
         for f in files:
             fullpath = os.path.join(root, f)
             filename, ext = os.path.splitext(fullpath)
             if ext == ".py":
                 module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
-
                 with open(fullpath, "r") as fr:
                     tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(fr.read()))
+                tree[module_style].process(scope_resolver)
 
     return tree
 

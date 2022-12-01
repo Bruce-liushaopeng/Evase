@@ -9,7 +9,6 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
     # sql_package_names = ["sqlite3", "mysql"]
     def __init__(self):
         self.execute_funcs = {}
-        self.current_cls_node = None
         self.current_func_node = None
         self.lst_of_assignments = []
         self.sql_marker = SqlMarker()
@@ -37,33 +36,16 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
         lst = self.lst_of_assignments.copy()
         arg_list = get_all_vars(node)
 
-        print("SCOPE OF EXEC:", self.get_current_scope())
+        curr_scope = self.get_current_scope()
+        print("EXEC found, curr scope:", curr_scope)
+        print(self.current_func_node.parent_classes)
+
         print(self.sql_marker.collect_vulnerable_vars(
             lst, self.current_func_node, arg_list))
-        self.execute_funcs[self.current_func_scope] = self.current_func_node
-
-    def verify_cls(self):
-        if self.current_cls_node:
-            found = False
-            for node in ast.walk(self.current_cls_node):
-                if node == self.current_func_node:
-                    found = True
-
-            if not found:
-                self.current_cls_node = None
-
-    def verify_fn(self, node: ast.AST):
-        found = False
-        for cnode in ast.walk(self.current_func_node):
-            if cnode == node:
-                found = True
-
-        if not found:
-            self.current_func_node = None
+        self.execute_funcs[curr_scope] = self.current_func_node
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
         self.current_func_node = node
-        self.verify_cls()
         self.lst_of_assignments = []
         super().generic_visit(node)
 
@@ -71,14 +53,10 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
         self.visit_FunctionDef()
 
     def get_current_scope(self):
-        if self.current_cls_node:
-            if self.current_func_node:
-                return f'{self.current_cls_node.name}.{self.current_func_node.name}'
-            else:
-                return self.current_cls_node.name
         if self.current_func_node:
             return self.current_func_node.name
-        return ""
+        else:
+            return ""
 
 
 if __name__ == '__main__':

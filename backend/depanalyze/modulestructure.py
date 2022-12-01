@@ -3,6 +3,8 @@ import ast
 import ast_scope
 from networkx import DiGraph
 
+from backend.depanalyze.scoperesolver import ScopeResolver
+
 
 class ModuleAnalysisStruct:
 
@@ -18,6 +20,9 @@ class ModuleAnalysisStruct:
         self.ast_tree = ast_tree
         self.local_imports = {}
         self.module_imports = {}
+
+    def process(self, scope_resolver: ScopeResolver):
+        scope_resolver.visit(self.ast_tree)
 
     def get_name(self):
         return self.module_name
