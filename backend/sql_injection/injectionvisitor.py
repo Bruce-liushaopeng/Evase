@@ -4,7 +4,8 @@ import ast
 import sys
 from injectionutil import SqlMarker, get_all_vars
 
-class SqlInjectionNodeVisitor(ast.NodeVisitor):
+
+class InjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
     def __init__(self):
@@ -60,4 +61,4 @@ class SqlInjectionNodeVisitor(ast.NodeVisitor):
 
 
 if __name__ == '__main__':
-    anyone = SqlInjectionNodeVisitor()
+    anyone = InjectionNodeVisitor()

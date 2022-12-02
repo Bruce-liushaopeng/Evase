@@ -1,17 +1,17 @@
 import parseFile
-from SqlInjectionNodeVisitor import SqlInjectionNodeVisitor
+from injectionvisitor import InjectionNodeVisitor
 from backend.depanalyze.scoperesolver import ScopeResolver
 from injectionutil import SqlMarker
 
 
-def print_execute_funcs(visitor: SqlInjectionNodeVisitor):
+def print_execute_funcs(visitor: InjectionNodeVisitor):
     for func_name in visitor.get_execute_funcs():
         print("Execution found in:", func_name)
 
 
 def generic_test(filename: str):
     print("Running test for test vulnerability file:", filename)
-    visitor = SqlInjectionNodeVisitor()
+    visitor = InjectionNodeVisitor()
     ast1 = parseFile.get_ast_from_filename(filename)
     visitor.visit(ast1)
     print_execute_funcs(visitor)
@@ -44,7 +44,7 @@ def test_sql_injection_vul4():
 def test_sql_injection_vul5():
     print("Running test for test vulnerability file:", parseFile.vul5_filename)
     scoper = ScopeResolver()
-    visitor = SqlInjectionNodeVisitor()
+    visitor = InjectionNodeVisitor()
     ast1 = parseFile.get_ast_from_filename(parseFile.vul5_filename)
     scoper.visit(ast1)
     visitor.visit(ast1)
