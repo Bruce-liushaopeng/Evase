@@ -1,9 +1,11 @@
 from typing import Dict, List
 
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.analysisutil import get_dependency_relations, dir_to_module_structure
+
 import os
-from modulestructure import ModuleAnalysisStruct
-from analysisutil import get_dependency_relations, dir_to_module_structure
-from pprint import pprint
+
+from backend.depanalyze.scoperesolver import ScopeResolver
 
 
 class ProjectAnalysisStruct:
@@ -26,6 +28,11 @@ class ProjectAnalysisStruct:
     def process(self):
         self._module_structure = dir_to_module_structure(self._prj_root)
         get_dependency_relations(self._prj_root, self._module_structure)
+
+    def resolve_scopes(self, scr: ScopeResolver):
+        for mdl in self._module_structure.values():
+            scr.visit(mdl.get_ast())
+            scr.reset()
 
     def get_prj_root(self):
         """
@@ -51,7 +58,8 @@ class ProjectAnalysisStruct:
         """
         return self._module_structure.get(module_key)
 
+
 if __name__ == '__main__':
     test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    
+
     test.process()

@@ -1,8 +1,6 @@
-from parseFile import is_query_vulnerable
 from typing import List, Dict, Any
 import ast
-import sys
-from injectionutil import SqlMarker, get_all_vars
+from backend.sql_injection.injectionutil import SqlMarker, get_all_vars
 
 
 class InjectionNodeVisitor(ast.NodeVisitor):
@@ -51,7 +49,7 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         super().generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
-        self.visit_FunctionDef()
+        self.visit_FunctionDef(node)
 
     def get_current_scope(self):
         if self.current_func_node:

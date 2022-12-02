@@ -1,7 +1,32 @@
-import parseFile
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from injectionvisitor import InjectionNodeVisitor
 from backend.depanalyze.scoperesolver import ScopeResolver
-from injectionutil import SqlMarker
+import ast
+
+safe1_filename = 'test_resources/sql_injection_safe1.py'
+safe2_filename = 'test_resources/sql_injection_safe2.py'
+vul1_filename = 'test_resources/sql_injection_vul1.py'
+vul2_filename = 'test_resources/sql_injection_vul2.py'
+vul3_filename = 'test_resources/sql_injection_vul3.py'
+vul4_filename = 'test_resources/sql_injection_vul4.py'
+vul5_filename = 'test_resources/sql_injection_vul5.py'
+vul6_filename = 'test_resources/sql_injection_vul6.py'
+
+
+def get_ast_from_filename(filename: str):
+    with open(filename, "r") as af:
+        return ast.parse(af.read())
+
+
+safe1_struct = ModuleAnalysisStruct(safe1_filename, get_ast_from_filename(safe1_filename))
+safe2_struct = ModuleAnalysisStruct(safe2_filename, get_ast_from_filename(safe2_filename))
+vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul1_filename))
+vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul2_filename))
+vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul3_filename))
+vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul4_filename))
+
+prj = ProjectAnalysisStruct("Testing Structure:")
 
 
 def print_execute_funcs(visitor: InjectionNodeVisitor):
@@ -9,50 +34,56 @@ def print_execute_funcs(visitor: InjectionNodeVisitor):
         print("Execution found in:", func_name)
 
 
+def get_modulestruct(filename: str):
+    tree = get_ast_from_filename(filename)
+    return ModuleAnalysisStruct(filename, tree)
+
+
 def generic_test(filename: str):
     print("Running test for test vulnerability file:", filename)
     visitor = InjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(filename)
+    ast1 = get_ast_from_filename(filename)
     visitor.visit(ast1)
     print_execute_funcs(visitor)
 
 
 def test_sql_injection_safe1():
-    generic_test(parseFile.safe1_filename)
+    generic_test(safe1_filename)
 
 
 def test_sql_injection_safe2():
-    generic_test(parseFile.safe2_filename)
+    generic_test(safe2_filename)
 
 
 def test_sql_injection_vul1():
-    generic_test(parseFile.vul1_filename)
+    generic_test(vul1_filename)
 
 
 def test_sql_injection_vul2():
-    generic_test(parseFile.vul2_filename)
+    generic_test(vul2_filename)
 
 
 def test_sql_injection_vul3():
-    generic_test(parseFile.vul3_filename)
+    generic_test(vul3_filename)
 
 
 def test_sql_injection_vul4():
-    generic_test(parseFile.vul4_filename)
+    generic_test(vul4_filename)
 
 
 def test_sql_injection_vul5():
-    print("Running test for test vulnerability file:", parseFile.vul5_filename)
+    print("Running test for test vulnerability file:", vul5_filename)
     scoper = ScopeResolver()
     visitor = InjectionNodeVisitor()
-    ast1 = parseFile.get_ast_from_filename(parseFile.vul5_filename)
-    scoper.visit(ast1)
+    vul5_struct = get_modulestruct(vul5_filename)
+    vul5_struct
+    scoper.visit()
     visitor.visit(ast1)
     print_execute_funcs(visitor)
 
 
 def test_sql_injection_vul6():
-    generic_test(parseFile.vul6_filename)
+    generic_test(vul6_filename)
 
 
 if __name__ == '__main__':

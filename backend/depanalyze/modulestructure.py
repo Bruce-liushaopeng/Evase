@@ -1,8 +1,4 @@
-from typing import Dict, List
 import ast
-import ast_scope
-from networkx import DiGraph
-
 from backend.depanalyze.scoperesolver import ScopeResolver
 
 

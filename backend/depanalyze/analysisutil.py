@@ -3,9 +3,9 @@ import ast
 import os
 
 from backend.depanalyze.scoperesolver import ScopeResolver
-from importresolver import ModuleImportResolver
-from surfacedetector import SurfaceLevelVisitor
-from modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.importresolver import ModuleImportResolver
+from backend.depanalyze.surfacedetector import SurfaceLevelVisitor
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 
 
 def get_dependency_relations(dirpath: str, module_mapping: Dict[str, ModuleAnalysisStruct]) -> Dict[str, List[str]]:
@@ -24,7 +24,7 @@ def get_dependency_relations(dirpath: str, module_mapping: Dict[str, ModuleAnaly
         surface_values[module_key] = surface_detector.get_surface_names()
 
     for module_key in module_mapping.keys():
-        import_resolver = ModuleImportResolver(surface_values,dirpath)
+        import_resolver = ModuleImportResolver(surface_values, dirpath)
         import_resolver.set_key(module_key)
         ast = module_mapping[module_key].get_ast()
         modified_ast = import_resolver.visit(ast)
@@ -48,8 +48,6 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     if "__init__.py" in os.listdir(dirpath):  # check if the start path itself is a package
         namesp = os.sep.join(dirpath.split(os.sep)[:-1])
 
-    scope_resolver = ScopeResolver()
-
     for root, dirs, files in os.walk(dirpath):
         for f in files:
             fullpath = os.path.join(root, f)
@@ -58,9 +56,9 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
                 module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
                 with open(fullpath, "r") as fr:
                     tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(fr.read()))
-                tree[module_style].process(scope_resolver)
 
     return tree
+
 
 def get_usage_of_vul_function(projectStruc, vul_func: str, vul_module_name: str):
     potentialUsage = []
@@ -74,17 +72,16 @@ def get_usage_of_vul_function(projectStruc, vul_func: str, vul_module_name: str)
         # reference sql injection algo development notion, page api.py(for test vul func calls) for more information of the four cases.
         print(f'----   scaning vulnerable usages in {module_struct.get_name()} ----')
         if case == 0:
-            print(f"CASE 0: no vulnerable usage found" )
+            print(f"CASE 0: no vulnerable usage found")
             continue
         elif case == 1:
-            print(f"CASE 1: vulnerable module found imported, next step look for [{vul_module_name}.{vul_func}]" )
+            print(f"CASE 1: vulnerable module found imported, next step look for [{vul_module_name}.{vul_func}]")
         elif case == 2:
-            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{vul_func}]" )
+            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{vul_func}]")
         elif case == 3:
-            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]" )
+            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
         elif case == 4:
-            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{vul_func}]" )
-
+            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{vul_func}]")
 
 
 def determine_way_of_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
@@ -100,14 +97,14 @@ def determine_way_of_imports(moduleStructure: ModuleAnalysisStruct, vul_func: st
 
     if (vul_func in localImport.keys() or vul_func in moduleImport.keys()):
         return (2, vul_func)
-    
+
     # case3, importing vul function with AS
     for key in localImport:
         func_as_name = key
         className, originalFuncName = localImport[key]
         if originalFuncName == vul_func:
             return (3, func_as_name)
-            
+
     for key in moduleImport:
         func_as_name = key
         className, originalFuncName = moduleImport[key]
@@ -131,6 +128,7 @@ def determine_way_of_imports(moduleStructure: ModuleAnalysisStruct, vul_func: st
 
 if __name__ == '__main__':
     from pprint import pprint
+
     anthony_test_path = r"C:\Users\Anthony\Desktop\Desktop\Proj\parser"
     bruce_test_path = r"D:\work\programming\Evase\examples\parser\parser"
     bruce_test_path1 = r"D:\work\programming\Evase\examples\FindVulFuncUsageTest"
