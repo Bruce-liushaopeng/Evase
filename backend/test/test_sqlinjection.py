@@ -50,7 +50,7 @@ def test_sql_injection_vul5():
     scoper = ScopeResolver()
     visitor = InjectionNodeVisitor()
     vul5_struct = get_modulestruct(vul5_filename)
-    vul5_struct.process(scoper)
+    vul5_struct.resolve_scopes(scoper)
     visitor.visit(vul5_struct.get_ast())
     print_execute_funcs(visitor)
 

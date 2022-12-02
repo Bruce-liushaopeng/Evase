@@ -31,7 +31,7 @@ class ProjectAnalysisStruct:
 
     def resolve_scopes(self, scr: ScopeResolver):
         for mdl in self._module_structure.values():
-            scr.visit(mdl.get_ast())
+            mdl.resolve_scopes(scr)
             scr.reset()
 
     def get_prj_root(self):

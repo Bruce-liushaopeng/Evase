@@ -17,8 +17,8 @@ class ModuleAnalysisStruct:
         self.local_imports = {}
         self.module_imports = {}
 
-    def process(self, scope_resolver: ScopeResolver):
-        scope_resolver.visit(self.ast_tree)
+    def resolve_scopes(self, scr: ScopeResolver):
+        scr.visit(self.ast_tree)
 
     def get_name(self):
         return self.module_name
