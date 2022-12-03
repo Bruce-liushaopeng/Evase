@@ -1,8 +1,8 @@
 from typing import Dict, List
 import ast
 import os
+from pathlib import Path
 
-from backend.depanalyze.scoperesolver import ScopeResolver
 from backend.depanalyze.importresolver import ModuleImportResolver
 from backend.depanalyze.surfacedetector import SurfaceLevelVisitor
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
@@ -44,18 +44,20 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     """
     tree = {}
 
-    namesp = dirpath
-    if "__init__.py" in os.listdir(dirpath):  # check if the start path itself is a package
-        namesp = os.sep.join(dirpath.split(os.sep)[:-1])
+    dirpath = Path(dirpath)
 
-    for root, dirs, files in os.walk(dirpath):
-        for f in files:
-            fullpath = os.path.join(root, f)
-            filename, ext = os.path.splitext(fullpath)
-            if ext == ".py":
-                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
-                with open(fullpath, "r") as fr:
-                    tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(fr.read()))
+    keep_last = any(p.name == "__init__.py" for p in Path.iterdir(dirpath))
+    print(keep_last)
+
+    files = dirpath.glob('**/*.py')
+    for file in files:
+        if keep_last:
+            module_style = Path(os.path.splitext(file.relative_to(dirpath.parent))[0])
+        else:
+            module_style = Path(os.path.splitext(file.relative_to(dirpath))[0])
+        module_style = str(module_style).replace(os.sep, '.')
+
+        tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(file.open('r').read()))
 
     return tree
 

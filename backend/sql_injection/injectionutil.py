@@ -103,7 +103,6 @@ def quicktest():
         if isinstance(nod, ast.Assign):
             print(get_all_vars(nod))
 
-
 class SqlMarker:
 
     def collect_vulnerable_vars(self, assignment_nodes: List[ast.Assign], func_node,

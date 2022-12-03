@@ -16,9 +16,15 @@ class ModuleAnalysisStruct:
         self.ast_tree = ast_tree
         self.local_imports = {}
         self.module_imports = {}
+        self.funcs = []
 
     def resolve_scopes(self, scr: ScopeResolver):
         scr.visit(self.ast_tree)
+
+    def resolve_funcs(self):
+        for node in ast.walk(self.ast_tree):
+            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+                self.funcs.append(node)
 
     def get_name(self):
         return self.module_name
@@ -33,6 +39,9 @@ class ModuleAnalysisStruct:
 
     def set_ast(self, ast):
         self.ast_tree = ast
+
+    def get_funcs(self):
+        return self.funcs
 
     def get_local_imports(self):
         return self.local_imports

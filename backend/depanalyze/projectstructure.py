@@ -29,6 +29,10 @@ class ProjectAnalysisStruct:
         self._module_structure = dir_to_module_structure(self._prj_root)
         get_dependency_relations(self._prj_root, self._module_structure)
 
+    def resolve_module_funcs(self):
+        for mdl in self._module_structure.values():
+            mdl.resolve_funcs()
+
     def resolve_scopes(self, scr: ScopeResolver):
         for mdl in self._module_structure.values():
             mdl.resolve_scopes(scr)
