@@ -126,11 +126,13 @@ class SqlMarker:
             print("Assignment VALUES", val_lst)
 
             # TODO: Check for sanitization
-
+            add_set = set()
             for index in range(len(target_lst) - 1, -1, -1):
                 if target_lst[index] in marked_variables:
                     marked_variables.remove(target_lst[index])
                     for vulnerable_var in val_lst[index]:
-                        marked_variables.add(vulnerable_var)
+                        add_set.add(vulnerable_var)
+            for add_val in add_set:
+                marked_variables.add(add_val)
 
         return parameters, [param in marked_variables for param in parameters]

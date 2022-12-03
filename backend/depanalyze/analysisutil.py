@@ -1,10 +1,10 @@
 from typing import Dict, List
 import ast
 import os
-from importresolver import ModuleImportResolver
-from surfacedetector import SurfaceLevelVisitor
-from modulestructure import ModuleAnalysisStruct
-from functioncallfinder import FunctionCallFinder
+from backend.depanalyze.importresolver import ModuleImportResolver
+from backend.depanalyze.surfacedetector import SurfaceLevelVisitor
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.functioncallfinder import FunctionCallFinder
 
 
 def get_dependency_relations(dirpath: str, module_mapping: Dict[str, ModuleAnalysisStruct]) -> Dict[str, List[str]]:

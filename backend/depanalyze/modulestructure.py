@@ -1,5 +1,5 @@
 import ast
-from scoperesolver import ScopeResolver
+from backend.depanalyze.scoperesolver import ScopeResolver
 
 
 class ModuleAnalysisStruct:

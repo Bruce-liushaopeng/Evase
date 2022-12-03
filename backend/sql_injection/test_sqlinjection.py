@@ -26,8 +26,6 @@ vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul2_fil
 vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul3_filename))
 vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul4_filename))
 
-prj = ProjectAnalysisStruct("Testing Structure:")
-
 
 def print_execute_funcs(visitor: InjectionNodeVisitor):
     for func_name in visitor.get_execute_funcs():
@@ -76,9 +74,8 @@ def test_sql_injection_vul5():
     scoper = ScopeResolver()
     visitor = InjectionNodeVisitor()
     vul5_struct = get_modulestruct(vul5_filename)
-    vul5_struct
-    scoper.visit()
-    visitor.visit(ast1)
+    scoper.visit(vul5_struct.get_ast())
+    visitor.visit(vul5_struct.get_ast())
     print_execute_funcs(visitor)
 
 

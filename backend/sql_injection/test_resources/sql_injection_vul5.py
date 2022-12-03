@@ -2,8 +2,8 @@ from os import *
 import sqlite3 as sql3
 
 class Exec:
-    def amdinExec(self, username, a, c):
-        password, c, c = a, c, "2"
+    def amdinExec(self, password, a, c):
+        username, c, c = a, c, "2"
         c = "a"+a + c
 
         cursor = sql3.Cursor()
