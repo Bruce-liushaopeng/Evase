@@ -60,7 +60,7 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     return tree
 
 def get_function_uses(projectStruc, func_name: str, module_name: str):
-    potentialUsage = []
+    new_found_vulnerable = []
     for key in projectStruc:
         module_struct = projectStruc[key]
         case, asname = 0, None
@@ -92,10 +92,9 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
         
         call_finder = FunctionCallFinder(module_target, func_target)
         call_finder.visit(module_struct.ast_tree)
-        print(f"function call at line {call_finder.linoFunctionCall} of module \"{module_struct.module_name}\"" )
-        print(f"called inside of function: {call_finder.parentFuncScope}")
-
-
+        for func in call_finder.foundCallingDict:
+            print("found function name " + func)
+            print(f"ast node {str(call_finder.foundCallingDict[func])}")
 
 def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
     # function can tell us if the vulnerale is imported as function or module
