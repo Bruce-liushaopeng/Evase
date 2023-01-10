@@ -3,6 +3,7 @@ from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from injectionvisitor import InjectionNodeVisitor
 from backend.depanalyze.scoperesolver import ScopeResolver
 import ast
+import injectionutil
 
 safe1_filename = 'test_resources/sql_injection_safe1.py'
 safe2_filename = 'test_resources/sql_injection_safe2.py'
@@ -82,6 +83,11 @@ def test_sql_injection_vul5():
 def test_sql_injection_vul6():
     generic_test(vul6_filename)
 
+def test_get_all_vars():
+    astVul5 = get_ast_from_filename(vul5_filename)
+    allVars = injectionutil.get_all_vars(astVul5)
+    print(allVars)
+
 
 if __name__ == '__main__':
-    test_sql_injection_vul5()
+    test_get_all_vars()
