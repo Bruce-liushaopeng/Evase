@@ -1,4 +1,5 @@
 import ast
+from _ast import AST
 
 
 class ScopeResolver(ast.NodeTransformer):
@@ -19,9 +20,15 @@ class ScopeResolver(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
         self.func = node
+        print(self.func.name)
         newname = '.'.join(self.class_stack)
+        print(self.class_stack)
         setattr(node, 'parent_classes', list(reversed(self.class_stack.copy())))
         if len(self.class_stack) > 0:
             node.name = f'{newname}.{node.name}'
         super().generic_visit(node)
         return node
+
+    def generic_visit(self, node: AST):
+        super().generic_visit(node)
+        return node;

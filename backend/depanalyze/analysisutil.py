@@ -144,12 +144,11 @@ if __name__ == '__main__':
     anthony_test_path = r"C:\Users\Anthony\Desktop\Desktop\Proj\parser"
     bruce_test_path = r"D:\work\programming\Evase\examples\parser\parser"
     bruce_test_path1 = r"D:\work\programming\Evase\examples\FindVulFuncUsageTest"
-    asts = dir_to_module_structure(bruce_test_path1)
+    asts = dir_to_module_structure(anthony_test_path)
     pprint(asts)
     print("asts")
-    get_dependency_relations(bruce_test_path1, asts)
+    get_dependency_relations(anthony_test_path, asts)
     for x in asts.keys():
         print("=======")
         print("key " + x)
-        print(asts[x].get_local_imports())
-        print(asts[x].get_module_imports())
+        print(ast.dump(asts[x].get_ast(), indent = 2))

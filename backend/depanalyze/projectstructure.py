@@ -1,3 +1,4 @@
+import ast
 from typing import Dict, List
 
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
@@ -23,10 +24,8 @@ class ProjectAnalysisStruct:
             raise ValueError("Can't accept a file path that doesn't exist.")
 
         self._prj_root = prj_root
-        self._module_structure = {}
-
-    def process(self):
         self._module_structure = dir_to_module_structure(self._prj_root)
+        self.resolve_scopes(ScopeResolver())
         get_dependency_relations(self._prj_root, self._module_structure)
 
     def resolve_module_funcs(self):
@@ -66,4 +65,10 @@ class ProjectAnalysisStruct:
 if __name__ == '__main__':
     test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
 
-    test.process()
+    for x in test.get_module_structure().keys():
+        print("=======")
+        print("key " + x)
+        print(test.get_module(x).get_local_imports())
+        print(test.get_module(x).get_module_imports())
+        print(test.get_module(x).get_funcs())
+        print(ast.dump(test.get_module(x).get_ast(), indent = 2))

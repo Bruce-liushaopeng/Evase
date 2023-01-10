@@ -11,6 +11,7 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         self.current_func_node = None
         self.lst_of_assignments = []
         self.sql_marker = SqlMarker()
+        self.if_flag = True
 
     def get_execute_funcs(self) -> dict[Any, Any]:
         return self.execute_funcs
@@ -19,6 +20,45 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         super().generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign):
+        print(ast.dump(node))
+        self.lst_of_assignments.append(node)
+        super().generic_visit(node)
+
+    def visit_If(self, node: ast.If):
+        if self.if_flag:
+            self.lst_of_assignments.append("if")
+        for val in node.body:
+            self.visit(val)
+
+        if len(node.orelse) > 0:
+            prev = self.if_flag
+            self.if_flag = False
+            self.else_visit(node.orelse)
+            self.if_flag = prev
+
+        if self.if_flag:
+            self.lst_of_assignments.append("endif")
+
+
+    def else_visit(self, nodes):
+        if len(nodes) == 0:
+            self.lst_of_assignments.append("endelse")
+        else:
+            self.lst_of_assignments.append("else")
+            for node in nodes:
+                self.visit(node)
+
+    def visit_While(self, node: ast.While) -> Any:
+        self.lst_of_assignments.append("while")
+        super().generic_visit(node)
+        self.lst_of_assignments.append("endwhile")
+
+    def visit_For(self, node: ast.For) -> Any:
+        self.lst_of_assignments.append("for")
+        super().generic_visit(node)
+        self.lst_of_assignments.append("endfor")
+
+    def visit_Return(self, node: ast.Return) -> Any:
         self.lst_of_assignments.append(node)
         super().generic_visit(node)
 
@@ -27,7 +67,8 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         super().generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
-        if node.func.attr == "execute":
+        if hasattr(node.func, "attr") and node.func.attr == "execute":
+            print(self.lst_of_assignments)
             self.visit_execute(node)
         super().generic_visit(node)
 

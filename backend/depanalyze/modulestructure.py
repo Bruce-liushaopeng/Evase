@@ -19,7 +19,8 @@ class ModuleAnalysisStruct:
         self.funcs = []
 
     def resolve_scopes(self, scr: ScopeResolver):
-        scr.visit(self.ast_tree)
+        print("here")
+        self.ast_tree = scr.visit(self.ast_tree)
 
     def resolve_funcs(self):
         for node in ast.walk(self.ast_tree):
