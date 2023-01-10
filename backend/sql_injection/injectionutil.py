@@ -102,42 +102,45 @@ def get_all_target_values(node: ast.Assign) -> list:
     return val_lst,0
 
 
-def collect_vulnerable_vars_5(func_node, assignments, marked_lst, var_type_lst, injection_vars=[]):
+def collect_vulnerable_vars_5(func_node, assignments, possible_marked_var_to_params, var_type_lst, injection_vars=[]):
     vulnerable = set()  # params
     parameters = get_function_params(func_node)
     print(parameters)
     print(assignments)
-    # marked_lst [{a ->{param1, param2}}, {a->{param3}}]    list<Map<string, set>>
+    #               possible flow         possible flow
+    # marked_lst [{a ->{param1, param2}}, {a->{param3}}]      list<Map<string, set>>
     # var_type_lst [{a -> [Integer]},{a -> [class1,class2]}]
-    # add parameter types to var_type all permutations
+
     index = 0
     while index < len(assignments):
         node = assignments[index]
-        print(node)
+
         if isinstance(node, ast.Assign):
-            target_lst = get_all_targets(node)  # [a,b,c]
+            # variables being assigned a value
+            target_lst = get_all_targets(node)
+            #values of variables being assigned
             val_lst, target_type = get_all_target_values(node)
-            print("vals----------")
+
+            print("----------")
             print(target_lst)
             print(val_lst)
-            # [[a,b], [] for Exec(), [a,d] for d.hey(a)], [[], [src:Exec], [int]]
-            print("------------ " + str(len(marked_lst)))
-            num_possible_marking = len(marked_lst)
-            for i in range(len(target_lst)):
-                target = target_lst[i]
-                for j in range(num_possible_marking):
+            print("----------")
 
-                    marked_copy = set()
-                    for val in val_lst[i]:
-                        print(val)
+            for i in range(len(target_lst)): # for each variable being assigned
+                target_variable = target_lst[i]
+
+                for j in range(len(possible_marked_var_to_params)): # update all possible marked variables to params, for target_variable
+                    marked_new = set()
+                    for val in val_lst[i]: # values of variables being assigned to corresponding target_variable
                         if val in parameters:
-                            marked_copy.add(val)
-                        elif val in marked_lst[j]:
-                            marked_copy = marked_copy.union(marked_lst[j][val])
+                            marked_new.add(val)
+                        # get parameters that val is equal to and add to marked_new
+                        elif val in possible_marked_var_to_params[j]:
+                            marked_new = marked_new.union(possible_marked_var_to_params[j][val])
 
-                    marked_lst[j][target] = marked_copy
+                    possible_marked_var_to_params[j][target_variable] = marked_new
                     #var_type_lst[j][target] = target_type[j]
-            print(marked_lst)
+            print(possible_marked_var_to_params)
 
         elif isinstance(node, ast.Return):
             print()
@@ -154,23 +157,26 @@ def collect_vulnerable_vars_5(func_node, assignments, marked_lst, var_type_lst, 
             print(str(index)+ " here------------")
 
             print(inner_scope_assignments)
-            prev_marked_lst = copy_list_map_set(marked_lst)
+            prev_marked_lst = copy_list_map_set(possible_marked_var_to_params)
             prev_var_type_lst = copy_list_map_set(var_type_lst)
 
             for inner_scope_assignment in inner_scope_assignments:
                 copy_marked_lst = copy_list_map_set(prev_marked_lst)
                 copy_var_type_lst = copy_list_map_set(prev_var_type_lst)
 
+                # determine marked_lst in inner function, new_vulnerable is for when function returns are being analyzed
                 new_vulnerable = collect_vulnerable_vars_5(func_node, inner_scope_assignment, copy_marked_lst, copy_var_type_lst)
-                marked_lst.extend(copy_marked_lst)
+
+                # add inner scope marked_lst to previous possible_marked_var_to_params
+                possible_marked_var_to_params.extend(copy_marked_lst)
                 var_type_lst.extend(copy_var_type_lst)
                 vulnerable = vulnerable.union(new_vulnerable)
         index += 1
 
+    # if injection_vars -> cursor.execute() determine if vars used in injection are dangerous
     if len(injection_vars) != 0:
         for val in injection_vars:
-            print(val)
-            for marked in marked_lst:
+            for marked in possible_marked_var_to_params:
                 if val not in marked: continue
                 print(marked)
                 for vulnerable_param in marked[val]:
