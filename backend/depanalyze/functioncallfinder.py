@@ -20,12 +20,15 @@ class FunctionCallFinder(ast.NodeVisitor):
         if (isinstance(node, ast.Expr)):
             lineOfCalling = node.lineno
             callNode = node.value
-            print(node.__class__)
-            print(callNode.__class__)
             if isinstance(callNode, ast.Call):
-                
                 if not self.moduleName:
-                    calling_function_name = callNode.func.id
+                    print("go with no module name")
+                    calling_function_name = ""
+                    if isinstance(callNode.func, ast.Attribute) :
+                        calling_function_name = callNode.func.attr
+                    else:
+                        calling_function_name = callNode.func.id
+
                     if (calling_function_name == self.funcName):
                         self.foundCallingDict[self.currentFuncScope] = self.currentFuncNode
                 else:

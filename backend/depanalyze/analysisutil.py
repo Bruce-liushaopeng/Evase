@@ -66,6 +66,8 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
         case, asname = 0, None
         if not key == module_name:
             case, asname = differentiate_imports(module_struct, func_name, module_name)
+        else:
+            case = 2
 
         # for each case, run a node vistor, and tell the node vistor what to look for thru parameter
         # reference sql injection algo development notion, page api.py(for test vul func calls) for more information of the four cases.
@@ -93,7 +95,8 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
         call_finder = FunctionCallFinder(module_target, func_target)
         call_finder.visit(module_struct.ast_tree)
         for func in call_finder.foundCallingDict:
-            print("found function name " + func)
+            print("new vulnerable function : " + func)
+            print("new vulnerable module : " + key)
             print(f"ast node {str(call_finder.foundCallingDict[func])}")
 
 def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
