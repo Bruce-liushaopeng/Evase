@@ -32,6 +32,7 @@ class FunctionCallFinder(ast.NodeVisitor):
                         self.foundCallingDict[self.currentFuncScope] = self.currentFuncNode
                 else:
                     attrbuteNode = callNode.func
+                    print(ast.dump(attrbuteNode,indent=2))
                     calling_module_name = attrbuteNode.value.id
                     calling_function_name = attrbuteNode.attr
                     if calling_function_name == self.funcName and calling_module_name == self.moduleName:

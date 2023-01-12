@@ -3,7 +3,8 @@ import ast
 from backend.depanalyze.functioncallfinder import FunctionCallFinder
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
-
+from analysisutil import dir_to_module_structure
+from analysisutil import get_dependency_relations
 
 def get_function_module_uses(func_node: ast.FunctionDef, prj_struct: ProjectAnalysisStruct):
     name = func_node.name
@@ -15,7 +16,7 @@ def get_function_module_uses(func_node: ast.FunctionDef, prj_struct: ProjectAnal
             if name == imp_name:
                 mdls.append(imp_mdl)
 
-    # for each module that uses this function, retrieve the functions that use this function
+    # for each module that ses this function, retrieve thue functions that use this function
     funcs = []
     for mdl in mdls:
         fns = []
@@ -48,6 +49,7 @@ def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStru
 
 def get_function_uses(projectStruc, func_name: str, module_name: str):
     new_found_vulnerable = []
+    newVulnerbaleList = []
     for key in projectStruc:
         module_struct = projectStruc[key]
         case, asname = 0, None
@@ -58,7 +60,7 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
 
         # for each case, run a node vistor, and tell the node vistor what to look for thru parameter
         # reference sql injection algo development notion, page api.py(for test vul func calls) for more information of the four cases.
-        print(f'----   scaning vulnerable usages in {module_struct.get_name()} ----')
+        print(f'----   scaning vulnerable usages [{module_name}].[{func_name}] in {module_struct.get_name()} ----')
         func_target = func_name
         module_target = module_name
         if case == 0:
@@ -78,13 +80,14 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
         elif case == 4:
             print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
             module_target = asname
-
+        print(f"passing in [{module_target}, {func_target}]")
         call_finder = FunctionCallFinder(module_target, func_target)
         call_finder.visit(module_struct.ast_tree)
+
         for func in call_finder.foundCallingDict:
-            print("new vulnerable function : " + func)
-            print("new vulnerable module : " + key)
-            print(f"ast node {str(call_finder.foundCallingDict[func])}")
+            newVulnerbaleList.append({"function": func, "module": key, "astNode": call_finder.foundCallingDict[func]})
+
+    return newVulnerbaleList
 
 def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
     # function can tell us if the vulnerale is imported as function or module
@@ -95,34 +98,70 @@ def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, 
         return (1, vul_module_name)
 
     # case2, importing vulnerable function
-    print(moduleImport.keys())
 
     if (vul_func in localImport.keys() or vul_func in moduleImport.keys()):
         return (2, vul_func)
 
     # case3, importing vul function with AS
+
     for key in localImport:
         func_as_name = key
         className, originalFuncName = localImport[key]
+        print("Checking 3" + className, originalFuncName)
         if originalFuncName == vul_func:
             return (3, func_as_name)
-
     for key in moduleImport:
         func_as_name = key
         className, originalFuncName = moduleImport[key]
+        print("[" + className, ',',originalFuncName + "]")
         if originalFuncName == vul_func:
             return (3, func_as_name)
 
     # case4, importing entire module with AS
     for key in localImport:
         className, class_as_Name = localImport[key]
+        print("Checking 4" + className, class_as_Name)
+
         if className == vul_module_name:
             return (4, class_as_Name)
 
     for key in moduleImport:
         className, class_as_Name = moduleImport[key]
+        print("Checking 4" + className, class_as_Name)
         if className == vul_module_name:
             return (4, class_as_Name)
 
     # not found related import, this file is not related for this vul
     return (0, None)
+
+def searchCallingTree(path: str, initialVul: list):
+    vul_list = initialVul # storing uncalled vulnerable function
+    uncalled_vul_list = [] # storing vulnerable function that has been called
+    asts = dir_to_module_structure(path)
+    get_dependency_relations(path, asts)
+    running = True # stop when we don't find any calling of vulnerable function
+
+    while running:
+        running = False
+        new_vul_list = []
+        for vul in vul_list:
+            func = vul['function']
+            module = vul['module']
+            temp_list= get_function_uses(asts, func, module)
+            if (len(temp_list)):
+                running = True
+            new_vul_list.extend(temp_list)
+        vul_list = new_vul_list
+        print_vul_list(vul_list)
+
+def print_vul_list(vul_list):
+    print("====== vul_list update =======")
+    for vul in vul_list:
+        print(f"module: {vul['module']}, function: {vul['function']}")
+
+
+
+
+
+
+

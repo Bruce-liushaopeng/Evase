@@ -1,5 +1,7 @@
 # Case 3, funciton using AS
+
 from sql_injection_vul5 import adminExec as myExec
+import sql_injection_vul5 as VULVULVUL5
 
 @app.route('/handleAdmin', methods=['POST'])
 
