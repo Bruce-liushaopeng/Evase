@@ -13,32 +13,30 @@ class FunctionCallFinder(ast.NodeVisitor):
         self.currentFuncNode = None # non important, just keep track
         self.currentFuncScope = None
         self.linoFunctionCall = 0
+        self.foundCallingDict = {} # List for storing all the parent function of the vulnerable function
 
     def generic_visit(self, node):
         
         if (isinstance(node, ast.Expr)):
             lineOfCalling = node.lineno
             callNode = node.value
-            print(node.__class__)
-            print(callNode.__class__)
             if isinstance(callNode, ast.Call):
-                
                 if not self.moduleName:
-                    print("in if")
-                    calling_function_name = callNode.func.id
+                    print("go with no module name")
+                    calling_function_name = ""
+                    if isinstance(callNode.func, ast.Attribute) :
+                        calling_function_name = callNode.func.attr
+                    else:
+                        calling_function_name = callNode.func.id
+
                     if (calling_function_name == self.funcName):
-                        self.linoFunctionCall = lineOfCalling
-                        self.parentFuncNode = self.currentFuncNode
-                        self.parentFuncScope = self.currentFuncScope
+                        self.foundCallingDict[self.currentFuncScope] = self.currentFuncNode
                 else:
-                    print("in else")
                     attrbuteNode = callNode.func
                     calling_module_name = attrbuteNode.value.id
                     calling_function_name = attrbuteNode.attr
                     if calling_function_name == self.funcName and calling_module_name == self.moduleName:
-                        self.linoFunctionCall = lineOfCalling
-                        self.parentFuncNode = self.currentFuncNode
-                        self.parentFuncScope = self.currentFuncScope
+                        self.foundCallingDict[self.currentFuncScope] = self.currentFuncNode
 
 
         super().generic_visit(node)
