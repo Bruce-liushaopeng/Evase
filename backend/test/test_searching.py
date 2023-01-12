@@ -4,10 +4,10 @@ from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from backend.depanalyze.searching import *
 from testutil import *
 
+
 class TestSearching(unittest.TestCase):
 
     def test_find_function_call_origin(self):
-
         test_project = ProjectAnalysisStruct("testproject", prjroot1_filename)
         print(test_project.get_module_structure())
 
