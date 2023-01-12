@@ -1,10 +1,68 @@
 import ast
 import os
+from pathlib import Path
 from typing import Dict
 
-from backend.depanalyze.analysisutil import get_dependency_relations, dir_to_module_structure
+from backend.depanalyze.importresolver import ModuleImportResolver
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.scoperesolver import ScopeResolver
+from backend.depanalyze.surfacedetector import SurfaceLevelVisitor
+
+
+def resolve_project_imports(dirpath: str, module_mapping: Dict[str, ModuleAnalysisStruct]):
+    """
+    Define the dependencies between modules.
+
+    :param module_mapping: The mapping of module names to their analysis structures
+    :param dirpath: The path to the directory of the project
+    :return: An altered module mapping containing
+    """
+
+    surface_values = {}
+    for module_key in module_mapping.keys():
+        ast_tree = module_mapping[module_key].get_ast()
+        surface_detector = SurfaceLevelVisitor()
+        surface_detector.visit(ast_tree)
+        surface_values[module_key] = surface_detector.get_surface_names()
+
+    for module_key in module_mapping.keys():
+        import_resolver = ModuleImportResolver(surface_values, dirpath)
+        import_resolver.set_key(module_key)
+        ast_tree = module_mapping[module_key].get_ast()
+        modified_ast = import_resolver.visit(ast_tree)
+        module_mapping[module_key].set_ast(modified_ast)
+
+        module_imports, local_imports = import_resolver.get_dependencies()
+        module_mapping[module_key].set_module_imports(module_imports)
+        module_mapping[module_key].set_local_imports(local_imports)
+
+
+def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
+    """
+    Converts a directory into a mapping of package style names to module analysis structures
+
+    :param dirpath: The path to the directory of the code
+    :return: A mapping of module names to analysis structures
+    """
+
+    tree = {}
+    dirpath = Path(dirpath)
+
+    keep_last = any(p.name == "__init__.py" for p in Path.iterdir(dirpath))
+    print(keep_last)
+
+    files = dirpath.glob('**/*.py')
+    for file in files:
+        if keep_last:
+            module_style = Path(os.path.splitext(file.relative_to(dirpath.parent))[0])
+        else:
+            module_style = Path(os.path.splitext(file.relative_to(dirpath))[0])
+        module_style = str(module_style).replace(os.sep, '.')
+
+        with open(file, 'r') as openfile:
+            tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(openfile.read()))
+
+    return tree
 
 
 class ProjectAnalysisStruct:
@@ -24,7 +82,7 @@ class ProjectAnalysisStruct:
         self._prj_root = prj_root
         self._module_structure = dir_to_module_structure(self._prj_root)
         self.resolve_scopes(ScopeResolver())
-        get_dependency_relations(self._prj_root, self._module_structure)
+        resolve_project_imports(self._prj_root, self._module_structure)
 
     def resolve_module_funcs(self):
         for mdl in self._module_structure.values():
@@ -58,15 +116,3 @@ class ProjectAnalysisStruct:
         :return: module analysis structures
         """
         return self._module_structure.get(module_key)
-
-
-if __name__ == '__main__':
-    test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-
-    for x in test.get_module_structure().keys():
-        print("=======")
-        print("key " + x)
-        print(test.get_module(x).get_local_imports())
-        print(test.get_module(x).get_module_imports())
-        print(test.get_module(x).get_funcs())
-        print(ast.dump(test.get_module(x).get_ast(), indent = 2))
