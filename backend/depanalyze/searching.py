@@ -6,35 +6,18 @@ from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from analysisutil import dir_to_module_structure
 from analysisutil import get_dependency_relations
 
-
-def get_function_module_uses(func_node: ast.FunctionDef, prj_struct: ProjectAnalysisStruct):
-    name = func_node.name
-    mdls = []
-
-    # check project structure for any modules that import this function
-    for k, v in prj_struct.get_module_structure().items():
-        for imp, (imp_mdl, imp_name) in v.get_module_imports():
-            if name == imp_name:
-                mdls.append(imp_mdl)
-
-    # for each module that ses this function, retrieve thue functions that use this function
-    funcs = []
-    for mdl in mdls:
-        fns = []
-        mdl_struct = prj_struct.get_module(mdl)
-        for fn in mdl_struct.get_funcs():
-            for node in ast.walk(fn):
-                if isinstance(node, ast.Call):
-                    if name == node.func.id:
-                        fns.append(fn)
-                        break
-        funcs.append(fns)
-
-    return mdls, funcs
-
-
 def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStruct, prj_struct: ProjectAnalysisStruct,
                              caller_type: str = None):
+    """
+    Find the function node for of a function that was invoked in code.
+    Find where the function being called originated from.
+
+    :param func_node: The function call node in the current module
+    :param mdl_struct: The module structure that this function call was made in
+    :param prj_struct: The project structure containing the dependency graph (other modules mapping)
+    :param caller_type: The invokee of the function call (an object)
+    :return: The function definition(s) for the function that was called
+    """
     fn_name = func_node.func.id
 
     if caller_type is None:
@@ -59,18 +42,26 @@ def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStru
     return fn_defs
 
 
-def get_function_uses(projectStruc, func_name: str, module_name: str):
-    new_found_vulnerable = []
-    newVulnerbaleList = []
-    for key in projectStruc:
-        module_struct = projectStruc[key]
+def get_function_uses(prj_struct, func_name: str, module_name: str):
+    """
+    Get all the uses for a function call, and find vulnerable variables.
+
+    :param prj_struct: The project structure object containing the dependency graph
+    :param func_name: The function to search uses of
+    :param module_name: The name module that the function was found in
+    :return: The newly found vulnerable variables
+    """
+
+    new_vuls = []
+    for key in prj_struct:
+        module_struct = prj_struct[key]
         case, asname = 0, None
         if not key == module_name:
             case, asname = differentiate_imports(module_struct, func_name, module_name)
         else:
             case = 2
 
-        # for each case, run a node vistor, and tell the node vistor what to look for thru parameter
+        # for each case run a node visitor and tell the node visitor it's target to look for
         # reference sql injection algo development notion, page api.py(for test vul func calls) for more information of the four cases.
         print(f'----   scaning vulnerable usages [{module_name}].[{func_name}] in {module_struct.get_name()} ----')
         func_target = func_name
@@ -97,59 +88,75 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
         call_finder.visit(module_struct.ast_tree)
 
         for func in call_finder.foundCallingDict:
-            newVulnerbaleList.append({"function": func, "module": key, "astNode": call_finder.foundCallingDict[func]})
+            new_vuls.append({"function": func, "module": key, "astNode": call_finder.foundCallingDict[func]})
 
-    return newVulnerbaleList
+    return new_vuls
 
 
-def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
+def differentiate_imports(mdl_struct: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
+    """
+
+    :param mdl_struct:
+    :param vul_func:
+    :param vul_module_name:
+    :return:
+    """
+
     # function can tell us if the vulnerale is imported as function or module
-    localImport = moduleStructure.get_local_imports()
-    moduleImport = moduleStructure.get_module_imports()
+    local_import = mdl_struct.get_local_imports()
+    module_import = mdl_struct.get_module_imports()
     # case1, importing entire module
-    if (vul_module_name in localImport.keys() or vul_module_name in moduleImport.keys()):
-        return (1, vul_module_name)
+    if vul_module_name in local_import.keys() or vul_module_name in module_import.keys():
+        return 1, vul_module_name
 
     # case2, importing vulnerable function
 
-    if (vul_func in localImport.keys() or vul_func in moduleImport.keys()):
-        return (2, vul_func)
+    if vul_func in local_import.keys() or vul_func in module_import.keys():
+        return 2, vul_func
 
     # case3, importing vul function with AS
 
-    for key in localImport:
+    for key in local_import:
         func_as_name = key
-        className, originalFuncName = localImport[key]
-        print("Checking 3" + className, originalFuncName)
-        if originalFuncName == vul_func:
-            return (3, func_as_name)
-    for key in moduleImport:
+        class_name, original_func_name = local_import[key]
+        print("Checking 3" + class_name, original_func_name)
+        if original_func_name == vul_func:
+            return 3, func_as_name
+
+    for key in module_import:
         func_as_name = key
-        className, originalFuncName = moduleImport[key]
-        print("[" + className, ',', originalFuncName + "]")
-        if originalFuncName == vul_func:
-            return (3, func_as_name)
+        class_name, original_func_name = module_import[key]
+        print("[" + class_name, ',', original_func_name + "]")
+        if original_func_name == vul_func:
+            return 3, func_as_name
 
     # case4, importing entire module with AS
-    for key in localImport:
-        className, class_as_Name = localImport[key]
-        print("Checking 4" + className, class_as_Name)
+    for key in local_import:
+        class_name, class_as_name = local_import[key]
+        print("Checking 4" + class_name, class_as_name)
 
-        if className == vul_module_name:
-            return (4, class_as_Name)
+        if class_name == vul_module_name:
+            return 4, class_as_name
 
-    for key in moduleImport:
-        className, class_as_Name = moduleImport[key]
-        print("Checking 4" + className, class_as_Name)
-        if className == vul_module_name:
-            return (4, class_as_Name)
+    for key in module_import:
+        class_name, class_as_name = module_import[key]
+        print("Checking 4" + class_name, class_as_name)
+        if class_name == vul_module_name:
+            return 4, class_as_name
 
     # not found related import, this file is not related for this vul
-    return (0, None)
+    return 0, None
 
 
-def searchCallingTree(path: str, initialVul: list):
-    vul_list = initialVul  # storing uncalled vulnerable function
+def search_calling_tree(path: str, initial_vuls: list):
+    """
+
+    :param path:
+    :param initial_vuls:
+    :return:
+    """
+
+    vul_list = initial_vuls  # storing uncalled vulnerable function
     uncalled_vul_list = []  # storing vulnerable function that has been called
     asts = dir_to_module_structure(path)
     get_dependency_relations(path, asts)
@@ -170,6 +177,12 @@ def searchCallingTree(path: str, initialVul: list):
 
 
 def print_vul_list(vul_list):
+    """
+
+    :param vul_list:
+    :return:
+    """
+
     print("====== vul_list update =======")
     for vul in vul_list:
         print(f"module: {vul['module']}, function: {vul['function']}")

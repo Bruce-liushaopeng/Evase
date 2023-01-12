@@ -14,7 +14,7 @@ def searchCallingTreeTest():
         "function": "adminExec",
         "module": 'sql_injection_vul5'
     }]
-    searchCallingTree(test_path, initialVul)
+    search_calling_tree(test_path, initialVul)
 
 if __name__ == '__main__':
     searchCallingTreeTest()
