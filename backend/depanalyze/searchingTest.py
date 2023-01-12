@@ -17,4 +17,4 @@ def searchCallingTreeTest():
     searchCallingTree(test_path, initialVul)
 
 if __name__ == '__main__':
-    searchCallingTreeTest()
+    get_usage_of_vul_function_test()
