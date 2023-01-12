@@ -1,7 +1,6 @@
-# import sql_injection_vul5
-# import sql_injection_vul5 as vul5
-# from sql_injection_vul5 import adminExec
+# Case 3, funciton using AS
 from sql_injection_vul5 import adminExec as myExec
+
 @app.route('/handleAdmin', methods=['POST'])
 
 def otherFunction():

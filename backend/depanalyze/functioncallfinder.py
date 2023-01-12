@@ -22,7 +22,6 @@ class FunctionCallFinder(ast.NodeVisitor):
             callNode = node.value
             if isinstance(callNode, ast.Call):
                 if not self.moduleName:
-                    print("go with no module name")
                     calling_function_name = ""
                     if isinstance(callNode.func, ast.Attribute) :
                         calling_function_name = callNode.func.attr
