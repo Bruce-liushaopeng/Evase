@@ -6,6 +6,7 @@ from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from analysisutil import dir_to_module_structure
 from analysisutil import get_dependency_relations
 
+
 def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStruct, prj_struct: ProjectAnalysisStruct,
                              caller_type: str = None):
     """
