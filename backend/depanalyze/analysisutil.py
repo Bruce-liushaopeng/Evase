@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, List
 import ast
 import os
@@ -23,7 +24,7 @@ def get_dependency_relations(dirpath: str, module_mapping: Dict[str, ModuleAnaly
         surface_values[module_key] = surface_detector.get_surface_names()
 
     for module_key in module_mapping.keys():
-        import_resolver = ModuleImportResolver(surface_values,dirpath)
+        import_resolver = ModuleImportResolver(surface_values, dirpath)
         import_resolver.set_key(module_key)
         ast = module_mapping[module_key].get_ast()
         modified_ast = import_resolver.visit(ast)
@@ -41,23 +42,26 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     :param dirpath: The path to the directory of the code
     :return: A mapping of module names to analysis structures
     """
+
     tree = {}
+    dirpath = Path(dirpath)
 
-    namesp = dirpath
-    if "__init__.py" in os.listdir(dirpath):  # check if the start path itself is a package
-        namesp = os.sep.join(dirpath.split(os.sep)[:-1])
+    keep_last = any(p.name == "__init__.py" for p in Path.iterdir(dirpath))
+    print(keep_last)
 
-    for root, dirs, files in os.walk(dirpath):
-        for f in files:
-            fullpath = os.path.join(root, f)
-            filename, ext = os.path.splitext(fullpath)
-            if ext == ".py":
-                module_style = filename.replace(namesp + os.sep, '').replace(os.sep, '.')
+    files = dirpath.glob('**/*.py')
+    for file in files:
+        if keep_last:
+            module_style = Path(os.path.splitext(file.relative_to(dirpath.parent))[0])
+        else:
+            module_style = Path(os.path.splitext(file.relative_to(dirpath))[0])
+        module_style = str(module_style).replace(os.sep, '.')
 
-                with open(fullpath, "r") as fr:
-                    tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(fr.read()))
+        with open(file, 'r') as openfile:
+            tree[module_style] = ModuleAnalysisStruct(module_style, ast.parse(openfile.read()))
 
     return tree
+
 
 def get_function_uses(projectStruc, func_name: str, module_name: str):
     potentialUsage = []
@@ -73,28 +77,27 @@ def get_function_uses(projectStruc, func_name: str, module_name: str):
         func_target = func_name
         module_target = module_name
         if case == 0:
-            print(f"CASE 0: no vulnerable usage found" )
+            print(f"CASE 0: no vulnerable usage found")
             continue
 
         # No modification needed for case 1
 
         elif case == 2:
-            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]" )
+            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
             module_target = None
         elif case == 3:
-            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]" )
+            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
             module_target = None
             func_target = asname
 
         elif case == 4:
-            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]" )
+            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
             module_target = asname
-        
+
         call_finder = FunctionCallFinder(module_target, func_target)
         call_finder.visit(module_struct.ast_tree)
-        print(f"function call at line {call_finder.linoFunctionCall} of module \"{module_struct.module_name}\"" )
+        print(f"function call at line {call_finder.linoFunctionCall} of module \"{module_struct.module_name}\"")
         print(f"called inside of function: {call_finder.parentFuncScope}")
-
 
 
 def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
@@ -110,14 +113,14 @@ def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, 
 
     if (vul_func in localImport.keys() or vul_func in moduleImport.keys()):
         return (2, vul_func)
-    
+
     # case3, importing vul function with AS
     for key in localImport:
         func_as_name = key
         className, originalFuncName = localImport[key]
         if originalFuncName == vul_func:
             return (3, func_as_name)
-            
+
     for key in moduleImport:
         func_as_name = key
         className, originalFuncName = moduleImport[key]
@@ -141,6 +144,7 @@ def differentiate_imports(moduleStructure: ModuleAnalysisStruct, vul_func: str, 
 
 if __name__ == '__main__':
     from pprint import pprint
+
     anthony_test_path = r"C:\Users\Anthony\Desktop\Desktop\Proj\parser"
     bruce_test_path = r"D:\work\programming\Evase\examples\parser\parser"
     bruce_test_path1 = r"D:\work\programming\Evase\examples\FindVulFuncUsageTest"
@@ -151,4 +155,4 @@ if __name__ == '__main__':
     for x in asts.keys():
         print("=======")
         print("key " + x)
-        print(ast.dump(asts[x].get_ast(), indent = 2))
+        print(ast.dump(asts[x].get_ast(), indent=2))

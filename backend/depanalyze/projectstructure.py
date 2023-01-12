@@ -1,11 +1,9 @@
 import ast
-from typing import Dict, List
-
-from backend.depanalyze.modulestructure import ModuleAnalysisStruct
-from backend.depanalyze.analysisutil import get_dependency_relations, dir_to_module_structure
-
 import os
+from typing import Dict
 
+from backend.depanalyze.analysisutil import get_dependency_relations, dir_to_module_structure
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.scoperesolver import ScopeResolver
 
 

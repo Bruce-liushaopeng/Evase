@@ -30,10 +30,14 @@ def get_function_module_uses(func_node: ast.FunctionDef, prj_struct: ProjectAnal
     return mdls, funcs
 
 
-def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStruct):
+def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStruct, prj_struct: ProjectAnalysisStruct, caller_type: str = None):
+
+    if caller_type is None:
+        print("Regular function call, not an object function call.")
+
     fn_name = func_node.func.id
     mdls = []
-    
+
     # given a function node, find the module it comes from with the dependency graph in ModuleAnalysisStruct
     for imp, (imp_mdl, imp_name) in mdl_struct.get_module_imports():
         if fn_name == imp_name:
