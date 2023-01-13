@@ -1,17 +1,20 @@
 from typing import List, Dict, Any
 import ast
-from backend.sql_injection.injectionutil import SqlMarker, get_all_vars
+from backend.sql_injection.injectionutil import get_all_vars
+from backend.sql_injection.vulnerabletraversal import VulnerableTraversalChecker
 
 
 class InjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
-    def __init__(self):
+    def __init__(self, project_struct, module_key):
         self.execute_funcs = {}
         self.current_func_node = None
         self.lst_of_assignments = []
-        self.sql_marker = SqlMarker()
+        self.sql_marker = VulnerableTraversalChecker()
         self.if_flag = True
+        self.project_struct = project_struct
+        self.module_key = module_key
 
     def get_execute_funcs(self) -> dict[Any, Any]:
         return self.execute_funcs
@@ -79,8 +82,7 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         print("EXEC found, curr scope:", curr_scope)
         print(self.current_func_node.parent_classes)
 
-        print(self.sql_marker.collect_vulnerable_vars(
-            lst, self.current_func_node, arg_list))
+        print(self.sql_marker.traversal_from_exec(lst, self.current_func_node, arg_list, self.project_struct, self.module_key))
         self.execute_funcs[curr_scope] = self.current_func_node
 
     def visit_FunctionDef(self, node: ast.FunctionDef):

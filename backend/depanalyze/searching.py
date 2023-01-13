@@ -3,8 +3,6 @@ import ast
 from backend.depanalyze.functioncallfinder import FunctionCallFinder
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
-from analysisutil import dir_to_module_structure
-from analysisutil import get_dependency_relations
 
 
 def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStruct, prj_struct: ProjectAnalysisStruct,
@@ -149,33 +147,33 @@ def differentiate_imports(mdl_struct: ModuleAnalysisStruct, vul_func: str, vul_m
     return 0, None
 
 
-def search_calling_tree(path: str, initial_vuls: list):
-    """
-
-    :param path:
-    :param initial_vuls:
-    :return:
-    """
-
-    vul_list = initial_vuls  # storing uncalled vulnerable function
-    uncalled_vul_list = []  # storing vulnerable function that has been called
-    asts = dir_to_module_structure(path)
-    get_dependency_relations(path, asts)
-    running = True  # stop when we don't find any calling of vulnerable function
-
-    while running:
-        running = False
-        new_vul_list = []
-        for vul in vul_list:
-            func = vul['function']
-            module = vul['module']
-            temp_list = get_function_uses(asts, func, module)
-            if (len(temp_list)):
-                running = True
-            new_vul_list.extend(temp_list)
-        vul_list = new_vul_list
-        print_vul_list(vul_list)
-
+# def search_calling_tree(path: str, initial_vuls: list):
+#     """
+#
+#     :param path:
+#     :param initial_vuls:
+#     :return:
+#     """
+#
+#     vul_list = initial_vuls  # storing uncalled vulnerable function
+#     uncalled_vul_list = []  # storing vulnerable function that has been called
+#     asts = dir_to_module_structure(path)
+#     get_dependency_relations(path, asts)
+#     running = True  # stop when we don't find any calling of vulnerable function
+#
+#     while running:
+#         running = False
+#         new_vul_list = []
+#         for vul in vul_list:
+#             func = vul['function']
+#             module = vul['module']
+#             temp_list = get_function_uses(asts, func, module)
+#             if (len(temp_list)):
+#                 running = True
+#             new_vul_list.extend(temp_list)
+#         vul_list = new_vul_list
+#         print_vul_list(vul_list)
+#
 
 def print_vul_list(vul_list):
     """

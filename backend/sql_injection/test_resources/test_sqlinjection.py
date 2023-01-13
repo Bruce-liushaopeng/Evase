@@ -1,18 +1,18 @@
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
-from injectionvisitor import InjectionNodeVisitor
 from backend.depanalyze.scoperesolver import ScopeResolver
 import ast
-import injectionutil
+import backend.sql_injection.injectionutil as injectionutil
+from backend.sql_injection.injectionvisitor import InjectionNodeVisitor
 
-safe1_filename = 'test_resources/sql_injection_safe1.py'
-safe2_filename = 'test_resources/sql_injection_safe2.py'
-vul1_filename = 'test_resources/sql_injection_vul1.py'
-vul2_filename = 'test_resources/sql_injection_vul2.py'
-vul3_filename = 'test_resources/sql_injection_vul3.py'
-vul4_filename = 'test_resources/sql_injection_vul4.py'
-vul5_filename = 'test_resources/sql_injection_vul5.py'
-vul6_filename = 'test_resources/sql_injection_vul6.py'
+safe1_filename = 'sql_injection_safe1.py'
+safe2_filename = 'sql_injection_safe2.py'
+vul1_filename = 'sql_injection_vul1.py'
+vul2_filename = 'sql_injection_vul2.py'
+vul3_filename = 'sql_injection_vul3.py'
+vul4_filename = 'sql_injection_vul4.py'
+vul5_filename = 'sql_injection_vul5.py'
+vul6_filename = 'sql_injection_vul6.py'
 
 
 def get_ast_from_filename(filename: str):
@@ -84,10 +84,17 @@ def test_sql_injection_vul6():
     generic_test(vul6_filename)
 
 def test_get_all_vars():
-    astVul5 = get_ast_from_filename(vul5_filename)
-    allVars = injectionutil.get_all_vars(astVul5)
-    print(allVars)
+    # astVul5 = get_ast_from_filename(vul5_filename)
+    # allVars = injectionutil.get_all_vars(astVul5)
+    # print(allVars)
+    # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
 
+    test = ProjectAnalysisStruct("", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/sql_injection/test_resources")
+    module = test.get_module("test_resources.sql_injection_vul5")
+    scoper = ScopeResolver()
+    visitor = InjectionNodeVisitor(test, "test_resources.sql_injection_vul5")
+    visitor.visit(module.get_ast())
+    print_execute_funcs(visitor)
 
 if __name__ == '__main__':
     test_get_all_vars()

@@ -49,7 +49,6 @@ def dir_to_module_structure(dirpath: str) -> Dict[str, ModuleAnalysisStruct]:
     dirpath = Path(dirpath)
 
     keep_last = any(p.name == "__init__.py" for p in Path.iterdir(dirpath))
-    print(keep_last)
 
     files = dirpath.glob('**/*.py')
     for file in files:

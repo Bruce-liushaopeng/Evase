@@ -20,9 +20,7 @@ class ScopeResolver(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
         self.func = node
-        print(self.func.name)
         newname = '.'.join(self.class_stack)
-        print(self.class_stack)
         setattr(node, 'parent_classes', list(reversed(self.class_stack.copy())))
         if len(self.class_stack) > 0:
             node.name = f'{newname}.{node.name}'
