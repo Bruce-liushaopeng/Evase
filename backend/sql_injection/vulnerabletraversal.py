@@ -14,9 +14,18 @@ def copy_list_map_set(list_map_set):
     return copy
 
 
+def determine_vul_params(vul_set: set, func_node):
+    params = injectionutil.get_function_params(func_node)
+    lst = []
+    for i in range(len(params)):
+        if params[i] in vul_set:
+            lst.append(i)
+    return lst if len(lst) > 0 else None
+
+
 class VulnerableTraversalChecker:
     def traversal_from_exec(self, assignments: List[ast.Assign], func_node, injection_vars: Collection[ast.Name],
-                          project_struct, module):
+                            project_struct, module):
 
         vulnerable_locations = set()
         visited_func = set()
@@ -31,7 +40,8 @@ class VulnerableTraversalChecker:
             # if node.get_tags().contains("app.route"):
             # check to parameter and body as func -> add to vulnerable locations In api call.
             # else:
-            vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],  node.get_injection_vars())
+            vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
+                                                           node.get_injection_vars())
             for location in searching.get_function_uses(modules, 'adminExec', 'find_uses_tests.sql_injection_vul5'):
                 print("vulnerable asdf")
                 print(location)
@@ -42,7 +52,6 @@ class VulnerableTraversalChecker:
                 #     visitedFunc.add(location_name, location_module, location_assignments, vulnerable_vars)
 
         return vulnerable_locations
-
 
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
                                 injection_vars={}):
