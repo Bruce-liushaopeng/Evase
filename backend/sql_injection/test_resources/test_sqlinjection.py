@@ -88,7 +88,7 @@ def test_get_all_vars():
     # allVars = injectionutil.get_all_vars(astVul5)
     # print(allVars)
     # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    test = ProjectAnalysisStruct("", "D:\work\programming\Evase/backend/sql_injection/test_resources/find_uses_tests")
+    test = ProjectAnalysisStruct("", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/sql_injection/test_resources/find_uses_tests")
     module_vul5 = test.get_module("find_uses_tests.sql_injection_vul5")
     modules = test.get_module_structure()
     print("module+++++++++++")

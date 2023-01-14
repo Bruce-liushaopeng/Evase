@@ -33,7 +33,7 @@ class VulnerableTraversalChecker:
             # else:
             vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],  node.get_injection_vars())
             for node in searching.get_function_uses(modules, 'adminExec', 'find_uses_tests.sql_injection_vul5'):
-                print(ast.dump(node.get_func_node(), indent=2))
+                #print(ast.dump(node.get_func_node(), indent=2))
                 print("vulnerable asdf")
                 # must be unique based on location_name, location_module, location_assignments, vulnerable_vars
 

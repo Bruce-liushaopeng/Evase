@@ -30,14 +30,21 @@ class FunctionCallFinder(ast.NodeVisitor):
                         calling_function_name = callNode.func.id
 
                     if (calling_function_name == self.funcName):
+                        print("here")
+                        print(callNode.args)
+                        for arg in callNode.args:
+                            print(ast.dump(arg))
+
+
                         self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), [], self.module))
                 else:
                     attrbuteNode = callNode.func
                     calling_module_name = attrbuteNode.value.id
                     calling_function_name = attrbuteNode.attr
                     if calling_function_name == self.funcName and calling_module_name == self.module_as_name:
-                        #arg_list = get_all_vars(callNode.args)
-                        #print(arg_list)
+                        arg_list = get_all_vars(callNode.args)
+                        print(arg_list)
+                        print("here")
                         self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), [], self.module))
 
 
@@ -46,6 +53,7 @@ class FunctionCallFinder(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.Expr):
         self.currentFuncScope = node.name
+        print(node.name)
         self.currentFuncNode = node
         self.lst_of_assignments = []
         super().generic_visit(node)

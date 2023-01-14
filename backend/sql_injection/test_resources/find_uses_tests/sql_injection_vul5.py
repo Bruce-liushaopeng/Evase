@@ -1,9 +1,8 @@
+import sqlite3
 import string
-from os import *
-import sqlite3 as sql3
 
 
-def amdinExec(self, password: string, a: string, c: string):
+def adminExec(password: string, a: string, c: string):
     b = 4
     d = ""  # [d:{}}]
     g = c  # [{g:{c}, d:{}}]
@@ -31,9 +30,9 @@ def amdinExec(self, password: string, a: string, c: string):
 
     # possible_marked_var_to_params is now
     # [ {g:{c}, d:{}}, {g:{c}, d:{}, f:{}}, {g:{c}, d:{password}, f:{password}}]
-
-    cursor = sql3.Cursor()
-    cursor.execute("SELECT admin FROM users WHERE username = '" + d, "h", password)
+    conn = sqlite3.connect("db.sqlite")
+    c = conn.cursor()
+    c.execute('''SELECT admin FROM users WHERE username = ''' + d, password)
 
     # d is the only variable present in the dangerous cursor.execute
     # {g:{c}, d:{}}             d is not equal to a parameter -> not dangerous
@@ -42,4 +41,4 @@ def amdinExec(self, password: string, a: string, c: string):
 
 
 def fun():
-    amdinExec("a", "b", "c")
+    adminExec("a", "b", "c")
