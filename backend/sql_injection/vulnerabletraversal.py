@@ -14,6 +14,13 @@ def copy_list_map_set(list_map_set):
     return copy
 
 
+def is_flask_api_function(func_node: ast.FunctionDef):
+    for dec in func_node.decorator_list:
+        s = ast.unparse(dec)
+        if s.startswith('app.route'):
+            return True
+    return False
+
 def determine_vul_params_location(vul_set: set, func_node):
     params = injectionutil.get_function_params(func_node)
     lst = []

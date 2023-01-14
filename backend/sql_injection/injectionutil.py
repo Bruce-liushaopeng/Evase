@@ -103,11 +103,10 @@ def get_all_target_values(node: ast.Assign) -> list:
 
 
 def get_inner_scope_assignments(index, assignments):
-    stack = []
-    stack.append("end" + assignments[index])
+    stack = ["end" + assignments[index]]
     index += 1
     inner_assignments = [[]]
-    assignment_ind = 0;
+    assignment_ind = 0
 
     while len(stack) != 0:
         node = assignments[index]
