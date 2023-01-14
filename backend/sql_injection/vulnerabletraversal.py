@@ -64,10 +64,10 @@ class VulnerableTraversalChecker:
                 # values of variables being assigned
                 val_lst, target_type = injectionutil.get_all_target_values(node)
 
-                print("----------")
-                print(target_lst)
-                print(val_lst)
-                print("----------")
+                # print("----------")
+                # print(target_lst)
+                # print(val_lst)
+                # print("----------")
 
                 for i in range(len(target_lst)):  # for each variable being assigned
                     target_variable = target_lst[i]
@@ -84,7 +84,7 @@ class VulnerableTraversalChecker:
 
                         possible_marked_var_to_params[j][target_variable] = marked_new
                         # var_type_lst[j][target] = target_type[j]
-                print(possible_marked_var_to_params)
+                # print(possible_marked_var_to_params)
 
             elif isinstance(node, ast.Return):
                 print()
@@ -96,11 +96,7 @@ class VulnerableTraversalChecker:
                 # break
 
             elif node == "if" or node == "while" or node == "for":
-                print(str(index) + " here------------")
                 index, inner_scope_assignments = injectionutil.get_inner_scope_assignments(index, assignments)
-                print(str(index) + " here------------")
-
-                print(inner_scope_assignments)
                 prev_marked_lst = copy_list_map_set(possible_marked_var_to_params)
                 prev_var_type_lst = copy_list_map_set(var_type_lst)
 
@@ -123,7 +119,6 @@ class VulnerableTraversalChecker:
             for val in injection_vars:
                 for marked in possible_marked_var_to_params:
                     if val not in marked: continue
-                    print(marked)
                     for vulnerable_param in marked[val]:
                         vulnerable.add(vulnerable_param)
         print(vulnerable)
