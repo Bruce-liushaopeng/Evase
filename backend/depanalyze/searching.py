@@ -1,8 +1,9 @@
 import ast
-
 from backend.depanalyze.functioncallfinder import FunctionCallFinder
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
+from projectstructure import dir_to_module_structure
+from projectstructure import resolve_project_imports
 
 
 def get_function_call_origin(func_node: ast.Call, mdl_struct: ModuleAnalysisStruct, prj_struct: ProjectAnalysisStruct,
@@ -72,15 +73,15 @@ def get_function_uses(prj_struct, func_name: str, module_name: str):
         # No modification needed for case 1
 
         elif case == 2:
-            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
+            #print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
             module_target = None
         elif case == 3:
-            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
+            #print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
             module_target = None
             func_target = asname
 
         elif case == 4:
-            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
+            #print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
             module_target = asname
         print(f"passing in [{module_target}, {func_target}]")
         call_finder = FunctionCallFinder(module_target, func_target)
@@ -94,11 +95,11 @@ def get_function_uses(prj_struct, func_name: str, module_name: str):
 
 def differentiate_imports(mdl_struct: ModuleAnalysisStruct, vul_func: str, vul_module_name: str):
     """
-
-    :param mdl_struct:
-    :param vul_func:
-    :param vul_module_name:
+    :param mdl_struct: The module structure that we are looking at
+    :param vul_func: The vulnerable function name as a String, we want to know in what way this function is imported, or not at all.
+    :param vul_module_name: The vulnerable module name as a String, we want to know in what way this module is imported, or not at all
     :return:
+
     """
 
     # function can tell us if the vulnerale is imported as function or module
@@ -109,37 +110,35 @@ def differentiate_imports(mdl_struct: ModuleAnalysisStruct, vul_func: str, vul_m
         return 1, vul_module_name
 
     # case2, importing vulnerable function
-
     if vul_func in local_import.keys() or vul_func in module_import.keys():
         return 2, vul_func
 
     # case3, importing vul function with AS
-
     for key in local_import:
         func_as_name = key
         class_name, original_func_name = local_import[key]
-        print("Checking 3" + class_name, original_func_name)
+        #print("Checking 3" + class_name, original_func_name)
         if original_func_name == vul_func:
             return 3, func_as_name
 
     for key in module_import:
         func_as_name = key
         class_name, original_func_name = module_import[key]
-        print("[" + class_name, ',', original_func_name + "]")
+        #print("[" + class_name, ',', original_func_name + "]")
         if original_func_name == vul_func:
             return 3, func_as_name
 
     # case4, importing entire module with AS
     for key in local_import:
         class_name, class_as_name = local_import[key]
-        print("Checking 4" + class_name, class_as_name)
+        #print("Checking 4" + class_name, class_as_name)
 
         if class_name == vul_module_name:
             return 4, class_as_name
 
     for key in module_import:
         class_name, class_as_name = module_import[key]
-        print("Checking 4" + class_name, class_as_name)
+        #print("Checking 4" + class_name, class_as_name)
         if class_name == vul_module_name:
             return 4, class_as_name
 
@@ -147,33 +146,33 @@ def differentiate_imports(mdl_struct: ModuleAnalysisStruct, vul_func: str, vul_m
     return 0, None
 
 
-# def search_calling_tree(path: str, initial_vuls: list):
-#     """
-#
-#     :param path:
-#     :param initial_vuls:
-#     :return:
-#     """
-#
-#     vul_list = initial_vuls  # storing uncalled vulnerable function
-#     uncalled_vul_list = []  # storing vulnerable function that has been called
-#     asts = dir_to_module_structure(path)
-#     get_dependency_relations(path, asts)
-#     running = True  # stop when we don't find any calling of vulnerable function
-#
-#     while running:
-#         running = False
-#         new_vul_list = []
-#         for vul in vul_list:
-#             func = vul['function']
-#             module = vul['module']
-#             temp_list = get_function_uses(asts, func, module)
-#             if (len(temp_list)):
-#                 running = True
-#             new_vul_list.extend(temp_list)
-#         vul_list = new_vul_list
-#         print_vul_list(vul_list)
-#
+def search_calling_tree(path: str, initial_vuls: list):
+    """
+
+    :param path:
+    :param initial_vuls:
+    :return:
+    """
+
+    vul_list = initial_vuls  # storing uncalled vulnerable function
+    uncalled_vul_list = []  # storing vulnerable function that has been called
+    asts = dir_to_module_structure(path)
+    resolve_project_imports(path, asts)
+    running = True  # stop when we don't find any calling of vulnerable function
+
+    while running:
+        running = False
+        new_vul_list = []
+        for vul in vul_list:
+            func = vul['function']
+            module = vul['module']
+            temp_list = get_function_uses(asts, func, module)
+            if (len(temp_list)):
+                running = True
+            new_vul_list.extend(temp_list)
+        vul_list = new_vul_list
+        print_vul_list(vul_list)
+
 
 def print_vul_list(vul_list):
     """
