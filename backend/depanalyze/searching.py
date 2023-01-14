@@ -71,15 +71,15 @@ def get_function_uses(prj_struct, func_name: str, module_name: str):
         # No modification needed for case 1
 
         elif case == 2:
-            #print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
+            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
             module_target = None
         elif case == 3:
-            #print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
+            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
             module_target = None
             func_target = asname
 
         elif case == 4:
-            #print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
+            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
             module_target = asname
         print(f"passing in [{module_target}, {func_target}]")
         call_finder = FunctionCallFinder(module_target, func_target)
