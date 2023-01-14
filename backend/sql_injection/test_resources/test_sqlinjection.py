@@ -19,13 +19,13 @@ def get_ast_from_filename(filename: str):
     with open(filename, "r") as af:
         return ast.parse(af.read())
 
-
-safe1_struct = ModuleAnalysisStruct(safe1_filename, get_ast_from_filename(safe1_filename))
-safe2_struct = ModuleAnalysisStruct(safe2_filename, get_ast_from_filename(safe2_filename))
-vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul1_filename))
-vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul2_filename))
-vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul3_filename))
-vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul4_filename))
+#
+# safe1_struct = ModuleAnalysisStruct(safe1_filename, get_ast_from_filename(safe1_filename))
+# safe2_struct = ModuleAnalysisStruct(safe2_filename, get_ast_from_filename(safe2_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul1_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul2_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul3_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul4_filename))
 
 
 def print_execute_funcs(visitor: InjectionNodeVisitor):
