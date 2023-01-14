@@ -88,10 +88,16 @@ def test_get_all_vars():
     # allVars = injectionutil.get_all_vars(astVul5)
     # print(allVars)
     # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    test = ProjectAnalysisStruct("", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/sql_injection/test_resources/find_uses_tests")
-    module = test.get_module("find_uses_tests.sql_injection_vul5")
+    test = ProjectAnalysisStruct("", "D:\work\programming\Evase/backend/sql_injection/test_resources/find_uses_tests")
+    module_vul5 = test.get_module("find_uses_tests.sql_injection_vul5")
+    modules = test.get_module_structure()
+    print("module+++++++++++")
+    for key in modules.keys():
+        print(key)
+        print(modules[key])
+    print("module+++++++++++")
     visitor = InjectionNodeVisitor(test, "find_uses_tests.sql_injection_vul5")
-    visitor.visit(module.get_ast())
+    visitor.visit(module_vul5.get_ast())
     print_execute_funcs(visitor)
 
 if __name__ == '__main__':
