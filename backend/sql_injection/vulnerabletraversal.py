@@ -14,7 +14,7 @@ def copy_list_map_set(list_map_set):
     return copy
 
 
-def determine_vul_params(vul_set: set, func_node):
+def determine_vul_params_location(vul_set: set, func_node):
     params = injectionutil.get_function_params(func_node)
     lst = []
     for i in range(len(params)):
