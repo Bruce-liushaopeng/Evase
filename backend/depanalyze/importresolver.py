@@ -6,22 +6,22 @@ from pathlib import Path
 
 class ModuleImportResolver(ast.NodeTransformer):
     def __init__(self, surface_values, directory):
-        self.directory = directory
-        self.is_surface = True
-        self.dependencies = {}
-        self.local_imports = {}
-        self.surface_values = surface_values
-        self.function_name = ""
+        self._directory = directory
+        self._is_surface = True
+        self._surface_imports = {}
+        self._local_imports = {}
+        self._surface_values = surface_values
+        self._function_name = ""
 
     def get_dependencies(self):
-        return self.dependencies, self.local_imports
+        return self._surface_imports, self._local_imports
 
     def set_key(self, key):
         self.key = key
 
     def visit_Module(self, node: Module):
         super().generic_visit(node)
-        self.is_surface = True
+        self._is_surface = True
         return node
 
     def visit_Import(self, node: Module):
@@ -37,26 +37,26 @@ class ModuleImportResolver(ast.NodeTransformer):
             else:
                 vals = self.key.split(".")
                 vals[len(vals) - 1] = name
-                filepath = Path(self.directory + os.sep + os.sep.join(vals) + ".py")
+                filepath = Path(self._directory + os.sep + os.sep.join(vals) + ".py")
                 # if it exists in local directory it is a local file, not library
                 if filepath.is_file():
                     alias_node.name = ".".join(vals)
 
-            if self.is_surface:
+            if self._is_surface:
                 if alias_node.asname is None:
-                    self.dependencies[name] = [alias_node.name, name]
+                    self._surface_imports[name] = [alias_node.name, name]
                 else:
-                    self.dependencies[alias_node.asname] = [alias_node.name, alias_node.asname]
+                    self._surface_imports[alias_node.asname] = [alias_node.name, alias_node.asname]
             else:
                 if alias_node.asname is None:
-                    self.local_imports[self.function_name] = [alias_node.name, name]
+                    self._local_imports[self._function_name] = [alias_node.name, name]
                 else:
-                    self.local_imports[self.function_name] = [alias_node.name, alias_node.asname]
+                    self._local_imports[self._function_name] = [alias_node.name, alias_node.asname]
 
-        prev = self.is_surface
-        self.is_surface = False
+        prev = self._is_surface
+        self._is_surface = False
         super().generic_visit(node)
-        self.is_surface = prev
+        self._is_surface = prev
         return node
 
     def visit_ImportFrom(self, node: ImportFrom):
@@ -65,13 +65,13 @@ class ModuleImportResolver(ast.NodeTransformer):
         if "." not in module_name:
             vals = self.key.split(".")
             vals[len(vals) - 1] = node.module
-            filepath = Path(self.directory + os.sep + os.sep.join(vals) + ".py")
+            filepath = Path(self._directory + os.sep + os.sep.join(vals) + ".py")
             # if it exists in local directory it is a local file, not library
             if filepath.is_file():
                 node.module = ".".join(vals)
 
         if node.names[0].name == "*" and "." in node.module:
-            surface_level_vals = self.surface_values[node.module]
+            surface_level_vals = self._surface_values[node.module]
             lst = []
             for surface_level_val in surface_level_vals:
                 lst.append(ast.alias(surface_level_val))
@@ -80,31 +80,31 @@ class ModuleImportResolver(ast.NodeTransformer):
         for alias_node in node.names:
             if alias_node.name == "*":
                 break
-            if self.is_surface:
+            if self._is_surface:
                 if not hasattr(alias_node, "asname") or alias_node.asname is None:
-                    self.dependencies[alias_node.name] = [node.module, alias_node.name]
+                    self._surface_imports[alias_node.name] = [node.module, alias_node.name]
                 else:
-                    self.dependencies[alias_node.asname] = [node.module, alias_node.name]
+                    self._surface_imports[alias_node.asname] = [node.module, alias_node.name]
             else:
                 print(ast.dump(alias_node))
                 if not hasattr(alias_node, "asname") or alias_node.asname is None:
-                    self.local_imports[self.function_name] = [node.module, alias_node.name]
+                    self._local_imports[self._function_name] = [node.module, alias_node.name]
                 else:
-                    self.local_imports[self.function_name] = [node.module, alias_node.name]
+                    self._local_imports[self._function_name] = [node.module, alias_node.name]
 
-        prev = self.is_surface
-        self.is_surface = False
+        prev = self._is_surface
+        self._is_surface = False
         super().generic_visit(node)
-        self.is_surface = prev
+        self._is_surface = prev
         return node
 
     def generic_visit(self, node):
-        prev = self.is_surface
-        self.is_surface = False
+        prev = self._is_surface
+        self._is_surface = False
         super().generic_visit(node)
-        self.is_surface = prev
+        self._is_surface = prev
         return node
 
     def visit_FunctionDef(self, node: FunctionDef):
-        self.function_name = node.name
+        self._function_name = node.name
         return self.generic_visit(node)

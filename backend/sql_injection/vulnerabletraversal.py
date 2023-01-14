@@ -2,7 +2,7 @@ from typing import Collection, List
 import ast
 from collections import deque
 
-from backend.sql_injection.node import Node
+from backend.depanalyze.node import Node
 import backend.depanalyze.searching as searching
 import backend.sql_injection.injectionutil as injectionutil
 
@@ -32,9 +32,9 @@ class VulnerableTraversalChecker:
             # check to parameter and body as func -> add to vulnerable locations In api call.
             # else:
             vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],  node.get_injection_vars())
-            for location in searching.get_function_uses(modules, 'adminExec', 'find_uses_tests.sql_injection_vul5'):
+            for node in searching.get_function_uses(modules, 'adminExec', 'find_uses_tests.sql_injection_vul5'):
+                print(ast.dump(node.get_func_node(), indent=2))
                 print("vulnerable asdf")
-                print(location)
                 # must be unique based on location_name, location_module, location_assignments, vulnerable_vars
 
                 # if not visitedFunc.contains(location_name, location_module, location_assignments, vulnerable_vars):

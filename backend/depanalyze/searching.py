@@ -82,11 +82,11 @@ def get_function_uses(prj_struct, func_name: str, module_name: str):
             print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
             module_target = asname
         print(f"passing in [{module_target}, {func_target}]")
-        call_finder = FunctionCallFinder(module_target, func_target)
+        call_finder = FunctionCallFinder(key, module_target, func_target)
         call_finder.visit(module_struct.ast_tree)
 
-        for func in call_finder.foundCallingDict:
-            new_vuls.append({"function": func, "module": key, "astNode": call_finder.foundCallingDict[func]})
+        for node in call_finder.found_calling_lst:
+            new_vuls.append(node)
 
     return new_vuls
 

@@ -77,6 +77,9 @@ class InjectionNodeVisitor(ast.NodeVisitor):
 
     def visit_execute(self, node: ast.Call):
         lst = self.lst_of_assignments.copy()
+
+        print(self.lst_of_assignments)
+
         arg_list = get_all_vars(node.args[0])
         curr_scope = self.get_current_scope()
         print("EXEC found, curr scope:", curr_scope)

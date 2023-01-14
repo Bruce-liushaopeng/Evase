@@ -1,19 +1,20 @@
 import ast
-import os
-from _ast import Module, ImportFrom, ClassDef, FunctionDef
-from pathlib import Path
+
+from backend.depanalyze.node import Node
+from backend.sql_injection.injectionutil import get_all_vars
 
 
 class FunctionCallFinder(ast.NodeVisitor):
-    def __init__(self, moduleName = None, funcName = None):
-        self.moduleName = moduleName
+    def __init__(self, module, module_as_name = None, funcName = None):
+        self.module = module
+        self.module_as_name = module_as_name
         self.funcName =  funcName
-        self.parentFuncScope = None# important, determine where the func is called within
-        self.parentFuncNode = None
         self.currentFuncNode = None # non important, just keep track
         self.currentFuncScope = None
-        self.linoFunctionCall = 0
-        self.foundCallingDict = {} # List for storing all the parent function of the vulnerable function
+        self.found_calling_lst = [] # List for storing all the parent function of the vulnerable function
+
+        self.lst_of_assignments = []
+        self.if_flag = True
 
     def generic_visit(self, node):
         
@@ -21,7 +22,7 @@ class FunctionCallFinder(ast.NodeVisitor):
             lineOfCalling = node.lineno
             callNode = node.value
             if isinstance(callNode, ast.Call):
-                if not self.moduleName:
+                if not self.module_as_name:
                     calling_function_name = ""
                     if isinstance(callNode.func, ast.Attribute) :
                         calling_function_name = callNode.func.attr
@@ -29,13 +30,15 @@ class FunctionCallFinder(ast.NodeVisitor):
                         calling_function_name = callNode.func.id
 
                     if (calling_function_name == self.funcName):
-                        self.foundCallingDict[self.currentFuncScope] = self.currentFuncNode
+                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), [], self.module))
                 else:
                     attrbuteNode = callNode.func
                     calling_module_name = attrbuteNode.value.id
                     calling_function_name = attrbuteNode.attr
-                    if calling_function_name == self.funcName and calling_module_name == self.moduleName:
-                        self.foundCallingDict[self.currentFuncScope] = self.currentFuncNode
+                    if calling_function_name == self.funcName and calling_module_name == self.module_as_name:
+                        #arg_list = get_all_vars(callNode.args)
+                        #print(arg_list)
+                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), [], self.module))
 
 
         super().generic_visit(node)
@@ -44,6 +47,50 @@ class FunctionCallFinder(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.Expr):
         self.currentFuncScope = node.name
         self.currentFuncNode = node
+        self.lst_of_assignments = []
+        super().generic_visit(node)
+
+    def visit_Assign(self, node: ast.Assign):
+        print(ast.dump(node))
+        self.lst_of_assignments.append(node)
+        super().generic_visit(node)
+
+    def visit_If(self, node: ast.If):
+        if self.if_flag:
+            self.lst_of_assignments.append("if")
+        for val in node.body:
+            self.visit(val)
+
+        if len(node.orelse) > 0:
+            prev = self.if_flag
+            self.if_flag = False
+            self.else_visit(node.orelse)
+            self.if_flag = prev
+
+        if self.if_flag:
+            self.lst_of_assignments.append("endif")
+
+
+    def else_visit(self, nodes):
+        if len(nodes) == 0:
+            self.lst_of_assignments.append("endelse")
+        else:
+            self.lst_of_assignments.append("else")
+            for node in nodes:
+                self.visit(node)
+
+    def visit_While(self, node: ast.While):
+        self.lst_of_assignments.append("while")
+        super().generic_visit(node)
+        self.lst_of_assignments.append("endwhile")
+
+    def visit_For(self, node: ast.For):
+        self.lst_of_assignments.append("for")
+        super().generic_visit(node)
+        self.lst_of_assignments.append("endfor")
+
+    def visit_Return(self, node: ast.Return):
+        self.lst_of_assignments.append(node)
         super().generic_visit(node)
 
 
