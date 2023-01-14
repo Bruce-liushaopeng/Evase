@@ -32,8 +32,8 @@ class VulnerableTraversalChecker:
             # check to parameter and body as func -> add to vulnerable locations In api call.
             # else:
             vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],  node.get_injection_vars())
-
-            for location in searching.get_function_uses(modules, node.get_func_node(), node.get_module_name()):
+            for location in searching.get_function_uses(modules, 'adminExec', 'sql_injection_vul5'):
+                print("vulnerable asdf")
                 print(location)
                 # must be unique based on location_name, location_module, location_assignments, vulnerable_vars
 
