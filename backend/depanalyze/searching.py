@@ -61,27 +61,27 @@ def get_function_uses(prj_struct, func_name: str, module_name: str):
 
         # for each case run a node visitor and tell the node visitor it's target to look for
         # reference sql injection algo development notion, page api.py(for test vul func calls) for more information of the four cases.
-        print(f'----   scaning vulnerable usages [{module_name}].[{func_name}] in {module_struct.get_name()} ----')
+        #print(f'----   scaning vulnerable usages [{module_name}].[{func_name}] in {module_struct.get_name()} ----')
         func_target = func_name
         module_target = module_name
         if case == 0:
-            print(f"CASE 0: no vulnerable usage found")
+            #print(f"CASE 0: no vulnerable usage found")
             continue
 
         # No modification needed for case 1
 
         elif case == 2:
-            print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
+            #print(f"CASE 2: vulnerable function found imported, next step look for function calls [{func_name}]")
             module_target = None
         elif case == 3:
-            print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
+            #print(f"CASE 3: vulnerable function found imported using AS, next step look for function calls [{asname}]")
             module_target = None
             func_target = asname
 
         elif case == 4:
-            print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
+            #print(f"CASE 4: vulnerable class found imported using AS, next step look for [{asname}.{func_name}]")
             module_target = asname
-        print(f"passing in [{module_target}, {func_target}]")
+        #print(f"passing in [{module_target}, {func_target}]")
         call_finder = FunctionCallFinder(key, module_target, func_target)
         call_finder.visit(module_struct.ast_tree)
 

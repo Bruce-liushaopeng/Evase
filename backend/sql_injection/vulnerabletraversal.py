@@ -14,42 +14,57 @@ def copy_list_map_set(list_map_set):
     return copy
 
 
+def determine_vul_params_location(vul_set: set, func_node):
+    params = injectionutil.get_function_params(func_node)
+    lst = []
+    for i in range(len(params)):
+        if params[i] in vul_set:
+            lst.append(i)
+    return lst if len(lst) > 0 else None
+
+
 class VulnerableTraversalChecker:
     def traversal_from_exec(self, assignments: List[ast.Assign], func_node, injection_vars: Collection[ast.Name],
-                          project_struct, module):
+                            project_struct, module):
 
         vulnerable_locations = set()
         visited_func = set()
         queue = deque()
         modules = project_struct.get_module_structure()
         queue.append(Node(func_node, assignments, injection_vars, module))
-
-        print(injection_vars)
         print("start of bfs")
         while len(queue) != 0:
             node = queue.popleft()
+            print("visiting func ----------------------", node.get_func_node().name)
             # if node.get_tags().contains("app.route"):
             # check to parameter and body as func -> add to vulnerable locations In api call.
             # else:
-            vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],  node.get_injection_vars())
-            for node in searching.get_function_uses(modules, 'adminExec', 'find_uses_tests.sql_injection_vul5'):
-                #print(ast.dump(node.get_func_node(), indent=2))
-                print("vulnerable asdf")
-                # must be unique based on location_name, location_module, location_assignments, vulnerable_vars
+            vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
+                                                           node.get_injection_vars())
+            param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
 
-                # if not visitedFunc.contains(location_name, location_module, location_assignments, vulnerable_vars):
-                #     queue.put(Node(location_name, location_assignments, location_tags, vulnerable_vars))
-                #     visitedFunc.add(location_name, location_module, location_assignments, vulnerable_vars)
+            if param_indexes_vulnerable == None:continue
+            for node in searching.get_function_uses(modules, node.get_func_node().name, node.get_module_name()):
+                #if in visitedFunc: continue
+                injection_vars = node.get_injection_vars()
+                ind = 0
+                inj = set()
+                while ind < len(injection_vars):
+                    if ind in param_indexes_vulnerable and len(injection_vars[ind]) != 0:
+                        inj.update(injection_vars[ind])
+                    ind += 1
+
+                node.set_injection_vars(inj)
+                if len(inj) == 0: continue # unique is in set
+                print("    adding------------- " + node.get_func_node().name)
+                queue.append(node)
 
         return vulnerable_locations
-
 
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
                                 injection_vars={}):
         vulnerable = set()  # params
         parameters = injectionutil.get_function_params(func_node)
-        print(parameters)
-        print(assignments)
         #               possible flow         possible flow
         # marked_lst [{a ->{param1, param2}}, {a->{param3}}]      list<Map<string, set>>
         # var_type_lst [{a -> [Integer]},{a -> [class1,class2]}]
@@ -118,8 +133,10 @@ class VulnerableTraversalChecker:
         if len(injection_vars) != 0:
             for val in injection_vars:
                 for marked in possible_marked_var_to_params:
-                    if val not in marked: continue
-                    for vulnerable_param in marked[val]:
-                        vulnerable.add(vulnerable_param)
-        print(vulnerable)
+                    if val not in marked and val in parameters:
+                        vulnerable.add(val)
+                    elif val in marked:
+                        for vulnerable_param in marked[val]:
+                            vulnerable.add(vulnerable_param)
+
         return vulnerable

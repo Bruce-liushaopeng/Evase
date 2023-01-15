@@ -16,3 +16,6 @@ class Node:
 
     def get_module_name(self):
         return self._module_name
+
+    def set_injection_vars(self, injection_vars):
+        self._injection_vars = injection_vars

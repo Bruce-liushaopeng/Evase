@@ -30,9 +30,9 @@ def adminExec(password: string, a: string, c: string):
 
     # possible_marked_var_to_params is now
     # [ {g:{c}, d:{}}, {g:{c}, d:{}, f:{}}, {g:{c}, d:{password}, f:{password}}]
-    conn = sqlite3.connect("db.sqlite")
-    c = conn.cursor()
-    c.execute('''SELECT admin FROM users WHERE username = ''' + d, password)
+
+    cur = sqlite3.cursor()
+    cur.execute('''SELECT admin FROM users WHERE username = ''' + d, password)
 
     # d is the only variable present in the dangerous cursor.execute
     # {g:{c}, d:{}}             d is not equal to a parameter -> not dangerous
@@ -40,5 +40,7 @@ def adminExec(password: string, a: string, c: string):
     # {g:{c}, d:{password}, f:{password}}   d is equal to a parameter -> dangerous
 
 
-def fun():
-    adminExec("a", "b", "c")
+def vul_5_func():
+    a = 2
+    adminExec("a" + a, "b", "c")
+

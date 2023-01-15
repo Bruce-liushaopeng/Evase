@@ -19,33 +19,29 @@ class FunctionCallFinder(ast.NodeVisitor):
     def generic_visit(self, node):
         
         if (isinstance(node, ast.Expr)):
-            lineOfCalling = node.lineno
-            callNode = node.value
-            if isinstance(callNode, ast.Call):
+            call_node = node.value
+            if isinstance(call_node, ast.Call):
                 if not self.module_as_name:
                     calling_function_name = ""
-                    if isinstance(callNode.func, ast.Attribute) :
-                        calling_function_name = callNode.func.attr
+                    if isinstance(call_node.func, ast.Attribute) :
+                        calling_function_name = call_node.func.attr
                     else:
-                        calling_function_name = callNode.func.id
+                        calling_function_name = call_node.func.id
 
-                    if (calling_function_name == self.funcName):
-                        print("here")
-                        print(callNode.args)
-                        for arg in callNode.args:
-                            print(ast.dump(arg))
-
-
-                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), [], self.module))
+                    if calling_function_name == self.funcName:
+                        injection_var = []
+                        for arg in call_node.args:
+                            injection_var.append(get_all_vars(arg))
+                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), injection_var, self.module))
                 else:
-                    attrbuteNode = callNode.func
-                    calling_module_name = attrbuteNode.value.id
-                    calling_function_name = attrbuteNode.attr
+                    attrbute_node = call_node.func
+                    calling_module_name = attrbute_node.value.id
+                    calling_function_name = attrbute_node.attr
                     if calling_function_name == self.funcName and calling_module_name == self.module_as_name:
-                        arg_list = get_all_vars(callNode.args)
-                        print(arg_list)
-                        print("here")
-                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), [], self.module))
+                        injection_var = []
+                        for arg in call_node.args:
+                            injection_var.append(get_all_vars(arg))
+                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), injection_var, self.module))
 
 
         super().generic_visit(node)
@@ -53,13 +49,11 @@ class FunctionCallFinder(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.Expr):
         self.currentFuncScope = node.name
-        print(node.name)
         self.currentFuncNode = node
         self.lst_of_assignments = []
         super().generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign):
-        print(ast.dump(node))
         self.lst_of_assignments.append(node)
         super().generic_visit(node)
 
