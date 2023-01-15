@@ -44,7 +44,7 @@ def determine_vul_params_location(vul_set: set, func_node):
     for i in range(len(params)):
         if params[i] in vul_set:
             lst.append(i)
-    return params, lst if len(lst) > 0 else None
+    return params, lst
 
 
 class VulnerableTraversalChecker:
@@ -52,36 +52,43 @@ class VulnerableTraversalChecker:
                             project_struct, module):
 
         vulnerable_locations = set()
-        visited_func = set()
+        visited_func = set() # unique with func name, module and num assignments
         queue = deque()
         modules = project_struct.get_module_structure()
         queue.append(Node(func_node, assignments, injection_vars, module))
         print("start of bfs")
         while len(queue) != 0:
             node = queue.popleft()
+            identifier = node.get_module_name()+" "+node.get_func_node().name + " "+str(len(node.get_assignments()))
+            visited_func.add(identifier)
+
             print("visiting func ----------------------", node.get_func_node().name)
-            # if node.get_tags().contains("app.route"):
-            # check to parameter and body as func -> add to vulnerable locations In api call.
-            # else:
-            vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
-                                                           node.get_injection_vars())
-            param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
+            if is_flask_api_function(node.get_func_node()):
+                vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
+                                                               node.get_injection_vars())
+                if len(vulnerable_vars) > 0: print("api ", node.get_func_node().name, " is vulnerable")
+            else:
+                vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
+                                                               node.get_injection_vars())
+                param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
+                if param_indexes_vulnerable == None:continue
 
-            if param_indexes_vulnerable == None:continue
-            for node in searching.get_function_uses(modules, node.get_func_node().name, node.get_module_name()):
-                #if in visitedFunc: continue
-                injection_vars = node.get_injection_vars()
-                ind = 0
-                inj = set()
-                while ind < len(injection_vars):
-                    if ind in param_indexes_vulnerable and len(injection_vars[ind]) != 0:
-                        inj.update(injection_vars[ind])
-                    ind += 1
+                for nodeNext in searching.get_function_uses(modules, node.get_func_node().name, node.get_module_name()):
+                    unique_identifier = nodeNext.get_module_name()+" "+nodeNext.get_func_node().name + " "+str(len(nodeNext.get_assignments()))
+                    if unique_identifier in visited_func: continue
 
-                node.set_injection_vars(inj)
-                if len(inj) == 0: continue # unique is in set
-                print("    adding------------- " + node.get_func_node().name)
-                queue.append(node)
+                    injection_vars = nodeNext.get_injection_vars()
+                    ind = 0
+                    inj = set()
+                    while ind < len(injection_vars):
+                        if ind in param_indexes_vulnerable[1] and len(injection_vars[ind]) != 0:
+                            inj.update(injection_vars[ind])
+                        ind += 1
+
+                    nodeNext.set_injection_vars(inj)
+                    if len(inj) == 0: continue # unique is in set
+                    print("     adding------------- " + node.get_func_node().name)
+                    queue.append(nodeNext)
 
         return vulnerable_locations
 

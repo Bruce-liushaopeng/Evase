@@ -35,13 +35,14 @@ class FunctionCallFinder(ast.NodeVisitor):
                         self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), injection_var, self.module))
                 else:
                     attrbute_node = call_node.func
-                    calling_module_name = attrbute_node.value.id
-                    calling_function_name = attrbute_node.attr
-                    if calling_function_name == self.funcName and calling_module_name == self.module_as_name:
-                        injection_var = []
-                        for arg in call_node.args:
-                            injection_var.append(get_all_vars(arg))
-                        self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), injection_var, self.module))
+                    if hasattr(attrbute_node, "value") and hasattr(attrbute_node, "value"):
+                        calling_module_name = attrbute_node.value.id
+                        calling_function_name = attrbute_node.attr
+                        if calling_function_name == self.funcName and calling_module_name == self.module_as_name:
+                            injection_var = []
+                            for arg in call_node.args:
+                                injection_var.append(get_all_vars(arg))
+                            self.found_calling_lst.append(Node(self.currentFuncNode, self.lst_of_assignments.copy(), injection_var, self.module))
 
 
         super().generic_visit(node)

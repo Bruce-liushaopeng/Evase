@@ -6,6 +6,5 @@ def outside_func(f):
     a(b,b,"c")
 
 
-def lastAPI():
-    a = 1
+def lastAPI(a):
     outside_func(a)
