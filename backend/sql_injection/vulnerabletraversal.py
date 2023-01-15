@@ -1,7 +1,6 @@
 from typing import Collection, List
 import ast
 from collections import deque
-
 from backend.depanalyze.node import Node
 import backend.depanalyze.searching as searching
 import backend.sql_injection.injectionutil as injectionutil
@@ -14,13 +13,38 @@ def copy_list_map_set(list_map_set):
     return copy
 
 
+def is_flask_api_function(func_node: ast.FunctionDef):
+    """
+    Determines if a function definition approximates one that is used for APIs in Flask.
+    Checks the decorators of the function definition.
+
+    :param func_node: The function definition node
+    :return: Whether the definition node represents a definition for Flask API
+    """
+    for dec in func_node.decorator_list:
+        if isinstance(dec, ast.Call):
+            if isinstance(dec.func, ast.Attribute):
+                name = f'{dec.func.value.id}.{dec.func.attr}'
+                if name == 'app.route':
+                    return True
+    return False
+
+
 def determine_vul_params_location(vul_set: set, func_node):
+    """
+    Determines the vulnerable parameters of a function definition given a set of vulnerable variables.
+    Checks the parameters of the function definition node and compares them with those of the vulnerable set.
+
+    :param vul_set: The vulnerable set of variables
+    :param func_node: The function definition node
+    :return: Function parameters, and a list of indices of parameters in the function that are vulnerable
+    """
     params = injectionutil.get_function_params(func_node)
     lst = []
     for i in range(len(params)):
         if params[i] in vul_set:
             lst.append(i)
-    return lst if len(lst) > 0 else None
+    return params, lst if len(lst) > 0 else None
 
 
 class VulnerableTraversalChecker:
