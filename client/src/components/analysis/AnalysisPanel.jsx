@@ -4,6 +4,7 @@ import AnalysisForm from './Analysis'
 
 import { 
     H6,
+    Button,
     withResize
 } from 'ui-neumorphism'
 

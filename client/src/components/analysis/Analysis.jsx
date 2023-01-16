@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import Icon from '@mdi/react'
 import {
@@ -13,6 +13,8 @@ import {
     Card,
     CardHeader,
     CardAction,
+    Button,
+    Fab,
     CardContent,
     ProgressCircular,
     Button,
@@ -26,37 +28,45 @@ import {
 } from 'ui-neumorphism'
 
 
-class AnalysisForm extends React.Component {
-    constructor(props) {
-        super(props);
+function AnalysisForm(props) {
+
+    const [currentMessage, setCurrentMessage] = useState("");
+
+    const onClick = (e) => {
+        
     }
 
-    render() {
-        return (
-        <>
-            <CardHeader 
-            title={<H6>{this.props.title}</H6>}
-            subtitle={<Subtitle2>{this.props.subtitle}</Subtitle2>}
-            action={
-                <IconButton>
-                    <Icon path={mdiDotsVertical} size={1}></Icon>
-                </IconButton>
-                }
-            />
-            <CardContent>
-                <ProgressCircular
-                    indeterminate={true}
-                />
-                <RadioGroup vertical>
-                    <Radio checked={false} label="SQL Injection"/>
-                    <Radio checked={false} label="Deadlock"/>
-                    <Radio checked={false} label="Password Encryption"/>
-                </RadioGroup>
-                <Button rounded>Analze</Button>
-            </CardContent>
-        </>
-        );
+    const startAnalysis = () => {
+
     }
+
+    return (
+    <>
+        <CardHeader
+        title={<H6>{this.props.title}</H6>}
+        subtitle={<Subtitle2>{this.props.subtitle}</Subtitle2>}
+        action={
+            <IconButton>
+                <Icon path={mdiDotsVertical} size={1}></Icon>
+            </IconButton>
+            }
+        />
+        <CardContent>
+            <Fab onClick={onClick}>
+                Analyze Codebase
+            </Fab>
+            <ProgressCircular
+                indeterminate={true}
+            />
+            <RadioGroup vertical>
+                <Radio checked={false} label="SQL Injection"/>
+                <Radio checked={false} label="Deadlock"/>
+                <Radio checked={false} label="Password Encryption"/>
+            </RadioGroup>
+            <Button rounded>Analze</Button>
+        </CardContent>
+    </>
+    );
 }
 
 export default withResize(AnalysisForm);

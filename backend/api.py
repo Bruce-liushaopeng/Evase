@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 import zipfile
 import logging
 
+from backend.controller_logic import perform_analysis
+
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger('HELLO WORLD')
@@ -37,3 +39,30 @@ def file_upload_hook():
     os.remove(destination)  # delete the zip file after unziping it
     response = "upload successful, check backend folder for User Files"
     return response
+
+
+@app.route('/analyze', methods=['GET'])
+def analyze_file_hook():
+    """
+
+    """
+    if len(os.listdir(UPLOAD_FOLDER)) > 0:
+        # perform analysis here
+        print("Begin analysis")
+        project_name = request.args.get('prjname', default=None, type=str)
+        check_sql_injection = request.args.get('sql', default=False, type=bool)
+        check_forced_deadlock = request.args.get('fdl', default=False, type=bool)
+        check_no_encryption = request.args.get('nen', default=False, type=bool)
+        check_dictionary = request.args.get('dct', default=False, type=bool)
+
+        return perform_analysis(
+            UPLOAD_FOLDER,
+            project_name=project_name,
+            sql_injection=check_sql_injection,
+            forced_deadlock=check_forced_deadlock,
+            no_encryption=check_no_encryption,
+            dictionary=check_dictionary
+        )
+    else:
+        return "No folder was uploaded. Can't perform analysis."
+
