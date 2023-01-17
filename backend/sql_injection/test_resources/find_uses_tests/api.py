@@ -6,4 +6,4 @@ app = Flask(__name__)
 
 @app.route('/upload', methods=['POST'])
 def file_upload_hook(a):
-    lastAPI("a")
+    lastAPI(a)

@@ -87,7 +87,7 @@ class VulnerableTraversalChecker:
 
                     nodeNext.set_injection_vars(inj)
                     if len(inj) == 0: continue # unique is in set
-                    print("     adding------------- " + node.get_func_node().name)
+                    print("     adding------------- " + nodeNext.get_func_node().name)
                     queue.append(nodeNext)
 
         return vulnerable_locations

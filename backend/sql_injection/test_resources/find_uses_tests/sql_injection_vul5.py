@@ -32,7 +32,6 @@ def adminExec(password: string, a: string, c: string):
 
     # possible_marked_var_to_params is now
     # [ {g:{c}, d:{}}, {g:{c}, d:{}, f:{}}, {g:{c}, d:{password}, f:{password}}]
-    outside_func(d)
     cur = sqlite3.cursor()
     cur.execute('''SELECT admin FROM users WHERE username = ''' + d, password)
 
