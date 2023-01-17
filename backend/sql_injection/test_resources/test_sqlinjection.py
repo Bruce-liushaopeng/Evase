@@ -11,7 +11,7 @@ vul1_filename = 'sql_injection_vul1.py'
 vul2_filename = 'sql_injection_vul2.py'
 vul3_filename = 'sql_injection_vul3.py'
 vul4_filename = 'sql_injection_vul4.py'
-vul5_filename = 'sql_injection_vul5.py'
+vul5_filename = 'model.py'
 vul6_filename = 'sql_injection_vul6.py'
 
 
@@ -88,15 +88,15 @@ def test_get_all_vars():
     # allVars = injectionutil.get_all_vars(astVul5)
     # print(allVars)
     # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    test = ProjectAnalysisStruct("", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/sql_injection/test_resources/find_uses_tests")
-    module_vul5 = test.get_module("find_uses_tests.sql_injection_vul5")
+    test = ProjectAnalysisStruct("", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/sql_injection/test_resources/vulnerable_example")
+    module_vul5 = test.get_module("vulnerable_example.sql_injection_vul5")
     modules = test.get_module_structure()
     print("module+++++++++++")
     for key in modules.keys():
         print(key)
         print(modules[key])
     print("module+++++++++++")
-    visitor = InjectionNodeVisitor(test, "find_uses_tests.sql_injection_vul5")
+    visitor = InjectionNodeVisitor(test, "vulnerable_example.sql_injection_vul5")
     visitor.visit(module_vul5.get_ast())
     print_execute_funcs(visitor)
 
