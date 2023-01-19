@@ -11,7 +11,7 @@ vul1_filename = 'sql_injection_vul1.py'
 vul2_filename = 'sql_injection_vul2.py'
 vul3_filename = 'sql_injection_vul3.py'
 vul4_filename = 'sql_injection_vul4.py'
-vul5_filename = 'sql_injection_vul5.py'
+vul5_filename = 'model.py'
 vul6_filename = 'sql_injection_vul6.py'
 
 
@@ -96,7 +96,7 @@ def test_get_all_vars():
         print(key)
         print(modules[key])
     print("module+++++++++++")
-    visitor = InjectionNodeVisitor(test, "find_uses_tests.sql_injection_vul5")
+    visitor = InjectionNodeVisitor(test, "vulnerable_example.sql_injection_vul5")
     visitor.visit(module_vul5.get_ast())
     print_execute_funcs(visitor)
 
