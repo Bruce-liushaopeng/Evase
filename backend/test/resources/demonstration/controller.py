@@ -1,5 +1,5 @@
-from vulnerable_example.model import check_DB as a
-import vulnerable_example.model as a
+from demonstration.model import check_DB as a
+import demonstration.model as a
 
 
 def check_DB(f):
