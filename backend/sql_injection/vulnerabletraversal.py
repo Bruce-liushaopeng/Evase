@@ -61,17 +61,15 @@ class VulnerableTraversalChecker:
             node = queue.popleft()
             identifier = node.get_module_name()+" "+node.get_func_node().name + " "+str(len(node.get_assignments()))
             visited_func.add(identifier)
-
             print("visiting func ----------------------", node.get_func_node().name)
+            vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
+                                                           node.get_injection_vars())
+            print(vulnerable_vars)
             if is_flask_api_function(node.get_func_node()):
-                vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
-                                                               node.get_injection_vars())
                 if len(vulnerable_vars) > 0:
                     print("api ", node.get_func_node().name, " is vulnerable")
                     vulnerable_locations.add(f'{node.get_module_name()}.{node.get_func_node().name}')
             else:
-                vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
-                                                               node.get_injection_vars())
                 param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
                 if param_indexes_vulnerable == None:continue
 
@@ -94,6 +92,7 @@ class VulnerableTraversalChecker:
 
         return list(vulnerable_locations)
 
+
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
                                 injection_vars={}):
         vulnerable = set()  # params
@@ -101,7 +100,7 @@ class VulnerableTraversalChecker:
         #               possible flow         possible flow
         # marked_lst [{a ->{param1, param2}}, {a->{param3}}]      list<Map<string, set>>
         # var_type_lst [{a -> [Integer]},{a -> [class1,class2]}]
-
+        print(assignments)
         index = 0
         while index < len(assignments):
             node = assignments[index]
@@ -111,11 +110,6 @@ class VulnerableTraversalChecker:
                 target_lst = injectionutil.get_all_targets(node)
                 # values of variables being assigned
                 val_lst, target_type = injectionutil.get_all_target_values(node)
-
-                # print("----------")
-                # print(target_lst)
-                # print(val_lst)
-                # print("----------")
 
                 for i in range(len(target_lst)):  # for each variable being assigned
                     target_variable = target_lst[i]
@@ -135,13 +129,12 @@ class VulnerableTraversalChecker:
                 # print(possible_marked_var_to_params)
 
             elif isinstance(node, ast.Return):
-                print()
                 # if len(injection_vars) == 0:
                 #   for val in return:
                 #       for vulnerable_param in marked_lst[val]:
                 #           vulnerable.add(vulnerable_param)
-                # marked_lst.clear(), var_type_lst.clear()
-                # break
+                possible_marked_var_to_params.clear(), var_type_lst.clear()
+                break
 
             elif node == "if" or node == "while" or node == "for":
                 index, inner_scope_assignments = injectionutil.get_inner_scope_assignments(index, assignments)
@@ -155,7 +148,9 @@ class VulnerableTraversalChecker:
                     # determine marked_lst in inner function, new_vulnerable is for when function returns are being analyzed
                     new_vulnerable = self.collect_vulnerable_vars(func_node, inner_scope_assignment, copy_marked_lst,
                                                                   copy_var_type_lst)
-
+                    print("here")
+                    print(inner_scope_assignment)
+                    print(copy_marked_lst)
                     # add inner scope marked_lst to previous possible_marked_var_to_params
                     possible_marked_var_to_params.extend(copy_marked_lst)
                     var_type_lst.extend(copy_var_type_lst)

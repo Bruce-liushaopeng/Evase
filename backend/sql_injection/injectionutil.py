@@ -110,7 +110,7 @@ def get_inner_scope_assignments(index, assignments):
     assignment_ind = 0
 
     print("HERE", assignments)
-    while len(stack) != 0:
+    while len(stack) != 0 and index < len(assignments):
 
         node = assignments[index]
         if node == "if" or node == "while" or node == "for":
