@@ -68,7 +68,7 @@ class VulnerableTraversalChecker:
                                                                node.get_injection_vars())
                 if len(vulnerable_vars) > 0:
                     print("api ", node.get_func_node().name, " is vulnerable")
-                    vulnerable_locations.add(node.get_func_node().name)
+                    vulnerable_locations.add(f'{node.get_module_name()}.{node.get_func_node().name}')
             else:
                 vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
                                                                node.get_injection_vars())
@@ -92,7 +92,7 @@ class VulnerableTraversalChecker:
                     print("     adding------------- " + nodeNext.get_func_node().name)
                     queue.append(nodeNext)
 
-        return vulnerable_locations
+        return list(vulnerable_locations)
 
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
                                 injection_vars={}):

@@ -14,7 +14,7 @@ class BehaviourAnalyzer(ABC):
             executor=None
     ):
         self.project_struct = project_struct
-        self.analysis_results = {}
+        self.analysis_results = dict(vulnerabilities={}, found_any=False)
         self.executor = executor
 
     def get_project_struct(self):
@@ -45,13 +45,13 @@ class SQLInjectionBehaviourAnalyzer(BehaviourAnalyzer):
 
     def do_analysis(self):
         for m_name, m_struct in self.project_struct.get_module_structure().items():
-            m_results = dict(found_any=False)
             visitor = InjectionNodeVisitor(self.project_struct, m_name)
             visitor.visit(m_struct.get_ast())
             results = visitor.get_vulnerable_funcs()
             print(results)
-            m_results['results'] = results
-            self.analysis_results[m_name] = m_results
+            if len(results) > 0:
+                self.analysis_results['found_any'] = True
+                self.analysis_results['vulnerabilities'][m_name] = results
 
         return self.analysis_results
 
@@ -77,7 +77,6 @@ class AnalysisPerformer:
 
         if sql_injection:
             self.sql_injection_detector = SQLInjectionBehaviourAnalyzer()
-            self.analysis_results['sql_injection'] = None
 
     def perform_analysis(self):
 
@@ -95,11 +94,12 @@ class AnalysisPerformer:
             print(sql_injection_results)
             self.analysis_results['sql_injection'] = sql_injection_results
 
+
     def get_results(self):
         return self.analysis_results
 
     def results_to_JSON(self, filepath: str):
-        jform = json.dumps(self.analysis_results)
+        jform = json.dumps(self.analysis_results, indent=4)
         if not os.path.exists(filepath) or not os.path.isdir(filepath):
             raise ValueError("Path doesn't exist or it isn't a directory")
         fpath = os.path.join(filepath, 'analysis_results.json')
