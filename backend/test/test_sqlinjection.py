@@ -1,6 +1,31 @@
-from backend.sql_injection.injectionvisitor import InjectionNodeVisitor
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from backend.depanalyze.scoperesolver import ScopeResolver
-from testutil import *
+import ast
+import backend.sql_injection.injectionutil as injectionutil
+from backend.sql_injection.injectionvisitor import InjectionNodeVisitor
+
+safe1_filename = 'sql_injection_safe1.py'
+safe2_filename = 'sql_injection_safe2.py'
+vul1_filename = 'sql_injection_vul1.py'
+vul2_filename = 'sql_injection_vul2.py'
+vul3_filename = 'sql_injection_vul3.py'
+vul4_filename = 'sql_injection_vul4.py'
+vul5_filename = 'model.py'
+vul6_filename = 'sql_injection_vul6.py'
+
+
+def get_ast_from_filename(filename: str):
+    with open(filename, "r") as af:
+        return ast.parse(af.read())
+
+#
+# safe1_struct = ModuleAnalysisStruct(safe1_filename, get_ast_from_filename(safe1_filename))
+# safe2_struct = ModuleAnalysisStruct(safe2_filename, get_ast_from_filename(safe2_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul1_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul2_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul3_filename))
+# vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul4_filename))
 
 
 def print_execute_funcs(visitor: InjectionNodeVisitor):
@@ -50,7 +75,7 @@ def test_sql_injection_vul5():
     scoper = ScopeResolver()
     visitor = InjectionNodeVisitor()
     vul5_struct = get_modulestruct(vul5_filename)
-    vul5_struct.resolve_scopes(scoper)
+    scoper.visit(vul5_struct.get_ast())
     visitor.visit(vul5_struct.get_ast())
     print_execute_funcs(visitor)
 
@@ -58,6 +83,22 @@ def test_sql_injection_vul5():
 def test_sql_injection_vul6():
     generic_test(vul6_filename)
 
+def test_get_all_vars():
+    # astVul5 = get_ast_from_filename(vul5_filename)
+    # allVars = injectionutil.get_all_vars(astVul5)
+    # print(allVars)
+    # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
+    test = ProjectAnalysisStruct("", "")
+    module_vul5 = test.get_module("find_uses_tests.sql_injection_vul5")
+    modules = test.get_module_structure()
+    print("module+++++++++++")
+    for key in modules.keys():
+        print(key)
+        print(modules[key])
+    print("module+++++++++++")
+    visitor = InjectionNodeVisitor(test, "vulnerable_example.sql_injection_vul5")
+    visitor.visit(module_vul5.get_ast())
+    print_execute_funcs(visitor)
 
 if __name__ == '__main__':
-    test_sql_injection_vul5()
+    test_get_all_vars()
