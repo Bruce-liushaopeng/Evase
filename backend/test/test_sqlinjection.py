@@ -1,9 +1,9 @@
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
-from backend.depanalyze.scoperesolver import ScopeResolver
-import ast
-import backend.sql_injection.injectionutil as injectionutil
 from backend.sql_injection.injectionvisitor import InjectionNodeVisitor
+
+import ast
+import os
 
 safe1_filename = 'sql_injection_safe1.py'
 safe2_filename = 'sql_injection_safe2.py'
@@ -37,68 +37,29 @@ def get_modulestruct(filename: str):
     tree = get_ast_from_filename(filename)
     return ModuleAnalysisStruct(filename, tree)
 
-
-def generic_test(filename: str):
-    print("Running test for test vulnerability file:", filename)
-    visitor = InjectionNodeVisitor()
-    ast1 = get_ast_from_filename(filename)
-    visitor.visit(ast1)
-    print_execute_funcs(visitor)
-
-
-def test_sql_injection_safe1():
-    generic_test(safe1_filename)
-
-
-def test_sql_injection_safe2():
-    generic_test(safe2_filename)
-
-
-def test_sql_injection_vul1():
-    generic_test(vul1_filename)
-
-
-def test_sql_injection_vul2():
-    generic_test(vul2_filename)
-
-
-def test_sql_injection_vul3():
-    generic_test(vul3_filename)
-
-
-def test_sql_injection_vul4():
-    generic_test(vul4_filename)
-
-
-def test_sql_injection_vul5():
-    print("Running test for test vulnerability file:", vul5_filename)
-    scoper = ScopeResolver()
-    visitor = InjectionNodeVisitor()
-    vul5_struct = get_modulestruct(vul5_filename)
-    scoper.visit(vul5_struct.get_ast())
-    visitor.visit(vul5_struct.get_ast())
-    print_execute_funcs(visitor)
-
-
-def test_sql_injection_vul6():
-    generic_test(vul6_filename)
-
 def test_get_all_vars():
+    path_here = os.path.dirname(os.path.realpath(__file__))
     # astVul5 = get_ast_from_filename(vul5_filename)
     # allVars = injectionutil.get_all_vars(astVul5)
     # print(allVars)
     # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    test = ProjectAnalysisStruct("", "")
-    module_vul5 = test.get_module("find_uses_tests.sql_injection_vul5")
-    modules = test.get_module_structure()
-    print("module+++++++++++")
-    for key in modules.keys():
-        print(key)
-        print(modules[key])
-    print("module+++++++++++")
-    visitor = InjectionNodeVisitor(test, "vulnerable_example.sql_injection_vul5")
-    visitor.visit(module_vul5.get_ast())
-    print_execute_funcs(visitor)
+    test = ProjectAnalysisStruct("TEST_PROJECT", os.path.join(path_here, 'resources'))
+
+    for m_name, m_struct in test.get_module_structure().items():
+        visitor = InjectionNodeVisitor(test, m_name)
+        visitor.visit(m_struct.get_ast())
+        print_execute_funcs(visitor)
+
+    #module_vul5 = test.get_module("find_uses_tests.sql_injection_vul5")
+    #modules = test.get_module_structure()
+    #print("module+++++++++++")
+    #for key in modules.keys():
+    #    print(key)
+    #    print(modules[key])
+    #print("module+++++++++++")
+    #visitor = InjectionNodeVisitor(test, "vulnerable_example.sql_injection_vul5")
+    #visitor.visit(module_vul5.get_ast())
+    #print_execute_funcs(visitor)
 
 if __name__ == '__main__':
     test_get_all_vars()

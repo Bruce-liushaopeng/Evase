@@ -51,9 +51,10 @@ def get_all_vars(node: ast.AST) -> set:
     if hasattr(node, "id"):
         args.add(node.id)
     elif isinstance(node, ast.Call):
-        if node.func.attr == "replace" and len(node.args) == 2 and node.args[0].value == ";" and not node.args[
-                                                                                                         1].value == ";":
-            return args
+        if isinstance(node.func, ast.Attribute):
+            if node.func.attr == "replace" and len(node.args) == 2 and node.args[0].value == ";" and not node.args[
+                                                                                         1].value == ";":
+                return args
 
         # resolveCall(node)
     elif hasattr(node, "elts"):
@@ -108,7 +109,9 @@ def get_inner_scope_assignments(index, assignments):
     inner_assignments = [[]]
     assignment_ind = 0
 
+    print("HERE", assignments)
     while len(stack) != 0:
+
         node = assignments[index]
         if node == "if" or node == "while" or node == "for":
             stack.append("end" + node)
