@@ -9,7 +9,7 @@ class InjectionNodeVisitor(ast.NodeVisitor):
     # sql_package_names = ["sqlite3", "mysql"]
     def __init__(self, project_struct, module_key):
         self.execute_funcs = {}
-        self.vulnerable_funcs = []
+        self.vulnerable_funcs = {}
         self.current_func_node = None
         self.lst_of_assignments = []
         self.sql_marker = VulnerableTraversalChecker()
@@ -43,7 +43,6 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         if self.if_flag:
             self.lst_of_assignments.append("endif")
 
-
     def else_visit(self, nodes):
         if len(nodes) == 0:
             self.lst_of_assignments.append("endelse")
@@ -66,10 +65,6 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         self.lst_of_assignments.append(node)
         super().generic_visit(node)
 
-    def visit_ClassDef(self, node: ast.ClassDef):
-        self.current_cls_node = node
-        super().generic_visit(node)
-
     def visit_Call(self, node: ast.Call):
         if hasattr(node.func, "attr") and node.func.attr == "execute":
             print(self.lst_of_assignments)
@@ -86,9 +81,11 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         print("EXEC found, curr scope:", curr_scope)
         print(self.current_func_node.parent_classes)
 
-        result = self.sql_marker.traversal_from_exec(lst, self.current_func_node, arg_list, self.project_struct, self.module_key)
-        print(result)
-        self.vulnerable_funcs.append(result)
+        result = self.sql_marker.traversal_from_exec(lst, self.current_func_node, arg_list, self.project_struct,
+                                                     self.module_key)
+        if len(result) > 0:
+            module_full_name = f'{self.module_key}.{self.current_func_node.name}'
+            self.vulnerable_funcs[module_full_name] = result
         self.execute_funcs[curr_scope] = self.current_func_node
 
     def visit_FunctionDef(self, node: ast.FunctionDef):

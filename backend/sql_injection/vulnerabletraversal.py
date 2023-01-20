@@ -68,8 +68,7 @@ class VulnerableTraversalChecker:
             if is_flask_api_function(node.get_func_node()):
                 if len(vulnerable_vars) > 0:
                     print("api ", node.get_func_node().name, " is vulnerable")
-                    vulnerable_locations.add(node.get_func_node().name)
-
+                    vulnerable_locations.add(f'{node.get_module_name()}.{node.get_func_node().name}')
             else:
                 param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
                 if param_indexes_vulnerable == None:continue
@@ -91,7 +90,7 @@ class VulnerableTraversalChecker:
                     print("     adding------------- " + nodeNext.get_func_node().name)
                     queue.append(nodeNext)
 
-        return vulnerable_locations
+        return list(vulnerable_locations)
 
 
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
