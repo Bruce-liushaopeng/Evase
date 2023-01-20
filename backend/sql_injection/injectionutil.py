@@ -109,7 +109,6 @@ def get_inner_scope_assignments(index, assignments):
     inner_assignments = [[]]
     assignment_ind = 0
 
-    print("HERE", assignments)
     while len(stack) != 0 and index < len(assignments):
 
         node = assignments[index]

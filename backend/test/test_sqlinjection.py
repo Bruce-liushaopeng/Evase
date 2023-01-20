@@ -43,7 +43,7 @@ def test_get_all_vars():
     # allVars = injectionutil.get_all_vars(astVul5)
     # print(allVars)
     # test = ProjectAnalysisStruct("parser", "C:/Users/Anthony/Desktop/Desktop/Proj/parser")
-    test = ProjectAnalysisStruct("TEST_PROJECT", os.path.join(path_here, 'resources'))
+    test = ProjectAnalysisStruct("TEST_PROJECT", os.path.join(path_here, 'resources', 'demonstration'))
 
     for m_name, m_struct in test.get_module_structure().items():
         visitor = InjectionNodeVisitor(test, m_name)

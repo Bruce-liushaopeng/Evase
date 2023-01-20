@@ -101,7 +101,6 @@ class VulnerableTraversalChecker:
         #               possible flow         possible flow
         # marked_lst [{a ->{param1, param2}}, {a->{param3}}]      list<Map<string, set>>
         # var_type_lst [{a -> [Integer]},{a -> [class1,class2]}]
-        print(assignments)
         index = 0
         while index < len(assignments):
             node = assignments[index]
@@ -119,11 +118,12 @@ class VulnerableTraversalChecker:
                             len(possible_marked_var_to_params)):  # update all possible marked variables to params, for target_variable
                         marked_new = set()
                         for val in val_lst[i]:  # values of variables being assigned to corresponding target_variable
-                            if val in parameters:
-                                marked_new.add(val)
+
                             # get parameters that val is equal to and add to marked_new
-                            elif val in possible_marked_var_to_params[j]:
+                            if val in possible_marked_var_to_params[j]:
                                 marked_new = marked_new.union(possible_marked_var_to_params[j][val])
+                            elif val in parameters:
+                                marked_new.add(val)
 
                         possible_marked_var_to_params[j][target_variable] = marked_new
                         # var_type_lst[j][target] = target_type[j]
@@ -149,9 +149,9 @@ class VulnerableTraversalChecker:
                     # determine marked_lst in inner function, new_vulnerable is for when function returns are being analyzed
                     new_vulnerable = self.collect_vulnerable_vars(func_node, inner_scope_assignment, copy_marked_lst,
                                                                   copy_var_type_lst)
-                    print("here")
-                    print(inner_scope_assignment)
-                    print(copy_marked_lst)
+                    # print("here")
+                    # print(inner_scope_assignment)
+                    # print(copy_marked_lst)
                     # add inner scope marked_lst to previous possible_marked_var_to_params
                     possible_marked_var_to_params.extend(copy_marked_lst)
                     var_type_lst.extend(copy_var_type_lst)
@@ -160,6 +160,7 @@ class VulnerableTraversalChecker:
 
         # if injection_vars -> cursor.execute() determine if vars used in injection are dangerous
         if len(injection_vars) != 0:
+            print(possible_marked_var_to_params)
             for val in injection_vars:
                 for marked in possible_marked_var_to_params:
                     if val not in marked and val in parameters:
