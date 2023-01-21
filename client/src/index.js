@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import EvaseApp from './EvaseApp';
 import reportWebVitals from './reportWebVitals';
 
-
 const container = document.getElementById('root');
 const root = createRoot(container);
 
