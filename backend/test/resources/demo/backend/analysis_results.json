@@ -2,8 +2,11 @@
     "sql_injection": {
         "vulnerabilities": {
             "backend.vul": {
-                "backend.vul.getUserFromDB": [
-                    "backend.app.getUser"
+                "backend.vul.add_user_to_db": [
+                    "backend.app.add_user"
+                ],
+                "backend.vul.get_user_from_db": [
+                    "backend.app.get_user"
                 ]
             }
         },

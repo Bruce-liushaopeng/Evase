@@ -87,7 +87,7 @@ class FunctionCallFinder(ast.NodeVisitor):
         self.lst_of_assignments.append("endfor")
 
     def visit_Return(self, node: ast.Return):
-        self.lst_of_assignments.append(node)
         super().generic_visit(node)
+        self.lst_of_assignments.append(node)
 
 

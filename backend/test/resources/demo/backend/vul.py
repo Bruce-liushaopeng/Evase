@@ -1,48 +1,38 @@
 import sqlite3
 
-def newUserToDB(firstName, lastName):
+
+def add_user_to_db(username: str, password: str) -> str:
+    """
+    Adds a new user to the database
+
+    :param username: The username for the user
+    :param password: The password of the user
+    :return: Add user message
+    """
     conn = sqlite3.connect('sample.db')
-    query = f"INSERT INTO USER ( FirstName, LastName) VALUES ('{firstName}', '{lastName}')"
-    print(firstName)
-    print(query)
-    conn.execute(f"INSERT INTO USER ( FirstName, LastName) VALUES ('{firstName}', '{lastName}')")
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
     conn.commit()
-
-    curser = conn.execute("SELECT FirstName, LastName from USER")
-    updatedDB = []
-    for row in curser:
-        data = [row[0], row[1]]
-        updatedDB.append(data)
-        print("ID = ", row[0])
-        print("FirstName = ", row[1])
-
     conn.close()
-    return updatedDB
+    return "user [" + username + "] added auccess"
 
-def getUserFromDB(firstName):
+
+def get_user_from_db(username: str) -> list:
+    """
+    Gets a user from the SQLite database.
+    This function is susceptible to SQL injection.
+
+    :param username: The username
+    :return: The user information
+    """
     conn = sqlite3.connect('sample.db')
-    curser = conn.execute(f"SELECT FirstName, LastName from USER where firstName = '{firstName}'")
+    print(username)
+    curser = conn.execute(f"SELECT userName, password from USER where userName = '{username}'")
     userInfo = []
     for row in curser:
         data = [row[0], row[1]]
         userInfo.append(data)
         print("ID = ", row[0])
-        print("FirstName = ", row[1])
+        print("userName = ", row[1])
 
     conn.close()
     return userInfo
-
-
-if __name__ == '__main__':
-    print("here")
-    # conn = sqlite3.connect('sample.db')
-    # userInput = f"123' or 'hello' = 'hello"
-    # curser = conn.execute(f"SELECT FirstName, LastName from USER where firstName = '{userInput}'")
-    # updatedDB = []
-    # for row in curser:
-    #     data = [row[0], row[1]]
-    #     updatedDB.append(data)
-    #     print("ID = ", row[0])
-    #     print("FirstName = ", row[1])
-    #
-    # conn.close()

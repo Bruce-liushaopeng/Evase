@@ -2,6 +2,7 @@ import sqlite3
 import string
 
 def vulnerable_executor(password: string, a: string, c: string):
+    arr = []
     b = 4
     d = ""
     g = c
@@ -9,6 +10,9 @@ def vulnerable_executor(password: string, a: string, c: string):
         f = password
         if b == 2:
             d = f
+
+    for b in arr:
+        d = c
 
     cur = sqlite3.cursor()
     cur.execute('''SELECT admin FROM users WHERE username = ''' + d, password)

@@ -61,8 +61,8 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         self.lst_of_assignments.append("endfor")
 
     def visit_Return(self, node: ast.Return) -> Any:
-        self.lst_of_assignments.append(node)
         super().generic_visit(node)
+        self.lst_of_assignments.append(node)
 
     def visit_Call(self, node: ast.Call):
         if hasattr(node.func, "attr") and node.func.attr == "execute":

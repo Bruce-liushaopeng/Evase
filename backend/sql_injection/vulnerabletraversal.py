@@ -167,4 +167,7 @@ class VulnerableTraversalChecker:
                         for vulnerable_param in marked[val]:
                             vulnerable.add(vulnerable_param)
 
+                if len(possible_marked_var_to_params) == 0 and val in parameters:
+                    vulnerable.add(val)
+
         return vulnerable

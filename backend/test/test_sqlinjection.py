@@ -49,7 +49,7 @@ def test_get_all_vars():
     print(path_here)
     demo_code = os.path.join(path_here, 'test', 'resources')
 
-    test = ProjectAnalysisStruct("backend", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/test/resources/demo")
+    test = ProjectAnalysisStruct("demonstration", "C:/Users/Anthony/Desktop/Desktop/Proj/evase/backend/test/resources/demo2")
     for m_name, m_struct in test.get_module_structure().items():
         print(m_struct.get_module_imports(), "imports")
         print(m_name)
