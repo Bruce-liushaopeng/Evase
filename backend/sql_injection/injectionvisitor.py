@@ -24,7 +24,6 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         super().generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign):
-        print(ast.dump(node))
         self.lst_of_assignments.append(node)
         super().generic_visit(node)
 

@@ -1,5 +1,5 @@
-from demonstration.model import check_DB as a
-import demonstration.model as a
+from model import check_DB as a
+import model as a
 
 
 def check_DB(f):

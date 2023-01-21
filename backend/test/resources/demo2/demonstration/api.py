@@ -1,6 +1,6 @@
 from flask import Flask
 
-from demonstration.controller import check_DB_wrapper
+from controller import check_DB_wrapper
 
 app = Flask(__name__)
 

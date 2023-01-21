@@ -1,0 +1,12 @@
+{
+    "sql_injection": {
+        "vulnerabilities": {
+            "backend.vul": {
+                "backend.vul.getUserFromDB": [
+                    "backend.app.getUser"
+                ]
+            }
+        },
+        "found_any": true
+    }
+}

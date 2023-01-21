@@ -13,7 +13,6 @@ def addUser():
     return response
 
 @app.route('/getUser', methods=['GET'], strict_slashes=False)
-def getUser():
-    firstName = request.json['firstName']
+def getUser(firstName):
     response = getUserFromDB(firstName)
     return response

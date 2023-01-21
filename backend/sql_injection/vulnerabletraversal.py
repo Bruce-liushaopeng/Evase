@@ -159,7 +159,6 @@ class VulnerableTraversalChecker:
 
         # if injection_vars -> cursor.execute() determine if vars used in injection are dangerous
         if len(injection_vars) != 0:
-            print(possible_marked_var_to_params)
             for val in injection_vars:
                 for marked in possible_marked_var_to_params:
                     if val not in marked and val in parameters:

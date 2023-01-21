@@ -20,4 +20,4 @@ def perform_analysis(
 
     analysis_performer.perform_analysis()
     pprint(analysis_performer.get_results())
-    analysis_performer.results_to_JSON(output_folder)
+    analysis_performer.results_to_JSON(folder)

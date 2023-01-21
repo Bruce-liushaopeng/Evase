@@ -73,6 +73,16 @@ def get_all_vars(node: ast.AST) -> set:
         for r_subarg in get_all_vars(node.right):
             args.add(r_subarg)
 
+    elif isinstance(node, ast.JoinedStr):
+        for value in node.values:
+            for subarg in get_all_vars(value):
+                args.add(subarg)
+
+
+    elif isinstance(node, ast.FormattedValue):
+        for subargs in get_all_vars(node.value):
+            args.add(subargs)
+
     elif hasattr(node, "args"):
         args.add(node)
         # for arg in node.args:
@@ -97,10 +107,12 @@ def get_all_target_values(node: ast.Assign) -> list:
     try:
         for val in node.value.elts:
             val_lst.append(get_all_vars(val))
+        if len(val_lst) == 0:
+            val_lst.append(set())
     except AttributeError:
         val_lst.append(get_all_vars(node.value))
 
-    return val_lst,0
+    return val_lst, 0
 
 
 def get_inner_scope_assignments(index, assignments):
@@ -129,4 +141,4 @@ def get_inner_scope_assignments(index, assignments):
         inner_assignments[assignment_ind].append(node)
         index += 1
 
-    return index-1, inner_assignments
+    return index - 1, inner_assignments
