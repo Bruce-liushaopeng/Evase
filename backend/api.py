@@ -42,6 +42,7 @@ def file_upload_hook():
         zip_ref.extractall(UPLOAD_FOLDER)
     os.remove(destination)  # delete the zip file after unziping it
     response = "upload successful, check backend folder for User Files"
+    print("HERE")
     return response
 
 

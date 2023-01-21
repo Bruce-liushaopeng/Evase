@@ -1,30 +1,25 @@
 import React, { useState } from 'react';
 import Upload from './containers/Upload'
+import Analysis from './containers/Analysis'
+import { uploadFile } from './Hooks'
 
-const axios = require('axios').default;
 
 
 
 function App() {
     const [respond, setRespond] = useState("");
+    const [fileUploaded, setFileUploaded] = useState(false);
 
-    const uploadFile = (file) => {
-        console.log(typeof file)
-        console.log("Upload function triggered.")
-        const formData = new FormData();
-        formData.append(
-            "file",
-            file,
-            file.name
-        );
-        axios
-            .post("http://127.0.0.1:5000/upload", formData)
-            .then(res => {
-                setRespond(res.data)
-            })
-            .catch(err => console.warn(err));
+    const handleUpload = (file) => {
+        setFileUploaded(false);
+        uploadFile(file, function(response) {
+            console.log("HERE IT IS");
+            if (response) {
+                setFileUploaded(true);
+            }
+            setRespond(response);
+        });
     }
-
     const cancelFile = () => {
         setRespond("")
     }
@@ -33,15 +28,23 @@ function App() {
         setRespond("")
     }
 
-    function backendInformation() {
+    const backendInformation = () => {
         if (respond) {
             return <p> Backend Reply: {respond}</p>
         }
     }
 
+    const contentUpdate = () => {
+        if (fileUploaded) {
+            return (<Analysis instruction="Please select what types of things you want to analyze."/>);
+        } else {
+            return (<Upload instruction="Input your source code in ZIP format." onSubmission={handleUpload} onCancel={cancelFile} onChange={fileChanged}/>);
+        }
+    }
+
     return (
-        <div className="App">
-            <Upload instruction="Input your source code in ZIP format." onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>
+        <div className="flex flex-row bg-gray-200 rounded-xl shadow border p-20 align-center pl-40 min-h-screen">
+            {contentUpdate()}
             <div className="uploadResult">
                 {backendInformation()}
             </div>

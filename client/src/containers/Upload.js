@@ -1,43 +1,43 @@
 import React, { useState } from 'react'
 import { DropzoneDialog } from "material-ui-dropzone"
-import './styles.css'
 
 const Upload = (props) => {
 
     const [selectedFile, setSelectedFile] = useState(null);
-    const [isFilePicked, setIsFilePicked] = useState(false)
-    const [dialogOpen, setDialogOpen] = useState(false)
+    const [isFilePicked, setIsFilePicked] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     const cancelFile = (e) => {
-        props.onCancel()
-        setSelectedFile(null)
-        setIsFilePicked(false)
+        props.onCancel();
+        setSelectedFile(null);
+        setIsFilePicked(false);
     }
 
     const handleSubmission = (e) => {
-        e.preventDefault()
-        props.onSubmission(selectedFile)
+        e.preventDefault();
+        props.onSubmission(selectedFile);
     }
 
     const showDialog = () => {
-        setDialogOpen(true)
+        setDialogOpen(true);
     }
 
     const handleSave = (files) => {
-        setDialogOpen(false)
-        setSelectedFile(files[0])
-        setIsFilePicked(true)
-        console.log(files)
+
+        setDialogOpen(false);
+        setSelectedFile(files[0]);
+        setIsFilePicked(true);
+        console.log(files);
     }
 
     const handleClose = () => {
-        setDialogOpen(false)
+        setDialogOpen(false);
     }
 
 
     return (
-        <div className="neu-box">
-            <header className="uploadInstruction">
+        <div className="flex flex-row bg-gray-200 rounded-xl shadow border p-20 align-center pl-40 min-h-screen">
+            <header className="text-3xl text-gray-700 font-bold mb-5">
                 <p>{props.instruction}</p>
             </header>
             <button className="neu-btn" onClick={showDialog} >
