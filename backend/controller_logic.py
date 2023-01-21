@@ -19,5 +19,6 @@ def perform_analysis(
                                            password_guessing=password_guessing)
 
     analysis_performer.perform_analysis()
-    pprint(analysis_performer.get_results())
+    results = analysis_performer.get_results()
     analysis_performer.results_to_JSON(folder)
+    return results
