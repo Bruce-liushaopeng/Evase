@@ -18,7 +18,7 @@ function App() {
             file.name
         );
         axios
-            .post("/upload", formData)
+            .post("http://127.0.0.1:5000/upload", formData)
             .then(res => {
                 setRespond(res.data)
             })
