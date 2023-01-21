@@ -6,7 +6,6 @@ from backend.sql_injection.vulnerabletraversal import VulnerableTraversalChecker
 
 class InjectionNodeVisitor(ast.NodeVisitor):
     # cursor_name = None
-    # sql_package_names = ["sqlite3", "mysql"]
     def __init__(self, project_struct, module_key):
         self.execute_funcs = {}
         self.vulnerable_funcs = {}
@@ -17,6 +16,33 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         self.project_struct = project_struct
         self.module_key = module_key
 
+        self.sql_import_name = []
+        self.found_cursors = []
+        self.found_execute_cursors = []
+
+    def check_cursor(self, node: ast.Call) -> bool:
+        call_func = node.func
+        if isinstance(call_func, ast.Attribute):   # This may need to be double checked for ast.Attribute
+            func_attr = call_func.attr
+
+            if func_attr.lower() == 'cursor':
+                attr_name_node = call_func.value
+                return isinstance(attr_name_node, ast.Name) and any(
+                    attr_name_node.id == sql_import for sql_import in self.sql_import_name)
+
+    def handle_cursor(self, targs: list[ast.expr], call_node: ast.Call):
+        for targ in targs:
+            if isinstance(targ, ast.Name) and isinstance(targ.ctx, ast.Store):
+                cursor_obj_name = targ.id
+                for saved_execute_cursor in self.found_execute_cursors:
+                    if saved_execute_cursor == cursor_obj_name:
+                        print(self.lst_of_assignments)
+                        self.visit_execute(call_node)
+                        super().generic_visit(call_node)
+
+                        return   # Not sure about this
+                self.found_cursors.append(cursor_obj_name)
+
     def get_execute_funcs(self) -> dict[Any, Any]:
         return self.execute_funcs
 
@@ -24,6 +50,14 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         super().generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign):
+
+        node_value = node.value
+        if isinstance(node_value, ast.Call):
+            valid_cursor = self.check_cursor(node_value)
+            if valid_cursor:
+                node_targets = node.targets
+                self.handle_cursor(node_targets, node_value)
+
         print(ast.dump(node))
         self.lst_of_assignments.append(node)
         super().generic_visit(node)
@@ -67,9 +101,21 @@ class InjectionNodeVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call):
         if hasattr(node.func, "attr") and node.func.attr == "execute":
-            print(self.lst_of_assignments)
-            self.visit_execute(node)
-        super().generic_visit(node)
+            func_node = node.func
+            if isinstance(func_node, ast.Attribute) and isinstance(func_node.value, ast.Name):
+                name_node = func_node.value
+                execute_cursor = name_node.id
+                for saved_cursor in self.found_cursors:
+                    if saved_cursor == execute_cursor:
+                        self.found_cursors.remove(saved_cursor)
+
+                        print(self.lst_of_assignments)
+                        self.visit_execute(node)
+                        super().generic_visit(node)
+
+                        return   # Not sure about this
+
+                self.found_execute_cursors.append(execute_cursor)
 
     def visit_execute(self, node: ast.Call):
         lst = self.lst_of_assignments.copy()
