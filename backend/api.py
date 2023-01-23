@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import zipfile
 import logging
@@ -18,6 +19,7 @@ ANALYSIS_RESULTS_PATH = os.path.join(UPLOAD_FOLDER, 'analysis_results.json')
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+cors = CORS(app)
 
 
 @app.route('/upload', methods=['POST'])
