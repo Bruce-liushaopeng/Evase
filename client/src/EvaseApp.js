@@ -1,25 +1,38 @@
 import React, { useState } from 'react';
 import Upload from './containers/Upload'
-import Analysis from './containers/Analysis'
-import { uploadFile } from './Hooks'
+import Analyzer from './containers/Analyzer'
 
-
-
+const axios = require('axios').default;
+axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
 function App() {
     const [respond, setRespond] = useState("");
     const [fileUploaded, setFileUploaded] = useState(false);
+    const [projectName, setProjectName] = useState("");
+    const [analysisResult, setAnalysisResult] = useState(null);
 
-    const handleUpload = (file) => {
-        setFileUploaded(false);
-        uploadFile(file, function(response) {
-            console.log("HERE IT IS");
-            if (response) {
+    const uploadFile = (projectName, file) => {
+        console.log("Project name given:")
+        console.log(projectName)
+        console.log(typeof file)
+        console.log("Upload function triggered.")
+        const formData = new FormData();
+        formData.append(
+            "file",
+            file,
+            file.name
+        );
+        axios
+            .post("http://127.0.0.1:5000/upload/"+projectName, formData)
+            .then(res => {
+                setRespond(res.data)
                 setFileUploaded(true);
-            }
-            setRespond(response);
-        });
+            })
+            .catch(err => console.warn(err));
     }
+
+
+
     const cancelFile = () => {
         setRespond("")
     }
@@ -34,18 +47,25 @@ function App() {
         }
     }
 
-    const contentUpdate = () => {
+    const getAnalysisResult = () => {
+
+
+        return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
+    }
+
+    const contentChange = () => {
         if (fileUploaded) {
-            return (<Analysis instruction="Please select what types of things you want to analyze."/>);
+            console.log("ANALYSIS TIME")
+            return (<Analyzer />);
         } else {
-            return (<Upload instruction="Input your source code in ZIP format." onSubmission={handleUpload} onCancel={cancelFile} onChange={fileChanged}/>);
+            return (<Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>);
         }
     }
 
     return (
-        <div className="flex flex-row bg-gray-200 rounded-xl shadow border p-20 align-center pl-40 min-h-screen">
-            {contentUpdate()}
-            <div className="uploadResult">
+        <div className="flex items-center space-x-2 text-base">
+            {contentChange()}
+            <div className="flex items-center space-x-2 text-base">
                 {backendInformation()}
             </div>
         </div>

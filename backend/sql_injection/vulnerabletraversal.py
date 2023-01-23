@@ -30,6 +30,22 @@ def is_flask_api_function(func_node: ast.FunctionDef):
     return False
 
 
+def is_django_api_function(func_node: ast.FunctionDef):
+    """
+    Determines if a function definition approximates one that is used for APIs in Django.
+    Checks the decorators of the function definition.
+
+    :param func_node: The function definition node
+    :return: Whether the definition node represents a definition for Django API
+    """
+    for dec in func_node.decorator_list:
+        if isinstance(dec, ast.Call):
+            if isinstance(dec.func, ast.Name):
+                if dec.func.id == "app_view":
+                    return True
+    return False
+
+
 def determine_vul_params_location(vul_set: set, func_node):
     """
     Determines the vulnerable parameters of a function definition given a set of vulnerable variables.
@@ -52,29 +68,31 @@ class VulnerableTraversalChecker:
                             project_struct, module):
 
         vulnerable_locations = set()
-        visited_func = set() # unique with func name, module and num assignments
+        visited_func = set()  # unique with func name, module and num assignments
         queue = deque()
         modules = project_struct.get_module_structure()
         queue.append(Node(func_node, assignments, injection_vars, module))
         print("start of bfs")
         while len(queue) != 0:
             node = queue.popleft()
-            identifier = node.get_module_name()+" "+node.get_func_node().name + " "+str(len(node.get_assignments()))
+            identifier = node.get_module_name() + " " + node.get_func_node().name + " " + str(
+                len(node.get_assignments()))
             visited_func.add(identifier)
             print("visiting func ----------------------", node.get_func_node().name)
             vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
                                                            node.get_injection_vars())
             print(vulnerable_vars)
-            if is_flask_api_function(node.get_func_node()):
+            if is_flask_api_function(node.get_func_node()) or is_django_api_function(node.get_func_node()):
                 if len(vulnerable_vars) > 0:
                     print("api ", node.get_func_node().name, " is vulnerable")
                     vulnerable_locations.add(f'{node.get_module_name()}.{node.get_func_node().name}')
             else:
                 param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
-                if param_indexes_vulnerable == None:continue
+                if param_indexes_vulnerable == None: continue
 
                 for nodeNext in searching.get_function_uses(modules, node.get_func_node().name, node.get_module_name()):
-                    unique_identifier = nodeNext.get_module_name()+" "+nodeNext.get_func_node().name + " "+str(len(nodeNext.get_assignments()))
+                    unique_identifier = nodeNext.get_module_name() + " " + nodeNext.get_func_node().name + " " + str(
+                        len(nodeNext.get_assignments()))
                     if unique_identifier in visited_func: continue
 
                     injection_vars = nodeNext.get_injection_vars()
@@ -86,12 +104,11 @@ class VulnerableTraversalChecker:
                         ind += 1
 
                     nodeNext.set_injection_vars(inj)
-                    if len(inj) == 0: continue # unique is in set
+                    if len(inj) == 0: continue  # unique is in set
                     print("     adding------------- " + nodeNext.get_func_node().name)
                     queue.append(nodeNext)
 
         return list(vulnerable_locations)
-
 
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
                                 injection_vars={}):

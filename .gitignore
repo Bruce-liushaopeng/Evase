@@ -5,3 +5,5 @@
 /node_modules
 venv
 __pycache__
+
+*/analysis_results.json

@@ -100,10 +100,9 @@ class AnalysisPerformer:
 
     def results_to_JSON(self, filepath: str):
         jform = json.dumps(self.analysis_results, indent=4)
-        result_path = os.path.join(filepath,'backend')
-        if not os.path.exists(result_path) or not os.path.isdir(result_path):
+        if not os.path.exists(filepath) or not os.path.isdir(filepath):
             raise ValueError("Path doesn't exist or it isn't a directory")
-        fpath = os.path.join(result_path, 'analysis_results.json')
+        fpath = os.path.join(filepath, 'analysis_results.json')
         with open(fpath, 'w') as f:
             f.write(jform)
         return jform

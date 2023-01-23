@@ -16,7 +16,6 @@
     "form-data": "^4.0.0",
     "framer-motion": "^7.6.5",
     "material-ui-dropzone": "^3.5.0",
-    "material-ui-icons": "^1.0.0-beta.36",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.4",
@@ -26,7 +25,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "start-backend": "cd .. && cd api && python -m flask run",
+    "start-backend": "cd .. && cd backend && python -m flask run",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
