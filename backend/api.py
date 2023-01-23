@@ -27,7 +27,7 @@ def file_upload_hook(prj_name: str):
     """
     Hook that is called when the frontend pushes attempts to push a file to backend
     """
-    global PROJECT_NAME
+    global PROJECT_NAME, PROJECT_FOLDER
 
     file = request.files['file']  # get the file from post request
     filename = secure_filename(file.filename)  # get the fileName
@@ -53,7 +53,6 @@ def file_upload_hook(prj_name: str):
         zip_ref.extractall(upload_dir)
     os.remove(destination)  # delete the zip file after unziping it
 
-
     response = "upload successful, check backend folder for User Files"
     return response
 
@@ -63,7 +62,8 @@ def analyze_file_hook():
     """
 
     """
-    print("ANALYSIS")
+    global PROJECT_FOLDER
+    print("ANALYSIS", PROJECT_FOLDER)
     if len(os.listdir(UPLOAD_FOLDER)) > 0:
         # perform analysis here
         print("Begin analysis")

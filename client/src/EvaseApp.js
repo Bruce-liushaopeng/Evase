@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Upload from './containers/Upload'
-import Analysis from './containers/Analysis'
+import Analyzer from './containers/Analyzer'
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -31,18 +31,7 @@ function App() {
             .catch(err => console.warn(err));
     }
 
-    const analyzeCode = (sql, fdl, nenc, psswdg) => {
-        const params = new URLSearchParams([['sql', sql], ['fdl', fdl], ['no_enc', nenc], ['pswd_guessing', psswdg]]);
-        axios
-            .get("http://127.0.0.1:5000/analyze", { params })
-            .then(res => {
-                if (res.data) {
-                    console.log("RESPONSE");
-                    setAnalysisResult(res.data);
-                }
-            })
-            .catch(err => console.warn(err));
-    }
+
 
     const cancelFile = () => {
         setRespond("")
@@ -58,12 +47,18 @@ function App() {
         }
     }
 
+    const getAnalysisResult = () => {
+
+
+        return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
+    }
+
     const contentChange = () => {
         if (fileUploaded) {
             console.log("ANALYSIS TIME")
-            return (<Analysis onSubmission={analyzeCode}/>);
+            return (<Analyzer />);
         } else {
-            return (<Upload instruction="Input your source code in ZIP format." onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>);
+            return (<Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>);
         }
     }
 

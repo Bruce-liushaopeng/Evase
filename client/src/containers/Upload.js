@@ -8,18 +8,23 @@ const Upload = (props) => {
     const [projectName, setProjectName] = useState("");
     const [isFilePicked, setIsFilePicked] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [attemptCount, setAttemptCount] = useState(0);
+    const [respMsg, setRespMsg] = useState("");
+
     const cancelFile = (e) => {
         props.onCancel();
         setSelectedFile(null);
         setIsFilePicked(false);
+        setAttemptCount(0);
     }
 
     const handleSubmission = (e) => {
         e.preventDefault();
+        setAttemptCount(attemptCount+1);
         if (projectName.length === 0) {
             alert("You must input a project name.");
         } else {
-            props.onSubmission(projectName, selectedFile);
+            setRespMsg(props.onSubmission(projectName, selectedFile));
             setProjectName("");
             setSelectedFile(null);
             setIsFilePicked(null);
