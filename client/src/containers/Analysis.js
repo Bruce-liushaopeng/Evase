@@ -17,35 +17,64 @@ const Analysis = (props) => {
         }
     }
 
-    const handleSqlChange = (e) => {
-        e.preventDefault();
-        setSQLInjection(e.target.value)
+    const handleSQLInjectionChange = (e) => {
+        setSQLInjection(!sqlInjection);
     }
 
     const handleFDLChange = (e) => {
-        e.preventDefault();
-        setFDeadlock(e.target.value)
+        setFDeadlock(!fDeadlock);
     }
 
     const handleNoEncChange = (e) => {
-        e.preventDefault();
-        setNoEnc(e.target.value)
+        setNoEnc(!noEnc);
     }
 
     const handlePsswdGuessingChange = (e) => {
-        e.preventDefault();
-        setPsswdGuessing(e.target.value)
+        setPsswdGuessing(!psswdGuessing);
     }
 
     return (
-        <div className="neu-box">
+        <form onSubmit={handleSubmission}>
             <p>Please select the types of attack behaviours to detect.</p>
-            <input type="radio" id="sqlRadio" name="sqlRadio" onChange={handleSqlChange}/>
-            <input type="radio" id="fdlRadio" name="fdlRadio" onChange={handleFDLChange}/>
-            <input type="radio" id="nencRadio" name="nencRadio" onChange={handleNoEncChange}/>
-            <input type="radio" id="psswdGuessingRadio" name="psswdGuessingRadio" onChange={handlePsswdGuessingChange}/>
-            <button id="submit" name="submit" onClick={handleSubmission}/>
-        </div>
+            <label>
+                <input
+                    type="radio"
+                    name="sqlRadio"
+                    value="sql"
+                    checked={sqlInjection}
+                    onChange={handleSQLInjectionChange}
+                />
+                SQL Injection Attack Behaviours
+            </label><br/>
+            <label>
+                <input
+                    type="radio"
+                    name="fdlRadio"
+                    value="fdl"
+                    onChange={handleFDLChange}
+                />
+                Forced Deadlock Attack Behaviours
+            </label><br/>
+            <label>
+                <input
+                    type="radio"
+                    name="nencRadio"
+                    value="no_enc"
+                    onChange={handleNoEncChange}
+                />
+                Lack of Password Encryption Attack Behaviours
+            </label><br/>
+            <label>
+                <input
+                    type="radio"
+                    name="psswdGuessingRadio"
+                    value="psswd_guessing"
+                    onChange={handlePsswdGuessingChange}
+                />
+                Brute-Force Password Guessing Attack Behaviours
+            </label><br/>
+            <button id="submit" name="submit" onClick={handleSubmission}>Perform Analysis</button>
+        </form>
     )
 }
 
