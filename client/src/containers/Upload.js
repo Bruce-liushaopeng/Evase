@@ -5,18 +5,25 @@ import './styles.css'
 const Upload = (props) => {
 
     const [selectedFile, setSelectedFile] = useState(null);
-    const [isFilePicked, setIsFilePicked] = useState(false)
-    const [dialogOpen, setDialogOpen] = useState(false)
-
+    const [projectName, setProjectName] = useState("");
+    const [isFilePicked, setIsFilePicked] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const cancelFile = (e) => {
-        props.onCancel()
-        setSelectedFile(null)
-        setIsFilePicked(false)
+        props.onCancel();
+        setSelectedFile(null);
+        setIsFilePicked(false);
     }
 
     const handleSubmission = (e) => {
-        e.preventDefault()
-        props.onSubmission(selectedFile)
+        e.preventDefault();
+        if (projectName.length === 0) {
+            alert("You must input a project name.");
+        } else {
+            props.onSubmission(projectName, selectedFile);
+            setProjectName("");
+            setSelectedFile(null);
+            setIsFilePicked(null);
+        }
     }
 
     const showDialog = () => {
@@ -34,12 +41,17 @@ const Upload = (props) => {
         setDialogOpen(false)
     }
 
+    const handlePrjNameChange = (e) => {
+        e.preventDefault();
+        setProjectName(e.target.value);
+    }
+
 
     return (
         <div className="neu-box">
-            <header className="uploadInstruction">
-                <p>{props.instruction}</p>
-            </header>
+            <p>Please input your project name.</p>
+            <input type="text" id="prjname" name="prjname" value={projectName} onChange={handlePrjNameChange}/>
+            <p>Please input your source code in .zip format.</p>
             <button className="neu-btn" onClick={showDialog} >
                 Select file here
             </button>

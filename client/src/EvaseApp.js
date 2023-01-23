@@ -7,8 +7,11 @@ const axios = require('axios').default;
 
 function App() {
     const [respond, setRespond] = useState("");
+    const [projectName, setProjectName] = useState("");
 
-    const uploadFile = (file) => {
+    const uploadFile = (projectName, file) => {
+        console.log("Project name given:")
+        console.log(projectName)
         console.log(typeof file)
         console.log("Upload function triggered.")
         const formData = new FormData();
@@ -18,7 +21,7 @@ function App() {
             file.name
         );
         axios
-            .post("http://127.0.0.1:5000/upload", formData)
+            .post("http://127.0.0.1:5000/upload/"+projectName, formData)
             .then(res => {
                 setRespond(res.data)
             })
