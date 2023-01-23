@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { DropzoneDialog } from "material-ui-dropzone"
-import './styles.css'
 
 const Upload = (props) => {
 
@@ -53,7 +52,10 @@ const Upload = (props) => {
 
 
     return (
-        <div className="neu-box">
+        <div className="flex items-center space-x-2 text-base">
+            <h1 className="text-3xl font-bold underline">
+                EVASE Upload
+            </h1>
             <p>Please input your project name.</p>
             <input type="text" id="prjname" name="prjname" value={projectName} onChange={handlePrjNameChange}/>
             <p>Please input your source code in .zip format.</p>

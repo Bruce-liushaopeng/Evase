@@ -63,9 +63,9 @@ function App() {
     }
 
     return (
-        <div className="App">
+        <div className="flex items-center space-x-2 text-base">
             {contentChange()}
-            <div className="uploadResult">
+            <div className="flex items-center space-x-2 text-base">
                 {backendInformation()}
             </div>
         </div>

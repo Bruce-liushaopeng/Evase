@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
 
-import './styles.css'
-
 const AnalysisForm = (props) => {
 
     const [sqlInjection, setSQLInjection] = useState(false);
@@ -36,6 +34,9 @@ const AnalysisForm = (props) => {
 
     return (
         <div className="neu-box">
+            <h1 className="text-3xl font-bold underline">
+                EVASE Analyzer
+            </h1>
             <form onSubmit={handleSubmission}>
                 <p>Please select the types of attack behaviours to detect.</p>
                 <label>
