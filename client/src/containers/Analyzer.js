@@ -1,6 +1,7 @@
 import AnalysisForm from './AnalysisForm'
 import { analyzeCode } from './AnalysisHooks'
 import React, {useState} from "react";
+import ReactJson from 'react-json-view'
 
 const Analyzer = (props) => {
 
@@ -13,8 +14,8 @@ const Analyzer = (props) => {
     }
 
     const prettyResult = () => {
-
-        return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
+        return (<ReactJson src={analysisResult} />)
+        //return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
     }
 
     return (

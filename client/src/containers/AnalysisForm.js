@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import ReactJson from 'react-json-view'
 
 const AnalysisForm = (props) => {
 
@@ -32,15 +33,25 @@ const AnalysisForm = (props) => {
         setPsswdGuessing(!psswdGuessing);
     }
 
+    const resultView = () => {
+        if (props.analysisResult) {
+            //return (<ReactJson src={props.analysisResult} />);
+            return props.analysisResult;
+        } else {
+            return (<></>);
+        }
+    }
+
     return (
-        <div className="neu-box">
-            <h1 className="text-3xl font-bold underline">
+        <div className="flex flex-col items-center space-x-2 text-base m-auto">
+            <h1 className="test-3xl font-mono font-bold mb-2">
                 EVASE Analyzer
             </h1>
             <form onSubmit={handleSubmission}>
                 <p>Please select the types of attack behaviours to detect.</p>
-                <label>
+                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                     <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
                         name="sqlRadio"
                         value="sql"
@@ -49,8 +60,9 @@ const AnalysisForm = (props) => {
                     />
                     SQL Injection Attack Behaviours
                 </label><br/>
-                <label>
+                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                     <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
                         name="fdlRadio"
                         value="fdl"
@@ -59,8 +71,9 @@ const AnalysisForm = (props) => {
                     />
                     Forced Deadlock Attack Behaviours
                 </label><br/>
-                <label>
+                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                     <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
                         name="nencRadio"
                         value="no_enc"
@@ -69,8 +82,9 @@ const AnalysisForm = (props) => {
                     />
                     Lack of Password Encryption Attack Behaviours
                 </label><br/>
-                <label>
+                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                     <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
                         name="psswdGuessingRadio"
                         value="psswd_guessing"
@@ -79,11 +93,12 @@ const AnalysisForm = (props) => {
                     />
                     Brute-Force Password Guessing Attack Behaviours
                 </label><br/>
-                <button className="neu-btn" id="submit" name="submit" onClick={handleSubmission}>Perform Analysis</button>
+                <br />
+                <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md" id="submit" name="submit" onClick={handleSubmission}>Perform Analysis</button>
             </form>
             <div>
                 <p>Analysis Result</p>
-                {props.analysisResult}
+                {resultView()}
             </div>
         </div>
     )
