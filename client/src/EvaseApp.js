@@ -42,7 +42,7 @@ function App() {
     }
 
     const backendInformation = () => {
-        if (respond) {
+        if (true) {
             return <p> Backend Reply: {respond}</p>
         }
     }
@@ -54,13 +54,13 @@ function App() {
     }
 
     const contentChange = () => {
-        if (fileUploaded) {
-            console.log("ANALYSIS TIME")
-            return (<Analyzer />);
-        } else {
-            return (<div><Analyzer /> <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/> </div>);
+            return (
+                <div className='flex flex-row items-center'> 
+                    <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/> 
+                    <Analyzer /> 
+                </div>);
         }
-    }
+    
 
     return (
         <div className="min-h-screen bg-gray-200 ">
