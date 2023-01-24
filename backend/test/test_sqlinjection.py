@@ -47,6 +47,7 @@ def test_get_all_vars():
 
     for m_name, m_struct in test.get_module_structure().items():
         visitor = InjectionNodeVisitor(test, m_name)
+        print(m_struct.get_ast())
         visitor.visit(m_struct.get_ast())
         print_execute_funcs(visitor)
 

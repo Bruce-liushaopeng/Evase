@@ -1,0 +1,8 @@
+{
+    "sql_imports": [
+        "sqlite3",
+        "mysql",
+        "postgresql",
+        "pyscopg2"
+    ]
+}

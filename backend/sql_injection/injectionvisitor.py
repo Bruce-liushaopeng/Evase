@@ -1,12 +1,15 @@
+import json
 from typing import List, Dict, Any
 import ast
+
+from backend.depanalyze.modulestructure import ModuleAnalysisStruct
+from backend.depanalyze.projectstructure import ProjectAnalysisStruct
 from backend.sql_injection.injectionutil import get_all_vars
 from backend.sql_injection.vulnerabletraversal import VulnerableTraversalChecker
 
 
 class InjectionNodeVisitor(ast.NodeVisitor):
-    # cursor_name = None
-    def __init__(self, project_struct, module_key):
+    def __init__(self, project_struct: ProjectAnalysisStruct, module_key):
         self.execute_funcs = {}
         self.vulnerable_funcs = {}
         self.current_func_node = None
@@ -18,7 +21,40 @@ class InjectionNodeVisitor(ast.NodeVisitor):
 
         self.sql_import_name = []
         self.found_cursors = []
-        self.found_execute_cursors = []
+        self.found_execute_cursors = {}
+
+        mod_strct = project_struct.get_module_structure()
+        for index in mod_strct.keys():
+            item = mod_strct.get(index)
+            self.check_imports(item)
+
+    def check_imports(self, module_strct: ModuleAnalysisStruct):
+        print("--- Got module struct ---")
+        # f = open('sql_imports.json')
+        # data = json.load(f)
+        sql_imports = ["sqlite3", "mysql", "postgresql", "pyscopg2"]
+        module_imports = module_strct.get_module_imports()
+
+        for sample_import in module_imports.keys():
+            module_imp_value = module_imports.get(sample_import)
+            if module_imp_value[0] in sql_imports and sample_import not in self.sql_import_name:
+                self.sql_import_name.append(sample_import)
+
+        local_imports = module_strct.get_local_imports()
+        for sample_local in local_imports.keys():
+            local_imp_value = local_imports.get(sample_local)
+            if local_imp_value[0] in sql_imports and sample_local not in self.sql_import_name:
+                self.sql_import_name.append(sample_local)
+
+        # print("Module imports ("+index+"): ")
+        # print(item.get_module_imports())
+        # print("Local imports ("+index+": ")
+        # print(item.get_local_imports())
+        print("--- Done ---")
+        # Check imports from file and add to sql_import_names
+
+        # for sql_name in data['sql_imports']:
+        #     print('Found sql package name: '+sql_name)
 
     def check_cursor(self, node: ast.Call) -> bool:
         call_func = node.func
@@ -34,7 +70,7 @@ class InjectionNodeVisitor(ast.NodeVisitor):
         for targ in targs:
             if isinstance(targ, ast.Name) and isinstance(targ.ctx, ast.Store):
                 cursor_obj_name = targ.id
-                for saved_execute_cursor in self.found_execute_cursors:
+                for saved_execute_cursor in self.found_execute_cursors.keys():
                     if saved_execute_cursor == cursor_obj_name:
                         print(self.lst_of_assignments)
                         self.visit_execute(call_node)
@@ -115,7 +151,8 @@ class InjectionNodeVisitor(ast.NodeVisitor):
 
                         return   # Not sure about this
 
-                self.found_execute_cursors.append(execute_cursor)
+                # self.found_execute_cursors.append(execute_cursor)
+                self.found_execute_cursors[execute_cursor] = [self.lst_of_assignments.copy(), self.current_func_node, get_all_vars(node.args[0]), self.project_struct, self.module_key]
 
     def visit_execute(self, node: ast.Call):
         lst = self.lst_of_assignments.copy()
