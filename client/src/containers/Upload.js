@@ -67,7 +67,6 @@ const Upload = (props) => {
             </div>
             <DropzoneDialog
                 open={dialogOpen}
-                acceptedFiles={['application/zip']}
                 onSave={handleSave}
                 showPreviews={true}
                 showFileNamesInPreview={true}
