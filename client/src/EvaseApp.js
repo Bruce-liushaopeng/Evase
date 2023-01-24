@@ -58,12 +58,12 @@ function App() {
             console.log("ANALYSIS TIME")
             return (<Analyzer />);
         } else {
-            return (<Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>);
+            return (<div><Analyzer /> <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/> </div>);
         }
     }
 
     return (
-        <div className="min-h-screen bg-gray-200 font-mono">
+        <div className="min-h-screen bg-gray-200 ">
             <div>
                 {contentChange()}
             </div>
