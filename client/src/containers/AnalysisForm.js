@@ -43,8 +43,8 @@ const AnalysisForm = (props) => {
     }
 
     return (
-        <div className="flex flex-col items-center space-x-2 text-base m-auto">
-            <h1 className="test-3xl font-mono font-bold mb-2">
+        <div>
+            <h1 className="text-3xl font-bold mb-2">
                 EVASE Analyzer
             </h1>
             <form onSubmit={handleSubmission}>

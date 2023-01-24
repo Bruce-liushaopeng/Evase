@@ -48,29 +48,23 @@ function App() {
     }
 
     const getAnalysisResult = () => {
-
-
         return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
     }
 
-    const contentChange = () => {
-            return (
-                <div className='flex flex-row items-center'> 
-                    <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/> 
-                    <Analyzer /> 
-                </div>);
-        }
-    
-
     return (
-        <div className="min-h-screen bg-gray-200 ">
-            <div>
-                {contentChange()}
-            </div>
-            <div className="">
-                {backendInformation()}
+        <div className='bg-gray-200 min-h-screen flex flex-col'>
+            <div className="flex flex-col">
+                <div className='flex items-start'> 
+                    <div className='flex flex-col space-x-2 text-base m-auto'>
+                        <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()}/>
+                    </div>
+                    <div className='flex flex-col space-x-2 text-base m-auto'>
+                        <Analyzer /> 
+                    </div>
+                </div>
             </div>
         </div>
+        
     );
 }
 

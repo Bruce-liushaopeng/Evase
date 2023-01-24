@@ -53,7 +53,7 @@ const Upload = (props) => {
 
 
     return (
-        <div className="flex flex-col items-center space-x-2 text-base m-auto">
+        <div>
             <h1 className="text-3xl font-bold mb-2">
                 EVASE Upload
             </h1>
@@ -61,7 +61,7 @@ const Upload = (props) => {
             <input type="text" id="prjname" name="prjname" className='w-30 h-8 m-4' value={projectName} onChange={handlePrjNameChange}/>
             <p>Please input your source code in .zip format.</p>
             <div className="bg-red">
-                <button className=" bg-blue-300 p-2 rounded-md" onClick={showDialog} >
+                <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md my-4" onClick={showDialog} >
                     Select file here
                 </button>
             </div>
@@ -92,12 +92,15 @@ const Upload = (props) => {
             )}
             {isFilePicked ? (
                 <div>
-                    <button className="neu-btn" onClick={handleSubmission}>Upload!</button>
-                    <button className="neu-btn" onClick={cancelFile}>Cancel</button>
+                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md mr-10 my-4" onClick={handleSubmission}>Upload!</button>
+                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md" onClick={cancelFile}>Cancel</button>
                 </div>
             ) :
                 <div />
             }
+            <div>
+                {props.backendInformation}
+            </div>
         </div>
     )
 }
