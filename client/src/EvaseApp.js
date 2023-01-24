@@ -55,10 +55,10 @@ function App() {
         <div className='bg-gray-200 min-h-screen flex flex-col'>
             <div className="flex flex-col">
                 <div className='flex items-start'> 
-                    <div className='flex flex-col space-x-2 text-base m-auto'>
+                    <div className='flex flex-col space-x-2 text-base mx-5'>
                         <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()}/>
                     </div>
-                    <div className='flex flex-col space-x-2 text-base m-auto'>
+                    <div className='flex flex-col space-x-2 text-base mx-5'>
                         <Analyzer /> 
                     </div>
                 </div>

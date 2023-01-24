@@ -49,7 +49,7 @@ const AnalysisForm = (props) => {
             </h1>
             <form onSubmit={handleSubmission}>
                 <p>Please select the types of attack behaviours to detect.</p>
-                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-black-300">
                     <input
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
@@ -60,7 +60,7 @@ const AnalysisForm = (props) => {
                     />
                     SQL Injection Attack Behaviours
                 </label><br/>
-                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-black-300">
                     <input
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
@@ -71,7 +71,7 @@ const AnalysisForm = (props) => {
                     />
                     Forced Deadlock Attack Behaviours
                 </label><br/>
-                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                <label className="ml-2 text-sm font-medium text-black-900 dark:text-black-300">
                     <input
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
@@ -82,7 +82,7 @@ const AnalysisForm = (props) => {
                     />
                     Lack of Password Encryption Attack Behaviours
                 </label><br/>
-                <label className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                <label className="ml-2 text-sm font-medium text-black-900 dark:text-black-300">
                     <input
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         type="radio"
