@@ -53,16 +53,18 @@ const Upload = (props) => {
 
 
     return (
-        <div className="flex items-center space-x-2 text-base">
-            <h1 className="text-3xl font-bold underline">
+        <div className="flex flex-col items-center space-x-2 text-base m-auto">
+            <h1 className="text-3xl font-bold mb-2">
                 EVASE Upload
             </h1>
             <p>Please input your project name.</p>
-            <input type="text" id="prjname" name="prjname" value={projectName} onChange={handlePrjNameChange}/>
+            <input type="text" id="prjname" name="prjname" className='w-30 h-8 m-4' value={projectName} onChange={handlePrjNameChange}/>
             <p>Please input your source code in .zip format.</p>
-            <button className="neu-btn" onClick={showDialog} >
-                Select file here
-            </button>
+            <div className="bg-red">
+                <button className=" bg-blue-300 p-2 rounded-md" onClick={showDialog} >
+                    Select file here
+                </button>
+            </div>
             <DropzoneDialog
                 open={dialogOpen}
                 acceptedFiles={['application/zip']}

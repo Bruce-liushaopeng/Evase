@@ -63,9 +63,11 @@ function App() {
     }
 
     return (
-        <div className="flex items-center space-x-2 text-base bg-green-300">
-            {contentChange()}
-            <div className="flex items-center space-x-2 text-base">
+        <div className="min-h-screen bg-gray-200 font-mono">
+            <div>
+                {contentChange()}
+            </div>
+            <div className="">
                 {backendInformation()}
             </div>
         </div>
