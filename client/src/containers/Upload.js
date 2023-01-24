@@ -65,10 +65,13 @@ const Upload = (props) => {
             </button>
             <DropzoneDialog
                 open={dialogOpen}
+                acceptedFiles={['application/zip']}
                 onSave={handleSave}
                 showPreviews={true}
+                showFileNamesInPreview={true}
                 onClose={handleClose}
-                submitButtonText="Confirm"
+                submitButtonText="confirm"
+                cancelButtonText="cancel"
                 filesLimit={1}
                 maxFileSize={500000000}
             />
