@@ -63,18 +63,57 @@ def determine_vul_params_location(vul_set: set, func_node):
     return params, lst
 
 
+class AttackTree:
+
+    def __init__(self, children=None, data=None):
+        self.root = AttackTreeNode(children=children, data=data)
+
+    def make_nested_dict(self):
+        def traverse(n):
+            n.data['vulnerable_to'] = []
+            for nc in n.children:
+                n.data['vulnerable_to'].append(traverse(nc))
+
+            print('HERE', n.data)
+            return n.data
+
+        traverse(self.root)
+
+    def max_depth(self):
+
+        def solve(n, depth=0):
+            if len(n.children) == 0:
+                return depth
+
+            return max(solve(nc, depth+1) for nc in n.children)
+
+        return solve(self.root)
+
+
+class AttackTreeNode:
+    def __init__(self, children: list = None, data=None):
+        if children is None:
+            self.children = []
+        else:
+            self.children = children
+        self.data = data
+
+
 class VulnerableTraversalChecker:
     def traversal_from_exec(self, assignments: List[ast.Assign], func_node, injection_vars: Collection[ast.Name],
                             project_struct, module):
 
-        vulnerable_locations = set()
         visited_func = set()  # unique with func name, module and num assignments
+
+        atree = AttackTree()
+
         queue = deque()
         modules = project_struct.get_module_structure()
-        queue.append(Node(func_node, assignments, injection_vars, module))
+        queue.append((Node(func_node, assignments, injection_vars, module), atree.root))
+
         print("start of bfs")
         while len(queue) != 0:
-            node = queue.popleft()
+            node, anode = queue.popleft()
             identifier = node.get_module_name() + " " + node.get_func_node().name + " " + str(
                 len(node.get_assignments()))
             visited_func.add(identifier)
@@ -82,13 +121,27 @@ class VulnerableTraversalChecker:
             vulnerable_vars = self.collect_vulnerable_vars(node.get_func_node(), node.get_assignments(), [{}], [{}],
                                                            node.get_injection_vars())
             print(vulnerable_vars)
-            if is_flask_api_function(node.get_func_node()) or is_django_api_function(node.get_func_node()):
+            if is_flask_api_function(node.get_func_node()):
                 if len(vulnerable_vars) > 0:
                     print("api ", node.get_func_node().name, " is vulnerable")
-                    vulnerable_locations.add(f'{node.get_module_name()}.{node.get_func_node().name}')
+                    anode.data = {
+                        'full_name': f'{node.get_module_name()}.{node.get_func_node().name}',
+                        'module_name': node.get_module_name(),
+                        'vars': list(vulnerable_vars),
+                        'is_entrypoint': True
+                    }
+                    print("FOUnd", anode.data)
             else:
+                if len(vulnerable_vars) > 0:
+                    anode.data = {
+                        'full_name': f'{node.get_module_name()}.{node.get_func_node().name}',
+                        'module_name': node.get_module_name(),
+                        'vars': list(vulnerable_vars),
+                        'is_entrypoint': False
+                    }
+
                 param_indexes_vulnerable = determine_vul_params_location(vulnerable_vars, node.get_func_node())
-                if param_indexes_vulnerable == None: continue
+                if param_indexes_vulnerable is None: continue
 
                 for nodeNext in searching.get_function_uses(modules, node.get_func_node().name, node.get_module_name()):
                     unique_identifier = nodeNext.get_module_name() + " " + nodeNext.get_func_node().name + " " + str(
@@ -106,9 +159,12 @@ class VulnerableTraversalChecker:
                     nodeNext.set_injection_vars(inj)
                     if len(inj) == 0: continue  # unique is in set
                     print("     adding------------- " + nodeNext.get_func_node().name)
-                    queue.append(nodeNext)
 
-        return list(vulnerable_locations)
+                    n = AttackTreeNode()
+                    anode.children.append(n)
+                    queue.append((nodeNext, n))
+
+        return atree
 
     def collect_vulnerable_vars(self, func_node, assignments, possible_marked_var_to_params, var_type_lst,
                                 injection_vars={}):
