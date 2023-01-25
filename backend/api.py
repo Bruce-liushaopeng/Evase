@@ -54,6 +54,7 @@ def file_upload_hook(prj_name: str):
     os.remove(destination)  # delete the zip file after unziping it
 
     response = "upload successful, check backend folder for User Files"
+    print("HERE")
     return response
 
 

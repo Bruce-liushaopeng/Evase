@@ -31,18 +31,19 @@ const Upload = (props) => {
     }
 
     const showDialog = () => {
-        setDialogOpen(true)
+        setDialogOpen(true);
     }
 
     const handleSave = (files) => {
-        setDialogOpen(false)
-        setSelectedFile(files[0])
-        setIsFilePicked(true)
-        console.log(files)
+
+        setDialogOpen(false);
+        setSelectedFile(files[0]);
+        setIsFilePicked(true);
+        console.log(files);
     }
 
     const handleClose = () => {
-        setDialogOpen(false)
+        setDialogOpen(false);
     }
 
     const handlePrjNameChange = (e) => {
@@ -52,22 +53,27 @@ const Upload = (props) => {
 
 
     return (
-        <div className="flex items-center space-x-2 text-base">
-            <h1 className="text-3xl font-bold underline">
+        <div>
+            <h1 className="text-3xl font-bold mb-2">
                 EVASE Upload
             </h1>
             <p>Please input your project name.</p>
-            <input type="text" id="prjname" name="prjname" value={projectName} onChange={handlePrjNameChange}/>
+            <input type="text" id="prjname" name="prjname" className='w-30 h-8 m-4' value={projectName} onChange={handlePrjNameChange}/>
             <p>Please input your source code in .zip format.</p>
-            <button className="neu-btn" onClick={showDialog} >
-                Select file here
-            </button>
+            <div className="bg-red">
+                <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md my-4" onClick={showDialog} >
+                    Select file here
+                </button>
+            </div>
             <DropzoneDialog
                 open={dialogOpen}
+                acceptedFiles={['application/zip']}
                 onSave={handleSave}
                 showPreviews={true}
+                showFileNamesInPreview={true}
                 onClose={handleClose}
-                submitButtonText="Confirm"
+                submitButtonText="confirm"
+                cancelButtonText="cancel"
                 filesLimit={1}
                 maxFileSize={500000000}
             />
@@ -86,12 +92,15 @@ const Upload = (props) => {
             )}
             {isFilePicked ? (
                 <div>
-                    <button className="neu-btn" onClick={handleSubmission}>Upload!</button>
-                    <button className="neu-btn" onClick={cancelFile}>Cancel</button>
+                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md mr-10 my-4" onClick={handleSubmission}>Upload!</button>
+                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md" onClick={cancelFile}>Cancel</button>
                 </div>
             ) :
                 <div />
             }
+            <div>
+                {props.backendInformation}
+            </div>
         </div>
     )
 }

@@ -42,33 +42,29 @@ function App() {
     }
 
     const backendInformation = () => {
-        if (respond) {
+        if (true) {
             return <p> Backend Reply: {respond}</p>
         }
     }
 
     const getAnalysisResult = () => {
-
-
         return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
     }
 
-    const contentChange = () => {
-        if (fileUploaded) {
-            console.log("ANALYSIS TIME")
-            return (<Analyzer />);
-        } else {
-            return (<Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged}/>);
-        }
-    }
-
     return (
-        <div className="flex items-center space-x-2 text-base">
-            {contentChange()}
-            <div className="flex items-center space-x-2 text-base">
-                {backendInformation()}
+        <div className='bg-gray-200 min-h-screen flex flex-col'>
+            <div className="flex flex-col">
+                <div className='flex items-start'> 
+                    <div className='flex flex-col space-x-2 text-base m-auto'>
+                        <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()}/>
+                    </div>
+                    <div className='flex flex-col space-x-2 text-base m-auto'>
+                        <Analyzer /> 
+                    </div>
+                </div>
             </div>
         </div>
+        
     );
 }
 
