@@ -68,10 +68,16 @@ class PasswordHashFunctionConfigObj(_ProcessValueConfigObj):
 
     def __init__(self, name: str, config: dict):
         super().__init__(name, 'hashes', config, arg_input_key='pwinput', output_loc_key='message_digest',
-                         algorithm_names='algorithm')
+                         algorithm_names='algorithm', key_len_supported='keylen', iteration_supported='iteration')
 
     def get_algorithm(self):
         return self.algorithm_names
+
+    def is_key_len_supported(self):
+        return self.key_len_supported
+
+    def is_iteration_supported(self):
+        return self.iteration_supported
 
 
 class PasswordHashPackageConfigObj:

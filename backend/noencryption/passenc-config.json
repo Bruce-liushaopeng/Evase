@@ -9,6 +9,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": "hash",
+            "iteration": false,
+            "keylen": false,
             "algorithm": "argon"
           }
         }
@@ -20,6 +22,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": "incall",
+            "iteration": false,
+            "keylen": false,
             "algorithm": "bcrypt"
           }
         }
@@ -38,6 +42,8 @@
           "hashes": {
             "pwinput": "update",
             "message_digest": ["digest", "hexdigest"],
+            "iteration": false,
+            "keylen": false,
             "algorithm": ["md4", "sha3_384", "sha512", "md5-sha1", "sha256", "sha512_224", "sha3_256", "sm3", "ripemd160", "shake_256", "sha384", "sha512_256", "sha3_512", "mdc2", "sha224", "blake2b", "sha3_224", "md5", "blake2s", "sha1", "shake_128", "whirlpool"]
           }
         },
@@ -45,6 +51,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": "incall",
+            "iterations": true,
+            "keylen": true,
             "algorithm": ["md4", "sha3_384", "sha512", "md5-sha1", "sha256", "sha512_224", "sha3_256", "sm3", "ripemd160", "shake_256", "sha384", "sha512_256", "sha3_512", "mdc2", "sha224", "blake2b", "sha3_224", "md5", "blake2s", "sha1", "shake_128", "whirlpool"]
           }
         },
@@ -52,6 +60,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": ["message_digest", "hexmessage_digest"],
+            "iteration": false,
+            "keylen": false,
             "algorithm": "md5"
           }
         },
@@ -66,6 +76,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": ["message_digest", "hexmessage_digest"],
+            "iteration": false,
+            "keylen": false,
             "algorithm": "sha1"
           }
         },
@@ -73,6 +85,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": ["message_digest", "hexmessage_digest"],
+            "iteration": false,
+            "keylen": false,
             "algorithm": "sha512"
           }
         },
@@ -80,6 +94,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": ["message_digest", "hexmessage_digest"],
+            "iteration": false,
+            "keylen": false,
             "algorithm": "sha384"
           }
         },
@@ -87,6 +103,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": ["message_digest", "hexmessage_digest"],
+            "iteration": false,
+            "keylen": false,
             "algorithm": "sha224"
           }
         }
@@ -98,6 +116,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": "incall",
+            "iterations": true,
+            "keylen": true,
             "algorithm": ["md4", "sha3_384", "sha512", "md5-sha1", "sha256", "sha512_224", "sha3_256", "sm3", "ripemd160", "shake_256", "sha384", "sha512_256", "sha3_512", "mdc2", "sha224", "blake2b", "sha3_224", "md5", "blake2s", "sha1", "shake_128", "whirlpool"]
           }
         },
@@ -105,6 +125,8 @@
           "hashes": {
             "pwinput": "incall",
             "message_digest": "incall",
+            "iteration": true,
+            "keylen": true,
             "algorithm": ["md4", "sha3_384", "sha512", "md5-sha1", "sha256", "sha512_224", "sha3_256", "sm3", "ripemd160", "shake_256", "sha384", "sha512_256", "sha3_512", "mdc2", "sha224", "blake2b", "sha3_224", "md5", "blake2s", "sha1", "shake_128", "whirlpool"]
           }
         }
