@@ -63,10 +63,10 @@ def determine_vul_params_location(vul_set: set, func_node):
     return params, lst
 
 
-class AttackTree:
+class VulnerabilityTree:
 
     def __init__(self, children=None, data=None):
-        self.root = AttackTreeNode(children=children, data=data)
+        self.root = VulnerabilityTreeNode(children=children, data=data)
 
     def make_nested_dict(self):
         def traverse(n):
@@ -90,7 +90,7 @@ class AttackTree:
         return solve(self.root)
 
 
-class AttackTreeNode:
+class VulnerabilityTreeNode:
     def __init__(self, children: list = None, data=None):
         if children is None:
             self.children = []
@@ -105,7 +105,7 @@ class VulnerableTraversalChecker:
 
         visited_func = set()  # unique with func name, module and num assignments
 
-        atree = AttackTree()
+        atree = VulnerabilityTree()
 
         queue = deque()
         modules = project_struct.get_module_structure()
@@ -160,7 +160,7 @@ class VulnerableTraversalChecker:
                     if len(inj) == 0: continue  # unique is in set
                     print("     adding------------- " + nodeNext.get_func_node().name)
 
-                    n = AttackTreeNode()
+                    n = VulnerabilityTreeNode()
                     anode.children.append(n)
                     queue.append((nodeNext, n))
 
