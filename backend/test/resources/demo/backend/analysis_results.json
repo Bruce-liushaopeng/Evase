@@ -6,8 +6,8 @@
                     "full_name": "backend.vul.add_user_to_db",
                     "module_name": "backend.vul",
                     "vars": [
-                        "password",
-                        "username"
+                        "username",
+                        "password"
                     ],
                     "is_entrypoint": false,
                     "line": 13,
@@ -16,11 +16,22 @@
                             "full_name": "backend.vul_wrapper.add_user_wrapper",
                             "module_name": "backend.vul_wrapper",
                             "vars": [
-                                "password",
-                                "username"
+                                "username",
+                                "password"
                             ],
                             "is_entrypoint": false,
-                            "vulnerable_to": []
+                            "vulnerable_to": [
+                                {
+                                    "full_name": "backend.app.add_user",
+                                    "module_name": "backend.app",
+                                    "vars": [
+                                        "username",
+                                        "password"
+                                    ],
+                                    "is_entrypoint": true,
+                                    "vulnerable_to": []
+                                }
+                            ]
                         }
                     ]
                 },
@@ -40,7 +51,17 @@
                                 "username"
                             ],
                             "is_entrypoint": false,
-                            "vulnerable_to": []
+                            "vulnerable_to": [
+                                {
+                                    "full_name": "backend.app.get_user",
+                                    "module_name": "backend.app",
+                                    "vars": [
+                                        "username"
+                                    ],
+                                    "is_entrypoint": true,
+                                    "vulnerable_to": []
+                                }
+                            ]
                         }
                     ]
                 }

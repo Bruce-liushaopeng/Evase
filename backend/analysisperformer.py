@@ -1,5 +1,5 @@
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
-from backend.sql_injection.injectionvisitor import InjectionNodeVisitor
+from backend.sql_injection.injectionvisitor import InjectionVisitor
 
 from abc import ABC, abstractmethod
 import json
@@ -45,7 +45,7 @@ class SQLInjectionBehaviourAnalyzer(BehaviourAnalyzer):
 
     def do_analysis(self):
         for m_name, m_struct in self.project_struct.get_module_structure().items():
-            visitor = InjectionNodeVisitor(self.project_struct, m_name)
+            visitor = InjectionVisitor(self.project_struct, m_name)
             visitor.visit(m_struct.get_ast())
             results = visitor.get_vulnerable_funcs()
             print(results)

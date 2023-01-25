@@ -113,6 +113,7 @@ class VulnerableTraversalChecker:
 
         print("start of bfs")
         while len(queue) != 0:
+            print([qn[0].get_func_node().name for qn in queue])
             node, anode = queue.popleft()
             identifier = node.get_module_name() + " " + node.get_func_node().name + " " + str(
                 len(node.get_assignments()))

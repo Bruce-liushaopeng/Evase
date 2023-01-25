@@ -1,6 +1,6 @@
 from backend.depanalyze.modulestructure import ModuleAnalysisStruct
 from backend.depanalyze.projectstructure import ProjectAnalysisStruct
-from backend.sql_injection.injectionvisitor import InjectionNodeVisitor
+from backend.sql_injection.injectionvisitor import InjectionVisitor
 
 import ast
 import os
@@ -28,7 +28,7 @@ def get_ast_from_filename(filename: str):
 # vul1_struct = ModuleAnalysisStruct(vul1_filename, get_ast_from_filename(vul4_filename))
 
 
-def print_execute_funcs(visitor: InjectionNodeVisitor):
+def print_execute_funcs(visitor: InjectionVisitor):
     for func_name in visitor.get_execute_funcs():
         print("Execution found in:", func_name)
 
@@ -53,7 +53,7 @@ def test_get_all_vars():
     for m_name, m_struct in test.get_module_structure().items():
         print(m_struct.get_module_imports(), "imports")
         print(m_name)
-        visitor = InjectionNodeVisitor(test, m_name)
+        visitor = InjectionVisitor(test, m_name)
         visitor.visit(m_struct.get_ast())
         print_execute_funcs(visitor)
 

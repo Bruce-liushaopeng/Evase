@@ -4,7 +4,7 @@ from backend.sql_injection.injectionutil import get_all_vars
 from backend.sql_injection.vulnerabletraversal import VulnerableTraversalChecker
 
 
-class InjectionNodeVisitor(ast.NodeVisitor):
+class InjectionVisitor(ast.NodeVisitor):
     # cursor_name = None
     # sql_package_names = ["sqlite3", "mysql"]
     def __init__(self, project_struct, module_key):
@@ -108,4 +108,4 @@ class InjectionNodeVisitor(ast.NodeVisitor):
 
 
 if __name__ == '__main__':
-    anyone = InjectionNodeVisitor()
+    anyone = InjectionVisitor()
