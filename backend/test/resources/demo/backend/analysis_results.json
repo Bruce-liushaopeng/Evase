@@ -2,12 +2,48 @@
     "sql_injection": {
         "vulnerabilities": {
             "backend.vul": {
-                "backend.vul.add_user_to_db": [
-                    "backend.app.add_user"
-                ],
-                "backend.vul.get_user_from_db": [
-                    "backend.app.get_user"
-                ]
+                "backend.vul.add_user_to_db": {
+                    "full_name": "backend.vul.add_user_to_db",
+                    "module_name": "backend.vul",
+                    "vars": [
+                        "password",
+                        "username"
+                    ],
+                    "is_entrypoint": false,
+                    "line": 13,
+                    "vulnerable_to": [
+                        {
+                            "full_name": "backend.vul_wrapper.add_user_wrapper",
+                            "module_name": "backend.vul_wrapper",
+                            "vars": [
+                                "password",
+                                "username"
+                            ],
+                            "is_entrypoint": false,
+                            "vulnerable_to": []
+                        }
+                    ]
+                },
+                "backend.vul.get_user_from_db": {
+                    "full_name": "backend.vul.get_user_from_db",
+                    "module_name": "backend.vul",
+                    "vars": [
+                        "username"
+                    ],
+                    "is_entrypoint": false,
+                    "line": 29,
+                    "vulnerable_to": [
+                        {
+                            "full_name": "backend.vul_wrapper.get_user_wrapper",
+                            "module_name": "backend.vul_wrapper",
+                            "vars": [
+                                "username"
+                            ],
+                            "is_entrypoint": false,
+                            "vulnerable_to": []
+                        }
+                    ]
+                }
             }
         },
         "found_any": true

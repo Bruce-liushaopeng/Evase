@@ -82,9 +82,11 @@ class InjectionNodeVisitor(ast.NodeVisitor):
 
         result = self.sql_marker.traversal_from_exec(lst, self.current_func_node, arg_list, self.project_struct,
                                                      self.module_key)
-        if len(result) > 0:
+        if result.max_depth() > 0:
+            result.root.data['line'] = node.lineno
             module_full_name = f'{self.module_key}.{self.current_func_node.name}'
-            self.vulnerable_funcs[module_full_name] = result
+            result.make_nested_dict()
+            self.vulnerable_funcs[module_full_name] = result.root.data
         self.execute_funcs[curr_scope] = self.current_func_node
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
