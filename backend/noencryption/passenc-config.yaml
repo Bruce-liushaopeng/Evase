@@ -70,7 +70,7 @@ packages:
         hashes:
           pwinput: incall
           message_digest: incall
-          iterations: true
+          iteration: true
           keylen: true
           algorithm:
           - md4
@@ -110,6 +110,8 @@ packages:
           message_digest:
           - message_digest
           - hexmessage_digest
+          iteration: false
+          keylen: false
           algorithm: sha256
       sha1:
         hashes:
@@ -153,7 +155,7 @@ packages:
         hashes:
           pwinput: incall
           message_digest: incall
-          iterations: true
+          iteration: true
           keylen: true
           algorithm:
           - md4

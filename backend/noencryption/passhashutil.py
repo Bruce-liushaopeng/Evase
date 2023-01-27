@@ -1,5 +1,5 @@
 import os
-import json
+import yaml
 
 
 class _ConfigObj:
@@ -34,6 +34,7 @@ class _ProcessValueConfigObj(_ConfigObj):
         The config key is the key in the configuration dictionary that is gives the config for this specific process value.
         The arg input key is the key in the config for this process value that gives the location of arguments input to the generation call.
         """
+        print(name)
 
         self.obj_name = name
         self.config = config[config_key]
@@ -146,12 +147,12 @@ class PasswordHashPackagesConfigObj:
     @classmethod
     def from_config_file(cls, filepath: str):
         fname, ext = os.path.splitext(filepath)
-        if ext == '.json':
+        if ext == '.yaml':
             with open(filepath, 'r') as f:
-                config_obj = json.loads(f.read())['packages']
+                config_obj = yaml.safe_load(f)['packages']
                 return PasswordHashPackagesConfigObj(config_obj)
 
 
 if __name__ == '__main__':
-    phs = PasswordHashPackagesConfigObj.from_config_file('passenc-config.json')
+    phs = PasswordHashPackagesConfigObj.from_config_file('passenc-config.yaml')
     phs.print_all()
