@@ -158,17 +158,62 @@ packages:
           uses: null
 
       ldap_md5:
+        hashes:
+          digest_len: false
+          algorithm: md5
+          salt: false
+          iteration: false
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       ldap_sha1:
+        hashes:
+          digest_len: 263   # Double check this, as ldap wiki says 264-1
+          algorithm: sha-1
+          salt: false
+          iteration: false
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       ldap_salted_md5:
+        hashes:
+          digest_len: false
+          algorithm: md5
+          salt: using   # Size: 4-16 bytes
+          iteration: false
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       ldap_salted_sha1:
-
+        hashes:
+          digest_len: false
+          algorithm: sha-1
+          salt: using   # Size: 4-16 bytes
+          iteration: false
+          pwinput: hash
+          message_digest: hash
+          uses: null
       ldap_salted_sha256:
-
+        hashes:
+          digest_len: false
+          algorithm: sha-256
+          salt: using   # Size: 4-16 bytes
+          iteration: false
+          pwinput: hash
+          message_digest: hash
+          uses: null
       ldap_salted_sha512:
-
+        hashes:
+          digest_len: false
+          algorithm: sha-512
+          salt: using   # Size: 4-16 bytes
+          iteration: false
+          pwinput: hash
+          message_digest: hash
+          uses: null
       ldap_des_crypt:
 
       ldap_bsdi_crypt:
