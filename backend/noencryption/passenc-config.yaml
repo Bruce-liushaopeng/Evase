@@ -13,134 +13,149 @@ packages:
   passlib.hash:
     hashobj:
       sha256_crypt:
-        digest_len: 256           # length of the message digest, true if it can change.
-        algorithm: sha256         # underlying algorithm(s).
-        salt: using                # can you directly input a salt?
-        iteration: using           # are many iterations supported?
-        pwinput: hash           # where is the password input? If it's in the function call, then 'incall' else function name.
-        message_digest: hash    # where is the message digest retrieved from? If it's a return of the function call, then 'incall' else function name.
-        uses: null                # name of package that this one uses for hashing, if applicable.
+        hashes:
+          digest_len: 256           # length of the message digest, true if it can change.
+          algorithm: sha256         # underlying algorithm(s).
+          salt: using                # can you directly input a salt?
+          iteration: using           # are many iterations supported?
+          pwinput: hash           # where is the password input? If it's in the function call, then 'incall' else function name.
+          message_digest: hash    # where is the message digest retrieved from? If it's a return of the function call, then 'incall' else function name.
+          uses: null                # name of package that this one uses for hashing, if applicable.
       sha512_crypt:
-        digest_len: 512
-        algorithm: sha512
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 512
+          algorithm: sha512
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       bcrypt:
-        digest_len: 184
-        algorithm: bcrypt
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 184
+          algorithm: bcrypt
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       des_crypt:
-        digest_len: false
-        algorithm: DES
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: false
+          algorithm: DES
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       bsdi_crypt:
-        digest_len: false
-        algorithm: BSDi
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: false
+          algorithm: BSDi
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       bigcrypt:
-        digest_len: false
-        algorithm: BigCrypt
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: false
+          algorithm: BigCrypt
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       crypt16:
-        digest_len: false
-        algorithm: BigCrypt
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: false
+          algorithm: BigCrypt
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       argon2:
-        digest_len: 2^32
-        algorithm: Argon 2
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 2^32
+          algorithm: Argon 2
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       bcrypt_sha256:
-        digest_len: 256
-        algorithm:
-        - Bcrypt
-        - sha256
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 256
+          algorithm:
+          - Bcrypt
+          - sha256
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       phpass:
-        digest_len: false
-        algorithm: PHPass
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: false
+          algorithm: PHPass
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
       pbkdf2_sha1:
-        digest_len: 160
-        algorithm: sha-1
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 160
+          algorithm: sha-1
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       pbkdf2_sha256:
-        digest_len: 256
-        algorithm: sha-256
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 256
+          algorithm: sha-256
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       pbkdf2_sha512:
-        digest_len: 512
-        algorithm: sha-512
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: 512
+          algorithm: sha-512
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       scram:
-        digest_len: false
-        algorithm:
-          - sha-1
-          - sha-256
-          - sha-512
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: false
+          algorithm:
+            - sha-1
+            - sha-256
+            - sha-512
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       scrypt:
-        digest_len: variable
-        algorithm: scrypt
-        salt: using
-        iteration: using
-        pwinput: hash
-        message_digest: hash
-        uses: null
+        hashes:
+          digest_len: variable
+          algorithm: scrypt
+          salt: using
+          iteration: using
+          pwinput: hash
+          message_digest: hash
+          uses: null
 
       ldap_md5:
 
