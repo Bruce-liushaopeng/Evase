@@ -95,19 +95,52 @@ packages:
         message_digest: hash
         uses: null
       pbkdf2_sha1:
+        digest_len: 160
+        algorithm: sha-1
+        salt: using
+        iteration: using
+        pwinput: hash
+        message_digest: hash
+        uses: null
 
       pbkdf2_sha256:
         digest_len: 256
-        algorithm: sha256
+        algorithm: sha-256
+        salt: using
+        iteration: using
+        pwinput: hash
+        message_digest: hash
+        uses: null
 
       pbkdf2_sha512:
         digest_len: 512
-        algorithm: sha512
+        algorithm: sha-512
+        salt: using
+        iteration: using
+        pwinput: hash
+        message_digest: hash
+        uses: null
 
       scram:
-
+        digest_len: false
+        algorithm:
+          - sha-1
+          - sha-256
+          - sha-512
+        salt: using
+        iteration: using
+        pwinput: hash
+        message_digest: hash
+        uses: null
 
       scrypt:
+        digest_len: variable
+        algorithm: scrypt
+        salt: using
+        iteration: using
+        pwinput: hash
+        message_digest: hash
+        uses: null
 
       ldap_md5:
 
