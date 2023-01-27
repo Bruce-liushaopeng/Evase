@@ -18,10 +18,14 @@ class _ConfigObj:
     def _helper(self, **kwargs):
         for k, v in kwargs.items():
             if not hasattr(self, k):
-                if v not in self.config:
-                    print(k, v)
-                    raise ValueError("The configuration object doesn't have a value for that!")
-                setattr(self, k, self.config[v])
+                if isinstance(v, tuple):
+                    if v[0] not in self.config:
+                        print(k, v[0])
+                        setattr(self, k, v[1])
+                else:
+                    if v not in self.config:
+                        raise ValueError("The configuration object doesn't have a value for that!")
+                    setattr(self, k, self.config[v])
 
 
 class _ProcessValueConfigObj(_ConfigObj):
@@ -69,7 +73,7 @@ class PasswordHashFunctionConfigObj(_ProcessValueConfigObj):
 
     def __init__(self, name: str, config: dict):
         super().__init__(name, 'hashes', config, arg_input_key='pwinput', output_loc_key='message_digest',
-                         algorithm_names='algorithm', key_len_supported='keylen', iteration_supported='iteration')
+                         algorithm_names='algorithm', key_len_supported=('keylen', False), iteration_supported=('iteration', False))
 
     def get_algorithm(self):
         return self.algorithm_names

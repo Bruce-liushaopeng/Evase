@@ -10,7 +10,121 @@ bad_algorithms:
   sha_2:
     reason: well-known vulnerabilities with SHA-2 based hash functions
 packages:
-  flask_security: {}
+  passlib.hash:
+    hashobj:
+      sha256_crypt:
+        digest_len: 256           # length of the message digest, true if it can change.
+        algorithm: sha256         # underlying algorithm(s).
+        salt: true                # can you directly input a salt?
+        iteration: true           # are many iterations supported?
+        pwinput: incall           # where is the password input? If it's in the function call, then 'incall' else function name.
+        message_digest: incall    # where is the message digest retrieved from? If it's a return of the function call, then 'incall' else function name.
+        uses: null                # name of package that this one uses for hashing, if applicable.
+      sha512_crypt:
+        digest_len: 512
+        algorithm: sha512
+      bcrypt:
+        digest_len: 184
+        algorithm: bcrypt
+      des_crypt:
+
+      bsdi_crypt:
+
+      bigcrypt:
+
+      crypt16:
+
+      argon2:
+        digest_len: null
+        algorithm: argon
+      bcrypt_sha256:
+        digest_len: 256
+        algorithm:
+        - bcrypt
+        - sha256
+
+      phpass:
+
+      pbkdf2_sha1:
+
+      pbkdf2_sha256:
+        digest_len: 256
+        algorithm: sha256
+
+      pbkdf2_sha512:
+        digest_len: 512
+        algorithm: sha512
+
+      scram:
+
+
+      scrypt:
+
+      ldap_md5:
+
+      ldap_sha1:
+
+      ldap_salted_md5:
+
+      ldap_salted_sha1:
+
+      ldap_salted_sha256:
+
+      ldap_salted_sha512:
+
+      ldap_des_crypt:
+
+      ldap_bsdi_crypt:
+
+      ldap_md5_crypt:
+
+      ldap_bcrypt:
+
+      ldap_sha1_crypt:
+
+      ldap_sha256_crypt:
+
+      ldap_sha512_crypt:
+
+      ldap_hex_md5:
+
+      ldap_hex_sha1:
+
+      ldap_hex_sha256:
+
+      ldap_pbkdf2_sha1:
+
+      ldap_pbkdf2_sha256:
+
+      ldap_pbkdf2_sha512:
+
+      atlassian_pbkdf2_sha1:
+
+      fshp:
+
+      mssql2000:
+
+      ssql2005:
+
+      mysql323:
+
+      mysql141:
+
+      postgres_md5:
+
+      oracle10:
+
+      oracle11:
+
+  flask_security:
+    hashobj:
+      Security:
+        pwinput: null
+        message_digest: null
+        iteration: true
+        digest_len: true
+        algorithm: anything passlib
+        uses: passlib.hash
   argon2:
     hashobj:
       PasswordHasher:
@@ -18,7 +132,7 @@ packages:
           pwinput: incall
           message_digest: hash
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: argon
   bcrypt:
     hashobj:
@@ -27,7 +141,7 @@ packages:
           pwinput: incall
           message_digest: incall
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: bcrypt
     saltobj:
       gensalt:
@@ -42,7 +156,7 @@ packages:
           - digest
           - hexdigest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm:
           - md4
           - sha3_384
@@ -71,7 +185,7 @@ packages:
           pwinput: incall
           message_digest: incall
           iteration: true
-          keylen: true
+          digest_len: true
           algorithm:
           - md4
           - sha3_384
@@ -102,7 +216,7 @@ packages:
           - message_digest
           - hexmessage_digest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: md5
       sha256:
         hashes:
@@ -111,7 +225,7 @@ packages:
           - message_digest
           - hexmessage_digest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: sha256
       sha1:
         hashes:
@@ -120,7 +234,7 @@ packages:
           - message_digest
           - hexmessage_digest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: sha1
       sha512:
         hashes:
@@ -129,7 +243,7 @@ packages:
           - message_digest
           - hexmessage_digest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: sha512
       sha384:
         hashes:
@@ -138,7 +252,7 @@ packages:
           - message_digest
           - hexmessage_digest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: sha384
       sha224:
         hashes:
@@ -147,7 +261,7 @@ packages:
           - message_digest
           - hexmessage_digest
           iteration: false
-          keylen: false
+          digest_len: false
           algorithm: sha224
   werkzeug.security:
     hashobj:
@@ -156,7 +270,7 @@ packages:
           pwinput: incall
           message_digest: incall
           iteration: true
-          keylen: true
+          digest_len: true
           algorithm:
           - md4
           - sha3_384
@@ -185,7 +299,7 @@ packages:
           pwinput: incall
           message_digest: incall
           iteration: true
-          keylen: true
+          digest_len: true
           algorithm:
           - md4
           - sha3_384
