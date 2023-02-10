@@ -57,49 +57,54 @@ const Upload = (props) => {
             <h1 className="text-3xl font-bold mb-2">
                 EVASE Upload
             </h1>
-            <p>Please input your project name.</p>
-            <input type="text" id="prjname" name="prjname" className='w-30 h-8 m-4' value={projectName} onChange={handlePrjNameChange}/>
-            <p>Please input your source code in .zip format.</p>
-            <div className="bg-red">
-                <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md my-4" onClick={showDialog} >
-                    Select file here
-                </button>
-            </div>
-            <DropzoneDialog
-                open={dialogOpen}
-                onSave={handleSave}
-                showPreviews={true}
-                showFileNamesInPreview={true}
-                onClose={handleClose}
-                submitButtonText="confirm"
-                cancelButtonText="cancel"
-                filesLimit={1}
-                maxFileSize={500000000}
-            />
-            {isFilePicked ? (
-                <div>
-                    <p>Filename: {selectedFile.name}</p>
-                    <p>Filetype: {selectedFile.type}</p>
-                    <p>Size in bytes: {selectedFile.size}</p>
-                    <p>
-                        Date last modified:{' '}
-                        {selectedFile.lastModifiedDate.toLocaleDateString()}
-                    </p>
-                </div>
-            ) : (
-                <p>Select a file to show details</p>
-            )}
-            {isFilePicked ? (
-                <div>
-                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md mr-10 my-4" onClick={handleSubmission}>Upload!</button>
-                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md" onClick={cancelFile}>Cancel</button>
-                </div>
-            ) :
-                <div />
-            }
-            <div>
-                {props.backendInformation}
-            </div>
+            <form onSubmit={handleSubmission} onReset={cancelFile}>
+                <fieldset>
+                    <legend className='text-bold'>Project details</legend>
+                    <label htmlFor='prjname'>Project name:</label>
+                    <input type="text" id="prjname" name="prjname" className='w-30 h-8 m-4' value={projectName} onChange={handlePrjNameChange}/><br />
+                    <label htmlFor='selectfile'>Project source code:</label>
+                    <DropzoneDialog
+                        open={dialogOpen}
+                        onSave={handleSave}
+                        showPreviews={true}
+                        showFileNamesInPreview={true}
+                        onClose={handleClose}
+                        submitButtonText="confirm"
+                        cancelButtonText="cancel"
+                        filesLimit={1}
+                        maxFileSize={500000000}
+                    />
+                    <button id='selectfile' className='group container justify-center items-center w-fit m-4 py-0.5 px-2 rounded-md border small-content-div disabled:opacity-75' onClick={showDialog} >
+                        Select file here
+                    </button>
+                    <output>
+                        {isFilePicked ? (
+                            <div>
+                                <p>Filename: {selectedFile.name}</p>
+                                <p>Filetype: {selectedFile.type}</p>
+                                <p>Size in bytes: {selectedFile.size}</p>
+                                <p>
+                                    Date last modified:{' '}
+                                    {selectedFile.lastModifiedDate.toLocaleDateString()}
+                                </p>
+                            </div>
+                        ) : (
+                            <p>Select a file to show details</p>
+                        )}
+                    </output>
+                    <output>
+                        {props.backendInformation}
+                    </output>
+                </fieldset>
+                {
+                    <React.Fragment>
+                        <input type='submit' className='group container justify-center items-center w-fit m-4 ml-0 py-0.5 px-2 rounded-md border small-content-div disabled:opacity-75'/>
+                        <input type='reset' className='group container justify-center items-center w-fit m-4 py-0.5 px-2 rounded-md border small-content-div disabled:opacity-75'/>
+                    </React.Fragment>
+                }
+            </form>
+
+
         </div>
     )
 }
