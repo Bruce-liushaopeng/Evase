@@ -11,15 +11,15 @@ function Nav() {
             fluid={true}
             rounded={true}
         >
-            <Navbar.Brand href="https://flowbite.com/">
+            <Navbar.Brand href="/">
                 <img
                     src={logo}
                     className="mr-3 h-6 sm:h-9"
                     alt="Evase Logo"
                 />
                 <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
-      Evase App
-    </span>
+                    Evase App
+                </span>
             </Navbar.Brand>
             <Navbar.Collapse>
                 <Navbar.Link

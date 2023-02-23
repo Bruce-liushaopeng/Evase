@@ -84,7 +84,7 @@ const Upload = (props) => {
                                 <p>Size in bytes: {selectedFile.size}</p>
                                 <p>
                                     Date last modified:{' '}
-                                    {selectedFile.lastModifiedDate.toLocaleDateString()}
+                                    {selectedFile.lastModifiedDate?.toLocaleDateString()}
                                 </p>
                             </div>
                         ) : (
