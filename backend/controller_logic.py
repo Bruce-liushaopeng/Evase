@@ -3,7 +3,7 @@ from evase.structures.analysisperformer import AnalysisPerformer
 
 def perform_analysis(
         folder: str,
-        output_folder: str,
+        output_folder: str = None,
         project_name: str = None):
     if project_name is None:
         project_name = "UNKNOWN"

@@ -75,12 +75,11 @@ def analyze_file_hook():
 
         return perform_analysis(
             PROJECT_FOLDER,
-            PROJECT_FOLDER,
             project_name=PROJECT_NAME,
-            sql_injection=check_sql_injection,
-            forced_deadlock=check_forced_deadlock,
-            no_encryption=check_no_encryption,
-            password_guessing=check_dictionary
+            # sql_injection=check_sql_injection,
+            # forced_deadlock=check_forced_deadlock,
+            # no_encryption=check_no_encryption,
+            # password_guessing=check_dictionary
         )
     else:
         return "No folder was uploaded. Can't perform analysis."
