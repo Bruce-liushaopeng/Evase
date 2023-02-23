@@ -16,7 +16,7 @@ const Analyzer = (props) => {
     const prettyResult = () => {
         console.log("PRETTY")
         console.log(analysisResult);
-        return (<ReactJson src={analysisResult} />)
+        return (<ReactJson src={analysisResult} theme="bright"/>)
         //return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
     }
 
