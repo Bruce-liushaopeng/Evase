@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import zipfile
 import logging
 
-from backend.controller_logic import perform_analysis
+from controller_logic import perform_analysis
 
 logging.basicConfig(level=logging.INFO)
 
