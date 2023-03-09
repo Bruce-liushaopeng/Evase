@@ -8,8 +8,6 @@ axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 function App() {
     const [respond, setRespond] = useState("");
     const [fileUploaded, setFileUploaded] = useState(false);
-    const [projectName, setProjectName] = useState("");
-    const [analysisResult, setAnalysisResult] = useState(null);
 
     const uploadFile = (projectName, file) => {
         console.log("Project name given:")
@@ -45,10 +43,6 @@ function App() {
         if (true) {
             return <p> Backend Reply: {respond}</p>
         }
-    }
-
-    const getAnalysisResult = () => {
-        return (<pre>{JSON.stringify(analysisResult, null, 2)}</pre>);
     }
 
     return (

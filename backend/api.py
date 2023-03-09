@@ -68,19 +68,11 @@ def analyze_file_hook():
     if len(os.listdir(UPLOAD_FOLDER)) > 0:
         # perform analysis here
         print("Begin analysis")
-        check_sql_injection = request.args.get('sql', default=False, type=bool)
-        check_forced_deadlock = request.args.get('fdl', default=False, type=bool)
-        check_no_encryption = request.args.get('no_enc', default=False, type=bool)
-        check_dictionary = request.args.get('pswd_guessing', default=False, type=bool)
 
         return perform_analysis(
             PROJECT_FOLDER,
             PROJECT_FOLDER,
             project_name=PROJECT_NAME,
-            sql_injection=check_sql_injection,
-            forced_deadlock=check_forced_deadlock,
-            no_encryption=check_no_encryption,
-            password_guessing=check_dictionary
         )
     else:
         return "No folder was uploaded. Can't perform analysis."
