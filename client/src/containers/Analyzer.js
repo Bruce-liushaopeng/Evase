@@ -11,7 +11,15 @@ const Analyzer = (props) => {
     const getAnalysisResult = async () => {
         const res = await analyzeCode();
         console.log(res);
-        setAnalysisResult(res);
+        
+        if(Object.keys(analysisResult).length === 0){
+            setAnalysisResult(res);
+            return;
+        } else if(Object.keys(analysisResult['graph']['total']['nodes']).length === Object.keys(res['graph']['total']['nodes'])) {
+            setAnalysisResult(res);
+            return;
+        }
+        
     }
 
     const events = {
