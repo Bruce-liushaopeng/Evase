@@ -21,67 +21,69 @@ const Analyzer = (props) => {
     };
 
     const prettyResult = () => {
-        console.log("PRETTY")
-        console.log(analysisResult);
-
-        try {
-            let graph = {
-                nodes: analysisResult['graph']['total']['nodes'],
-                edges: analysisResult['graph']['total']['edges']
-            };
-
-            console.log(graph)
-
-            var options = {
-                "configure": {
-                    "enabled": false
-                },
-                "nodes": {
-                  "shape": "dot"
-                },
-                "edges": {
-                    "color": {
-                        "inherit": true
+        console.log("analysis Result");
+        console.log(analysisResult)
+        if (Object.keys(analysisResult).length > 0) {
+            console.log("PRETTY")
+            console.log(analysisResult);
+    
+            
+                let graph = {
+                    nodes: analysisResult['graph']['total']['nodes'],
+                    edges: analysisResult['graph']['total']['edges']
+                };
+                console.log("printing graph");
+                console.log(graph)
+    
+                var options = {
+                    "configure": {
+                        "enabled": false
                     },
-                    "smooth": {
+                    "nodes": {
+                      "shape": "dot"
+                    },
+                    "edges": {
+                        "color": {
+                            "inherit": true
+                        },
+                        "smooth": {
+                            "enabled": true,
+                            "type": "dynamic"
+                        }
+                    },
+                    "interaction": {
+                        "dragNodes": true,
+                        "hideEdgesOnDrag": false,
+                        "hideNodesOnDrag": false
+                    },
+                    "physics": {
                         "enabled": true,
-                        "type": "dynamic"
+                        "stabilization": {
+                            "enabled": true,
+                            "fit": true,
+                            "iterations": 1000,
+                            "onlyDynamicEdges": false,
+                            "updateInterval": 50
+                        }
                     }
-                },
-                "interaction": {
-                    "dragNodes": true,
-                    "hideEdgesOnDrag": false,
-                    "hideNodesOnDrag": false
-                },
-                "physics": {
-                    "enabled": true,
-                    "stabilization": {
-                        "enabled": true,
-                        "fit": true,
-                        "iterations": 1000,
-                        "onlyDynamicEdges": false,
-                        "updateInterval": 50
-                    }
-                }
-            };
-            return (
-                <div>
-                    <div className='h-96'>
-                        <Graph
-                        graph={graph}
-                        options={options}
-                        events={events}
-                    />
+                };
+                return (
+                    <div>
+                        <div className='h-96'>
+                            <Graph
+                            graph={graph}
+                            options={options}
+                            events={events}
+                        />
+                        </div>
+    
+                        <ReactJson src={analysisResult} displayDataTypes={false} collapsed={1} displayObjectSize={false}/>
                     </div>
-
-                    <ReactJson src={analysisResult} displayDataTypes={false} collapsed={1} displayObjectSize={false}/>
-                </div>
-            );
-        } catch (e) {
-            return (
-                <></>
-            )
+                );
+        } else {
+            return <></>
         }
+        
 
 
 
