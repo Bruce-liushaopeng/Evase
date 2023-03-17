@@ -62,7 +62,7 @@ const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
             <input type="text" id="prjname" name="prjname" className='w-30 h-8 rounded-md p-1 shadow-md my-4 color2' value={projectName} onChange={handlePrjNameChange}/>
             <p>Please input your source code in .zip format.</p>
             <div className="bg-red">
-                <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={showDialog} >
+                <button className="rounded-md py-1 px-2 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={showDialog} >
                     Select File
                 </button>
             </div>

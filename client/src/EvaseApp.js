@@ -153,7 +153,7 @@ function App() {
                         <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
                     </div>
                     <div className='section-panel lg:w-[1000px] md:w-[850] ml-8 p-4'>
-                        <Analyzer ready={fileUploaded} readyCallback={()=>setFileUploaded(false)} errorMsg={receiveError}/>
+                        <Analyzer ready={fileUploaded} readyCallback={()=>setFileUploaded(false)} errorMsg={receiveError} infoMsg={receiveInfo}/>
                     </div>
                 </div>
             </div>
