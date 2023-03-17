@@ -70,7 +70,6 @@ function App() {
             .then(res => {
                 setInfo("File upload success! Commencing analysis...");
                 setShowInfo(true);
-
                 setRespond(res.data);
                 setFileUploaded(true);
             })
@@ -143,7 +142,7 @@ function App() {
                 }
             </div>
             <div className='max-w-[1500px] mx-auto'>
-                <div className='float-left p-5 mt-14 w-[350px] rounded shadow-md'>
+                <div className='float-left p-5 mt-14 w-[350px] rounded shadow-lg'>
                     <img className="w-[350px] h-[350px] rounded" src="/logofile.png" />
                     <p className='mt-5 text-xl font-semibold'>Our Goals</p>
                     <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
