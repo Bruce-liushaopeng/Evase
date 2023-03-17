@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { DropzoneDialog } from "material-ui-dropzone"
 
-const Upload = (props) => {
+const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [projectName, setProjectName] = useState("");
@@ -11,19 +11,20 @@ const Upload = (props) => {
     const [respMsg, setRespMsg] = useState("");
 
     const cancelFile = (e) => {
-        props.onCancel();
+        onCancel();
         setSelectedFile(null);
         setIsFilePicked(false);
         setAttemptCount(0);
     }
 
     const handleSubmission = (e) => {
+        console.log("ATTEMPT")
         e.preventDefault();
         setAttemptCount(attemptCount+1);
         if (projectName.length === 0) {
-            alert("You must input a project name.");
+            infoMsg("You must name your project!");
         } else {
-            setRespMsg(props.onSubmission(projectName, selectedFile));
+            setRespMsg(onSubmission(projectName, selectedFile));
             setProjectName("");
             setSelectedFile(null);
             setIsFilePicked(null);
@@ -53,16 +54,16 @@ const Upload = (props) => {
 
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-2">
+        <div className="w-full text-inherit bg-inherit">
+            <h1 className="text-4xl font-bold mb-2">
                 EVASE Upload
             </h1>
             <p>Please input your project name.</p>
-            <input type="text" id="prjname" name="prjname" className='w-30 h-8 m-4' value={projectName} onChange={handlePrjNameChange}/>
+            <input type="text" id="prjname" name="prjname" className='w-30 h-8 rounded-md p-1 shadow-md my-4 color2' value={projectName} onChange={handlePrjNameChange}/>
             <p>Please input your source code in .zip format.</p>
             <div className="bg-red">
-                <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md my-4" onClick={showDialog} >
-                    Select file here
+                <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={showDialog} >
+                    Select File
                 </button>
             </div>
             <DropzoneDialog
@@ -91,14 +92,14 @@ const Upload = (props) => {
             )}
             {isFilePicked ? (
                 <div>
-                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md mr-10 my-4" onClick={handleSubmission}>Upload!</button>
-                    <button className="bg-sky-300 rounded-md p-1 hover:bg-sky-500 shadow-md" onClick={cancelFile}>Cancel</button>
+                    <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={handleSubmission}>Upload!</button>
+                    <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={cancelFile}>Cancel</button>
                 </div>
             ) :
                 <div />
             }
             <div>
-                {props.backendInformation}
+                {backendInformation}
             </div>
         </div>
     )

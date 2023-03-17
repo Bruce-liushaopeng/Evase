@@ -1,3 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        @apply font-[Inter];
+    }
+}
+
+canvas {
+    width: 650px;
+    height: 650px;
+}
+
+.color1 {
+    @apply bg-[#F4F4F2] dark:bg-[#6B728E];
+}
+.color2 {
+    @apply bg-[#E8E8E8] dark:bg-[#50577A];
+}
+.color3 {
+    @apply bg-[#BBBFCA] dark:bg-[#474E68];
+}
+.color4 {
+    @apply bg-[#495464] dark:bg-[#404258];
+}
+.textcolor {
+    @apply text-slate-900 dark:text-[#F4F4F2];
+}
+.textcolor-light {
+    @apply text-[#F4F4F2];
+}
+
+.main-panel {
+    @apply min-h-screen max-w-[1500px] mx-auto flex;
+}
+
+.section-panel {
+    @apply flex flex-col space-x-2 text-base items-center;
+}
+
+
+
+
+
+
+
