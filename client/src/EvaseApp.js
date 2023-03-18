@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Upload from './containers/Upload'
 import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
+import PopUpCodeBlock from './containers/PopUpCodeBlock';
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -130,11 +131,21 @@ function App() {
         setShowInfo(false);
     }
 
+    const dummyPythonCode = `def add_user_to_db(username: str, password: str) -> str:
+
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"`
+
     return (
         <div className='w-full min-h-screen color1 textcolor items-start'>
+            
             <div className="mx-auto color4">
                 <button className="rounded-lg text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
             </div>
+            <PopUpCodeBlock moduleName="hardcode.py" code={dummyPythonCode}/>
             <div>
                 {showError ? (
                     <ErrorAlert className='my-4' message={error} high={true} onDismiss={dismissError}></ErrorAlert>
