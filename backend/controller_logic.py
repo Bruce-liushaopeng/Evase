@@ -1,4 +1,5 @@
 import io
+import shutil
 
 from evase.structures.analysisperformer import AnalysisPerformer
 import tempfile
@@ -34,21 +35,25 @@ def get_dir_from_uuid(unique_id: str):
     return os.path.join(TEMP_DIR, unique_id)
 
 
-def save_code(file, label: str, est_time: float):
+def save_code(file, label: str):
+    print("SAVE")
     filename = secure_filename(file.filename)
     label = secure_filename(label)
 
     unique_id = str(uuid.uuid4())
-    tmp_upload = tempfile.TemporaryDirectory(prefix=f'{label}_{unique_id}_')
+    tmp_upload = tempfile.mkdtemp(prefix=f'{label}_{unique_id}_')
 
     sub_dir_name = str(uuid.uuid4())
-    sub_dir_path = os.path.join(tmp_upload.name, sub_dir_name)
+    sub_dir_path = os.path.join(tmp_upload, sub_dir_name)
     _, file_extension = os.path.splitext(filename)
 
     # ensure upload type
     if file_extension == ".zip":
+
         with zipfile.ZipFile(file, 'r') as zip_file:
             zip_file.extractall(sub_dir_path)
+            print(tmp_upload)
+            print("ZIP", os.path.exists(sub_dir_path))
             return unique_id, tmp_upload, sub_dir_path
     elif file_extension == ".tar":
         with tarfile.open(fileobj=io.BytesIO(file.read())) as tar:
@@ -59,5 +64,5 @@ def save_code(file, label: str, est_time: float):
             tar.extractall(sub_dir_path)
             return unique_id, tmp_upload, sub_dir_path
     else:
-        tmp_upload.cleanup()
+        shutil.rmtree(tmp_upload, ignore_errors=True)
         raise ValueError("File extension was invalid.")

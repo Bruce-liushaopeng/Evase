@@ -4,6 +4,7 @@ from flask_cors import CORS
 import logging
 import shutil
 import threading
+import atexit
 
 from backend.controller_logic import perform_analysis, save_code
 
@@ -22,7 +23,26 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 cors = CORS(app)
 
 
+def cleanup():
+    """
+    Run upon program termination to delete all remaining files.
+    """
+    for uid, (path, _, _) in ID_DIR_MAPPING.items():
+        del_tmp(path, uid)
+
+    ID_DIR_MAPPING.clear()
+
+
+atexit.register(cleanup)
+
+
 def del_tmp(file: str, uuid: str):
+    """
+    Deletes a temp directory stored in our memory.
+
+    :param file: The file path
+    :param uuid: The uid of the source code directory in memory
+    """
     del ID_DIR_MAPPING[uuid]
     shutil.rmtree(file, ignore_errors=True)
 
@@ -45,12 +65,12 @@ def file_upload_hook(prj_name: str):
         }, 500)
 
     try:
-        uid, dirpath, subdir_path = save_code(file, prj_name, est_time)
+        uid, dirpath, subdir_path = save_code(file, prj_name)
         ID_DIR_MAPPING[uid] = (dirpath, subdir_path, prj_name)
 
-        print(dirpath)
+        print("CHECK", os.path.exists(dirpath))
 
-        timer = threading.Timer(600, lambda: del_tmp(dirpath, uid))
+        timer = threading.Timer(est_time, lambda: del_tmp(dirpath, uid))
         timer.start()
 
         return make_response({
@@ -66,7 +86,8 @@ def file_upload_hook(prj_name: str):
 @app.route('/analyze', methods=['GET'])
 def analyze_file_hook():
     """
-
+    Analyzes the contents of the code given.
+    The code is identified with the uuid argument in the query.
     """
     uid = request.args.get('uuid')
     if uid is None:
@@ -75,13 +96,20 @@ def analyze_file_hook():
         }, 404)
 
     try:
+        print("HEREHERE")
         path, subdir, prj_name = ID_DIR_MAPPING[uid]
+        print(os.path.exists(path))
+        print(subdir)
         if len(os.listdir(subdir)) > 0:
+            print("CALLED")
+
             result = perform_analysis(
                 subdir,
                 path,
                 project_name=prj_name,
             )
+
+            del_tmp(path, uid)
 
             return make_response(result, 200)
 
