@@ -48,36 +48,41 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
         const fetchResult = async () => {
             let result = null;
 
-            const options = {
-                headers: {"content-type": "application/json"}
-            }
+            let uuid = sessionStorage.getItem('uuid');
+            if (uuid) {
+                const options = {
+                    headers: {"content-type": "application/json"},
+                    params: {"uuid": uuid}
+                }
 
-            await axios
-                .get("http://127.0.0.1:5000/analyze", options)
-                .then(function (res) {
-                    const type = res.headers.get("Content-Type");
-                    if (type.indexOf("application/json") !== -1) {
-                        if (res.data) {
-                            result = res.data;
-                            setAnalysisResult(result);
-                            setShowResult(true);
-                            infoMsg("Your vulnerabilities have been detected!");
+                await axios
+                    .get("http://127.0.0.1:5000/analyze", options)
+                    .then(function (res) {
+                        const type = res.headers.get("Content-Type");
+                        if (type.indexOf("application/json") !== -1) {
+                            if (res.data) {
+                                result = res.data;
+                                setAnalysisResult(result);
+                                setShowResult(true);
+                                infoMsg("Your vulnerabilities have been detected!");
+                            }
+                        } else {
+                            errorMsg("The server response could not be parsed. Apologies.");
                         }
-                    } else {
-                        errorMsg("The server response could not be parsed. Apologies.");
-                    }
-                })
-                .catch(function (error) {
-                    if (error.response) {
-                        errorMsg("The server could not process your request at this time. Apologies.");
-                    } else if (error.request) {
-                        errorMsg("The server did not receive your request at this time. Apologies.");
-                    } else {
-                        errorMsg("The client could not assemble your request at this time. Apologies.");
-                    }
+                    })
+                    .catch(function (error) {
+                        if (error.response) {
+                            errorMsg("The server could not process your request at this time. Apologies.");
+                        } else if (error.request) {
+                            errorMsg("The server did not receive your request at this time. Apologies.");
+                        } else {
+                            errorMsg("The client could not assemble your request at this time. Apologies.");
+                        }
 
-                });
-
+                    });
+            } else {
+                errorMsg("Couldn't attempt analysis, project id not known.")
+            }
         };
 
         if (ready) {

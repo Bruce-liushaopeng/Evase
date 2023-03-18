@@ -11,6 +11,7 @@ const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
     const [respMsg, setRespMsg] = useState("");
 
     const cancelFile = (e) => {
+        e.preventDefault();
         onCancel();
         setSelectedFile(null);
         setIsFilePicked(false);
@@ -18,7 +19,6 @@ const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
     }
 
     const handleSubmission = (e) => {
-        console.log("ATTEMPT")
         e.preventDefault();
         setAttemptCount(attemptCount+1);
         if (projectName.length === 0) {

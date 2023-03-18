@@ -68,10 +68,18 @@ function App() {
         axios
             .post("http://127.0.0.1:5000/upload/"+projectName, formData, {timeout: 1000})
             .then(res => {
-                setInfo("File upload success! Commencing analysis...");
-                setShowInfo(true);
-                setRespond(res.data);
-                setFileUploaded(true);
+                if ('message' in res.data) {
+                    setRespond(res.data['message']);
+                } else {
+                    setRespond(res.data);
+                }
+                if ('uuid' in res.data) {
+                    sessionStorage.setItem('uuid', res.data['uuid']);
+                    receiveInfo("File upload success! Commencing analysis...")
+                    setFileUploaded(true);
+                } else {
+                    setError("Server didn't respond with required information.")
+                }
             })
             .catch(function (error) {
                 console.log("ERROR");

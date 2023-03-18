@@ -1,11 +1,13 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, make_response
 from flask_cors import CORS
-from werkzeug.utils import secure_filename
-import zipfile
 import logging
+import shutil
+import threading
 
-from backend.controller_logic import perform_analysis
+from backend.controller_logic import perform_analysis, save_code
+
+ID_DIR_MAPPING = {}
 
 logging.basicConfig(level=logging.INFO)
 
@@ -19,43 +21,46 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 cors = CORS(app)
 
-PROJECT_NAME = None
-PROJECT_FOLDER = UPLOAD_FOLDER
+
+def del_tmp(file: str, uuid: str):
+    del ID_DIR_MAPPING[uuid]
+    shutil.rmtree(file, ignore_errors=True)
+
 
 @app.route('/upload/<prj_name>', methods=['POST'])
 def file_upload_hook(prj_name: str):
     """
     Hook that is called when the frontend pushes attempts to push a file to backend
     """
-    global PROJECT_NAME, PROJECT_FOLDER
 
-    file = request.files['file']  # get the file from post request
-    filename = secure_filename(file.filename)  # get the fileName
-    print(filename)
+    est_time = request.args.get("est_time")
+    if est_time is None:
+        est_time = 60000.0
 
-    _, file_extension = os.path.splitext(filename)
-    if file_extension != ".zip":  # ensure upload type by checking the last three char
-        return "please upload in a zip format"
+    try:
+        file = request.files['file']  # get the file from post request
+    except KeyError:
+        return make_response({
+            'message': 'Expected file in body (file)'
+        }, 500)
 
-    if not os.path.isdir(UPLOAD_FOLDER):  # create folder if folder doesn't exist
-        os.mkdir(UPLOAD_FOLDER)
+    try:
+        uid, dirpath, subdir_path = save_code(file, prj_name, est_time)
+        ID_DIR_MAPPING[uid] = (dirpath, subdir_path, prj_name)
 
-    upload_dir = os.path.join(UPLOAD_FOLDER, prj_name)
-    if not os.path.isdir(upload_dir):  # create folder if folder doesn't exist
-        os.mkdir(upload_dir)
+        print(dirpath)
 
-    PROJECT_NAME = prj_name
-    PROJECT_FOLDER = upload_dir
-    destination = os.path.join(upload_dir, filename)
+        timer = threading.Timer(600, lambda: del_tmp(dirpath, uid))
+        timer.start()
 
-    file.save(destination)  # save file to the path we defined
-    with zipfile.ZipFile(destination, 'r') as zip_ref:  # unzip userfiles
-        zip_ref.extractall(upload_dir)
-    os.remove(destination)  # delete the zip file after unziping it
-
-    response = "upload successful, check backend folder for User Files"
-    print("HERE")
-    return response
+        return make_response({
+            'uuid': uid,
+            'message': 'File uploaded successfully'
+        }, 201)
+    except ValueError as e:
+        return make_response({
+            'message': str(e)
+        }, 422)
 
 
 @app.route('/analyze', methods=['GET'])
@@ -63,16 +68,29 @@ def analyze_file_hook():
     """
 
     """
-    global PROJECT_FOLDER
-    print("ANALYSIS", PROJECT_FOLDER)
-    if len(os.listdir(UPLOAD_FOLDER)) > 0:
-        # perform analysis here
-        print("Begin analysis")
+    uid = request.args.get('uuid')
+    if uid is None:
+        return make_response({
+            'message': 'No ID given'
+        }, 404)
 
-        return perform_analysis(
-            PROJECT_FOLDER,
-            PROJECT_FOLDER,
-            project_name=PROJECT_NAME,
-        )
-    else:
-        return "No folder was uploaded. Can't perform analysis."
+    try:
+        path, subdir, prj_name = ID_DIR_MAPPING[uid]
+        if len(os.listdir(subdir)) > 0:
+            result = perform_analysis(
+                subdir,
+                path,
+                project_name=prj_name,
+            )
+
+            return make_response(result, 200)
+
+    except KeyError:
+        return make_response({
+            'message': 'Invalid ID, not found'
+        }, 422)
+    except Exception as e:
+        print(e)
+        return make_response({
+            'message': 'Unexpected error'
+        }, 500)
