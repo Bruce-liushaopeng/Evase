@@ -32,6 +32,9 @@ canvas {
 .color4 {
     @apply bg-[#495464] dark:bg-[#404258];
 }
+.color5 {
+    @apply bg-[#d9dadd] dark:bg-[#8b91a6];
+}
 .textcolor {
     @apply text-slate-900 dark:text-[#F4F4F2];
 }
