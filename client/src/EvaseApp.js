@@ -12,6 +12,7 @@ function App() {
     const [respond, setRespond] = useState("");
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
+    const [extractedFiles, setExtractedFiles] = useState([]);
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const [showError, setShowError] = useState(false);
@@ -148,11 +149,13 @@ function App() {
         // Check if the result has any vulnerabilities at all
         let vulnerable_nodes = result.nodes.filter(node => node['vulnerable'] === true);
         let vulnerable_edges = result.edges.filter(edge => edge['vulnerable'] === true);
-        
 
         // if so, extract contents
+        if (vulnerable_nodes.length > 0) {
+            let f = file // zip file to extract
+        }
 
-
+        // reset the state after
         setFile(null);
         setFileUploaded(false);
     }
