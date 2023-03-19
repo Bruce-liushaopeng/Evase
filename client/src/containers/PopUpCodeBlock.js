@@ -1,20 +1,25 @@
 import React from "react"
 import { useState } from "react"
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const PopUpCodeBlock = ({ display, moduleName, code }) => {
-  const [showBlock, setShowBlock] = useState(display ? display : true)
+const PopUpCodeBlock = ({ display, moduleName, code, dark, ref }) => {
+
+
+
+  const [showBlock, setShowBlock] = useState(display)
   console.log(showBlock)
   const onCancelClick = () => {
     console.log("click")
     setShowBlock(false)
   }
 
-  return showBlock ? (
+  return (
     <div
-      className={`mx-auto color2 w-1/3 text-inherit color5 rounded-lg textcolor-light z-10 absolute inset-x-9 inset-y-56 ring-stone-300 shadow-lg`}
+      className={`fixed mx-auto w-full h-full top-0 left-0 ${showBlock ? '': 'hidden'} flex items-center justify-center rounded-lg textcolor-light z-10 inset-x-9 inset-y-56 ring-stone-300 shadow-lg`}
     >
-      <div className="flex justify-between p-4  flex-col">
-        <div className="flex flex-row justify-between color1 p-2 rounded-md shadow-lg">
+      <div className="flex justify-between p-4 color2 flex-col rounded-xl">
+        <div className="flex flex-row justify-between color1 p-2 rounded-md shadow-lg" ref={ref}>
           <div>
             <p className="textcolor font-mono text-lg">{moduleName} </p>
           </div>
@@ -36,15 +41,11 @@ const PopUpCodeBlock = ({ display, moduleName, code }) => {
             </svg>
           </div>
         </div>
-        <div className="code-container color2 mt-5 h-[380px] rounded-lg">
-          <p className="p-3">
+        <SyntaxHighlighter language="python" style={dark ? vscDarkPlus : vs} wrapLines={true}>
           {code}
-          </p>
-        </div>
+        </SyntaxHighlighter>
       </div>
     </div>
-  ) : (
-    <></>
   )
 }
 

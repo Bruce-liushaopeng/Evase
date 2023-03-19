@@ -11,7 +11,7 @@
 
 @layer base {
     body {
-        @apply font-[Inter];
+        @apply font-[Raleway];
     }
 }
 

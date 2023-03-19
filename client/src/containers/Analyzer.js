@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useRef} from "react";
 import ReactJson from 'react-json-view';
 import { Network, Options } from 'vis-network';
+import PopUpCodeBlock from "./PopUpCodeBlock";
 
 const {default: axios} = require("axios");
 
@@ -116,7 +117,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
                     if (params.nodes.length === 0 && params.edges.length > 0) {
 
                     } else if (params.nodes.length > 0) {
-                        
+
                     } else {
                         console.log("IDK");
                     }
@@ -136,6 +137,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
                         <p className='font-semibold text-xl'>Analysis Result</p>
                         <div className='textcolor'>
                             <div className='h-[650px] min-w-[650px] items-stretch my-4 shadow-md rounded-lg' ref={visJsRef}></div>
+
                             <ReactJson className='textcolor' src={analysisResult ? analysisResult : {}} displayDataTypes={false} collapsed={1}
                                        displayObjectSize={false}/>
                         </div>

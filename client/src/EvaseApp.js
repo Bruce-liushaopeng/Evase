@@ -14,6 +14,7 @@ function App() {
     const [info, setInfo] = useState("");
     const [showError, setShowError] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
+    const [dark, setDark] = useState(localStorage.getItem('color-theme'));
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -38,9 +39,11 @@ function App() {
             if (localStorage.getItem('color-theme') === 'light') {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('color-theme', 'dark');
+                setDark(true);
             } else {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');
+                setDark(false);
             }
 
             // if NOT set via local storage previously
@@ -48,9 +51,11 @@ function App() {
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');
+                setDark(false);
             } else {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('color-theme', 'dark');
+                setDark(true);
             }
         }
     }
@@ -131,21 +136,56 @@ function App() {
         setShowInfo(false);
     }
 
+    const dismissCodeView = () => {
+
+    }
+
     const dummyPythonCode = `def add_user_to_db(username: str, password: str) -> str:
 
     conn = sqlite3.connect('sample.db')
     conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
     conn.commit()
     conn.close()
-    return "user [" + username + "] added auccess"`
+    return "user [" + username + "] added auccess"
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"
+    conn = sqlite3.connect('sample.db')
+    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
+    conn.commit()
+    conn.close()
+    return "user [" + username + "] added auccess"
+    `
 
     return (
         <div className='w-full min-h-screen color1 textcolor items-start'>
             
-            <div className="mx-auto color4">
-                <button className="rounded-lg text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
+            <div className="mx-auto color4 z-50">
+                <button className="rounded-lg z-50 text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
             </div>
-            <PopUpCodeBlock moduleName="hardcode.py" code={dummyPythonCode}/>
+            <PopUpCodeBlock display={true} moduleName="hardcode.py" code={dummyPythonCode} dark={dark}/>
             <div>
                 {showError ? (
                     <ErrorAlert className='my-4' message={error} high={true} onDismiss={dismissError}></ErrorAlert>
