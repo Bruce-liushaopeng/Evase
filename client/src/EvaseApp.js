@@ -3,12 +3,14 @@ import Upload from './containers/Upload'
 import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
 import PopUpCodeBlock from './containers/PopUpCodeBlock';
+import JSZip from 'jszip';
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
 function App() {
     const [respond, setRespond] = useState("");
+    const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
@@ -82,6 +84,7 @@ function App() {
                 if ('uuid' in res.data) {
                     sessionStorage.setItem('uuid', res.data['uuid']);
                     receiveInfo("File upload success! Commencing analysis...")
+                    setFile(file);
                     setFileUploaded(true);
                 } else {
                     setError("Server didn't respond with required information.")
@@ -140,6 +143,20 @@ function App() {
 
     }
 
+    const onAnalysisDone = (result) => {
+
+        // Check if the result has any vulnerabilities at all
+        let vulnerable_nodes = result.nodes.filter(node => node['vulnerable'] === true);
+        let vulnerable_edges = result.edges.filter(edge => edge['vulnerable'] === true);
+        
+
+        // if so, extract contents
+
+
+        setFile(null);
+        setFileUploaded(false);
+    }
+
     const dummyPythonCode = `def add_user_to_db(username: str, password: str) -> str:
 
     conn = sqlite3.connect('sample.db')
@@ -194,11 +211,9 @@ function App() {
                 )}
                 { showInfo ? (
                     <ErrorAlert className='my-4' message={info} high={false} onDismiss={dismissInfo}></ErrorAlert>
-
                 ) :(
                     <></>
-                )
-                }
+                )}
             </div>
             <div className='max-w-[1500px] mx-auto'>
                 <div className='float-left p-5 mt-14 w-[350px] rounded shadow-lg'>
@@ -211,7 +226,7 @@ function App() {
                         <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
                     </div>
                     <div className='section-panel lg:w-[1000px] md:w-[850] ml-8 p-4'>
-                        <Analyzer ready={fileUploaded} readyCallback={()=>setFileUploaded(false)} errorMsg={receiveError} infoMsg={receiveInfo}/>
+                        <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo}/>
                     </div>
                 </div>
             </div>

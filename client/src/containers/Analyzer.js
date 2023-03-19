@@ -90,7 +90,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
             fetchResult();
             console.log(analysisResult);
             console.log(showResult);
-            readyCallback();
+            readyCallback(analysisResult);
         }
     }, [ready])
 
