@@ -147,8 +147,8 @@ function App() {
     const onAnalysisDone = (result) => {
 
         // Check if the result has any vulnerabilities at all
-        let vulnerable_nodes = result.nodes.filter(node => node['vulnerable'] === true);
-        let vulnerable_edges = result.edges.filter(edge => edge['vulnerable'] === true);
+        let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
+        let vulnerable_edges = result['graph']['total']['edges'].filter(edge => edge['vulnerable'] === true);
 
         // if so, extract contents
         if (vulnerable_nodes.length > 0) {
@@ -162,36 +162,6 @@ function App() {
 
     const dummyPythonCode = `def add_user_to_db(username: str, password: str) -> str:
 
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
     conn = sqlite3.connect('sample.db')
     conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
     conn.commit()

@@ -65,6 +65,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
                                 result = res.data;
                                 setAnalysisResult(result);
                                 setShowResult(true);
+                                readyCallback(result);
                                 infoMsg("Your vulnerabilities have been detected!");
                             }
                         } else {
@@ -88,9 +89,6 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
 
         if (ready) {
             fetchResult();
-            console.log(analysisResult);
-            console.log(showResult);
-            readyCallback(analysisResult);
         }
     }, [ready])
 
