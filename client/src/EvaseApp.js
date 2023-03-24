@@ -12,12 +12,15 @@ function App() {
     const [respond, setRespond] = useState("");
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
-    const [extractedFiles, setExtractedFiles] = useState([]);
+    const [extractedFiles, setExtractedFiles] = useState({});
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const [showError, setShowError] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
     const [dark, setDark] = useState(localStorage.getItem('color-theme'));
+    const [displayCode, setDisplayCode] = useState(false);
+    const [displayCodeText, setDisplayCodeText] = useState("");
+    const [displayCodeModuleName, setDisplayCodeModuleName] = useState("");
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -144,20 +147,65 @@ function App() {
 
     }
 
-    const onAnalysisDone = (result) => {
+    const onAnalysisDone = async (result) => {
 
         // Check if the result has any vulnerabilities at all
         let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
         let vulnerable_edges = result['graph']['total']['edges'].filter(edge => edge['vulnerable'] === true);
 
+
         // if so, extract contents
         if (vulnerable_nodes.length > 0) {
-            let f = file // zip file to extract
+            let f = file; // zip file to extract
+
+            const zip = new JSZip();
+            const files = await zip.loadAsync(f);
+            files.forEach((relPath, file) => {
+                if (relPath.includes(".py")) {
+                    console.log(relPath);
+                    vulnerable_nodes.forEach(async function (vul_node) {
+                        let namer = vul_node['id'].split(".");
+                        namer.pop();
+                        let altered_vul_node = namer.join(".");
+
+                        let relpath_pkg = relPath.replace(".py", "");
+                        relpath_pkg = relpath_pkg.replace("/", ".");
+
+                        if (relpath_pkg === altered_vul_node) {
+                            //console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
+                            const newExt = {};
+                            newExt[vul_node['id']] = await file.async("blob");
+                            console.log(newExt);
+                            await setExtractedFiles({ ...extractedFiles, ...newExt});
+                        }
+                    });
+                }
+            });
         }
 
         // reset the state after
         setFile(null);
         setFileUploaded(false);
+    }
+
+    const graphNodeSelected = (node) => {
+        console.log(node);
+        console.log(extractedFiles);
+        if (node in Object.keys(extractedFiles)) {
+            console.log("OOGABOOGA");
+            const reader = new FileReader();
+
+            // This fires after the blob has been read/loaded.
+            reader.addEventListener('loadend', (e) => {
+                const text = reader.result;
+                setDisplayCodeText(text);
+            });
+
+            // Start reading the blob as text.
+            reader.readAsText(extractedFiles[node]);
+            setDisplayCodeModuleName(node);
+            setDisplayCode(true);
+        }
     }
 
     const dummyPythonCode = `def add_user_to_db(username: str, password: str) -> str:
@@ -175,7 +223,7 @@ function App() {
             <div className="mx-auto color4 z-50">
                 <button className="rounded-lg z-50 text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
             </div>
-            <PopUpCodeBlock display={true} moduleName="hardcode.py" code={dummyPythonCode} dark={dark}/>
+            <PopUpCodeBlock display={displayCode} moduleName={displayCodeModuleName} code={displayCodeText} dark={dark} onDismiss={()=>setDisplayCode(false)}/>
             <div>
                 {showError ? (
                     <ErrorAlert className='my-4' message={error} high={true} onDismiss={dismissError}></ErrorAlert>
@@ -199,7 +247,7 @@ function App() {
                         <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
                     </div>
                     <div className='section-panel lg:w-[1000px] md:w-[850] ml-8 p-4'>
-                        <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo}/>
+                        <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={(node)=>graphNodeSelected(node)}/>
                     </div>
                 </div>
             </div>

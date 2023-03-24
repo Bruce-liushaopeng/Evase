@@ -3,20 +3,15 @@ import { useState } from "react"
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const PopUpCodeBlock = ({ display, moduleName, code, dark, ref }) => {
+const PopUpCodeBlock = ({ display, moduleName, code, dark, ref, onDismiss }) => {
 
-
-
-  const [showBlock, setShowBlock] = useState(display)
-  console.log(showBlock)
   const onCancelClick = () => {
-    console.log("click")
-    setShowBlock(false)
+    onDismiss();
   }
 
   return (
     <div
-      className={`fixed mx-auto w-full h-full top-0 left-0 ${showBlock ? '': 'hidden'} flex items-center justify-center rounded-lg textcolor-light z-10 inset-x-9 inset-y-56 ring-stone-300 shadow-lg`}
+      className={`fixed mx-auto w-full h-full top-0 left-0 ${display ? '': 'hidden'} flex items-center justify-center rounded-lg textcolor-light z-10 inset-x-9 inset-y-56 ring-stone-300 shadow-lg`}
     >
       <div className="flex justify-between p-4 color2 flex-col rounded-xl">
         <div className="flex flex-row justify-between color1 p-2 rounded-md shadow-lg" ref={ref}>

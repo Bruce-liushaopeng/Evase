@@ -5,7 +5,7 @@ import PopUpCodeBlock from "./PopUpCodeBlock";
 
 const {default: axios} = require("axios");
 
-const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
+const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
 
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);
@@ -21,7 +21,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
         },
         edges: {
             color: {
-                inherit: true
+                inherit: false,
             },
             smooth: {
                 enabled: true,
@@ -65,6 +65,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
                                 result = res.data;
                                 setAnalysisResult(result);
                                 setShowResult(true);
+                                console.log("callback");
                                 readyCallback(result);
                                 infoMsg("Your vulnerabilities have been detected!");
                             }
@@ -115,7 +116,9 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg}) => {
                     if (params.nodes.length === 0 && params.edges.length > 0) {
 
                     } else if (params.nodes.length > 0) {
-
+                        console.log("CLICKED MEMEMEMEME")
+                        console.log(params.nodes);
+                        onNodeClick(params.nodes[0]);
                     } else {
                         console.log("IDK");
                     }
