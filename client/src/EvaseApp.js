@@ -12,7 +12,7 @@ function App() {
     const [respond, setRespond] = useState("");
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
-    const [extractedFiles, setExtractedFiles] = useState({});
+    const [extractedFiles, setExtractedFiles] = useState(new Map());
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const [showError, setShowError] = useState(false);
@@ -173,10 +173,7 @@ function App() {
 
                         if (relpath_pkg === altered_vul_node) {
                             //console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
-                            const newExt = {};
-                            newExt[vul_node['id']] = await file.async("blob");
-                            console.log(newExt);
-                            await setExtractedFiles({ ...extractedFiles, ...newExt});
+                            setExtractedFiles(new Map(extractedFiles.set(vul_node['id'], await file.async("blob"))));
                         }
                     });
                 }
@@ -191,7 +188,7 @@ function App() {
     const graphNodeSelected = (node) => {
         console.log(node);
         console.log(extractedFiles);
-        if (node in Object.keys(extractedFiles)) {
+        if (extractedFiles.has(node)) {
             console.log("OOGABOOGA");
             const reader = new FileReader();
 
@@ -202,7 +199,7 @@ function App() {
             });
 
             // Start reading the blob as text.
-            reader.readAsText(extractedFiles[node]);
+            reader.readAsText(extractedFiles.get(node));
             setDisplayCodeModuleName(node);
             setDisplayCode(true);
         }

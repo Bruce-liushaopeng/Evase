@@ -9,7 +9,7 @@ const PopUpCodeBlock = ({ display, moduleName, code, dark, ref, onDismiss }) => 
     onDismiss();
   }
 
-  return (
+  return (display ? (
     <div
       className={`fixed mx-auto w-full h-full top-0 left-0 ${display ? '': 'hidden'} flex items-center justify-center rounded-lg textcolor-light z-10 inset-x-9 inset-y-56 ring-stone-300 shadow-lg`}
     >
@@ -36,11 +36,14 @@ const PopUpCodeBlock = ({ display, moduleName, code, dark, ref, onDismiss }) => 
             </svg>
           </div>
         </div>
-        <SyntaxHighlighter language="python" style={dark ? vscDarkPlus : vs} wrapLines={true}>
+        <SyntaxHighlighter language="python" style={dark ? vscDarkPlus : vs}>
           {code}
         </SyntaxHighlighter>
       </div>
     </div>
+      ) : (
+          <></>
+      )
   )
 }
 
