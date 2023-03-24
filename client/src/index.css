@@ -50,7 +50,9 @@ canvas {
     @apply flex flex-col space-x-2 text-base items-center;
 }
 
-
+.codeblock {
+    @apply max-h-[600px]
+}
 
 
 

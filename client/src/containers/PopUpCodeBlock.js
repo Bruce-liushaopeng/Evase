@@ -36,9 +36,11 @@ const PopUpCodeBlock = ({ display, moduleName, code, dark, ref, onDismiss }) => 
             </svg>
           </div>
         </div>
-        <SyntaxHighlighter language="python" style={dark ? vscDarkPlus : vs}>
-          {code}
-        </SyntaxHighlighter>
+        <div className='w-[600px]'>
+          <SyntaxHighlighter language="python" style={dark ? vscDarkPlus : vs} customStyle={{'max-height':'600px', 'min-with': '100%'}}>
+            {code}
+          </SyntaxHighlighter>
+        </div>
       </div>
     </div>
       ) : (
