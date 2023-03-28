@@ -12,7 +12,6 @@ import tarfile
 
 from werkzeug.utils import secure_filename
 
-
 TEMP_DIR = tempfile.gettempdir()
 FILE_DELETION_SCHED = sched.scheduler(time.time, time.sleep)
 

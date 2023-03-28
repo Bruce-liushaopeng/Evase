@@ -91,6 +91,7 @@ function App() {
                     setFile(file);
                     setFileUploaded(true);
                 } else {
+                    setFileUploaded(false);
                     setError("Server didn't respond with required information.")
                 }
             })
@@ -143,10 +144,6 @@ function App() {
         setShowInfo(false);
     }
 
-    const dismissCodeView = () => {
-
-    }
-
     const onAnalysisDone = async (result) => {
 
         // Check if the result has any vulnerabilities at all
@@ -182,7 +179,7 @@ function App() {
 
         // reset the state after
         setFile(null);
-        setFileUploaded(false);
+        //setFileUploaded(false);
     }
 
     const graphNodeSelected = (node) => {
@@ -195,6 +192,10 @@ function App() {
             // This fires after the blob has been read/loaded.
             reader.addEventListener('loadend', (e) => {
                 const text = reader.result;
+                const allLines = text.split('\r?\n');
+
+                let start = ""
+
                 setDisplayCodeText(text);
             });
 
@@ -205,14 +206,6 @@ function App() {
         }
     }
 
-    const dummyPythonCode = `def add_user_to_db(username: str, password: str) -> str:
-
-    conn = sqlite3.connect('sample.db')
-    conn.execute(f"INSERT INTO USER ( userName, password) VALUES ('{username}', '{password}')")
-    conn.commit()
-    conn.close()
-    return "user [" + username + "] added auccess"
-    `
 
     return (
         <div className='w-full min-h-screen color1 textcolor items-start'>
@@ -221,29 +214,34 @@ function App() {
                 <button className="rounded-lg z-50 text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
             </div>
             <PopUpCodeBlock display={displayCode} moduleName={displayCodeModuleName} code={displayCodeText} dark={dark} onDismiss={()=>setDisplayCode(false)}/>
-            <div>
-                {showError ? (
-                    <ErrorAlert className='my-4' message={error} high={true} onDismiss={dismissError}></ErrorAlert>
-                ) : (
-                    <></>
-                )}
-                { showInfo ? (
-                    <ErrorAlert className='my-4' message={info} high={false} onDismiss={dismissInfo}></ErrorAlert>
-                ) :(
-                    <></>
-                )}
-            </div>
             <div className='max-w-[1500px] mx-auto'>
+                <div>
+                    {showError ? (
+                        <ErrorAlert className='my-4' message={error} high={true} onDismiss={dismissError}></ErrorAlert>
+                    ) : (
+                        <></>
+                    )}
+                    { showInfo ? (
+                        <ErrorAlert className='my-4' message={info} high={false} onDismiss={dismissInfo}></ErrorAlert>
+                    ) :(
+                        <></>
+                    )}
+                </div>
                 <div className='float-left p-5 mt-14 w-[350px] rounded shadow-lg'>
                     <img className="w-[350px] h-[350px] rounded" src="/logofile.png" />
                     <p className='mt-5 text-xl font-semibold'>Our Goals</p>
                     <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
                 </div>
                 <div className='main-panel pt-16'>
-                    <div className='section-panel ml-16 w-[650px] p-4'>
-                        <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
-                    </div>
-                    <div className='section-panel lg:w-[1000px] md:w-[850] ml-8 p-4'>
+                    { !fileUploaded ? (
+                        <div className={`section-panel ml-16 md:w-[650px] sm:w-[400px] p-4 ${fileUploaded ? 'hidden': ''}`}>
+                            <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
+                        </div>
+                    ) : (
+                        <></>
+                    )
+                    }
+                    <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
                         <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={(node)=>graphNodeSelected(node)}/>
                     </div>
                 </div>
