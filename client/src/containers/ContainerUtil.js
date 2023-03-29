@@ -1,4 +1,4 @@
-const getModuleName = function(fullName, fnSep=".") {
+const getModuleName = function(fullName, fnSep=":") {
     let spl = fullName.split(fnSep);
     let fn_name = spl.pop();
     return {

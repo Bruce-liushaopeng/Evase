@@ -52,9 +52,9 @@ function App() {
     // update the properties of the code view when a new node is selected
     useEffect(() => {
         const updateProps = async () => {
-            if (extractedFiles.has(selectedNode)) {
+            const names = getModuleName(selectedNode);
+            if (extractedFiles.has(names['module'])) {
 
-                let names = getModuleName(selectedNode);
                 let start = 0;
                 let end = 1000;
                 const cvprops = {
@@ -84,7 +84,7 @@ function App() {
                 }
 
                 // Start reading the blob as text.
-                await reader.readAsText(extractedFiles.get(selectedNode));
+                await reader.readAsText(extractedFiles.get(names['module']));
             }
         }
 
@@ -209,17 +209,20 @@ function App() {
             const files = await zip.loadAsync(f);
             files.forEach((relPath, file) => {
                 if (relPath.includes(".py")) {
+                    console.log(relPath)
                     vulnerable_nodes.forEach(async function (vul_node) {
-                        let namer = vul_node['id'].split(".");
-                        namer.pop();
+                        let namer = vul_node['id'].replace(":", ".");
+                        namer = namer.split(".");
+                        namer.pop()
+
                         let altered_vul_node = namer.join(".");
 
                         let relpath_pkg = relPath.replace(".py", "");
                         relpath_pkg = relpath_pkg.replace("/", ".");
 
                         if (relpath_pkg === altered_vul_node) {
-                            //console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
-                            setExtractedFiles(new Map(extractedFiles.set(vul_node['id'], await file.async("blob"))));
+                            console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
+                            setExtractedFiles(new Map(extractedFiles.set(altered_vul_node, await file.async("blob"))));
                         }
                     });
                 }
