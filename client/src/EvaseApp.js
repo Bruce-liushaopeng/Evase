@@ -4,6 +4,7 @@ import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
 import PopUpCodeBlock from './containers/PopUpCodeBlock';
 import JSZip from 'jszip';
+import getModuleName from "./containers/ContainerUtil";
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -19,9 +20,11 @@ function App() {
     const [showInfo, setShowInfo] = useState(false);
     const [dark, setDark] = useState(localStorage.getItem('color-theme'));
     const [displayCode, setDisplayCode] = useState(false);
-    const [displayCodeText, setDisplayCodeText] = useState("");
-    const [displayCodeModuleName, setDisplayCodeModuleName] = useState("");
 
+    const [selectedNode, setSelectedNode] = useState(null);
+    const [codeViewProps, setCodeViewProps] = useState(null);
+
+    // dismiss error bubble after time
     useEffect(() => {
         const timer = setTimeout(() => {
             dismissError();
@@ -29,6 +32,7 @@ function App() {
         return () => clearTimeout(timer);
     }, [showError]);
 
+    // dismiss info bubble after time
     useEffect(() => {
         const timer = setTimeout(() => {
             dismissInfo();
@@ -36,9 +40,62 @@ function App() {
         return () => clearTimeout(timer);
     }, [showInfo]);
 
+    // trigger the code view when the display is not null
+    useEffect(() => {
+        if (codeViewProps != null) {
+            setDisplayCode(true);
+        } else {
+            setDisplayCode(false);
+        }
+    }, [codeViewProps])
+
+    // update the properties of the code view when a new node is selected
+    useEffect(() => {
+        const updateProps = async () => {
+            if (extractedFiles.has(selectedNode)) {
+
+                let names = getModuleName(selectedNode);
+                let start = 0;
+                let end = 1000;
+                const cvprops = {
+                    startingLine: start+1,
+                    moduleName: names['module'],
+                    functionName: names['func'],
+                    endpoint: false,
+                    variables: ['etc'],
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = async (e) => {
+                    const text = (e.target.result);
+
+                    // split file line by line
+                    let allLines = text.split('\r\n');
+
+                    // safety fallback
+                    if (end > allLines.length) {
+                        end = allLines.length;
+                    }
+
+                    // rejoin only the lines between start and end
+                    cvprops['code'] = allLines.slice(start, end+1).join("\n");
+                    setCodeViewProps(cvprops);
+                }
+
+                // Start reading the blob as text.
+                await reader.readAsText(extractedFiles.get(selectedNode));
+            }
+        }
+
+        // only update if there is a selected node
+        if (selectedNode != null) {
+            updateProps();
+        }
+    }, [selectedNode])
+
     const changeTheme = (e) => {
         e.preventDefault();
-        console.log("value");
 
         // if set via local storage previously
         if (localStorage.getItem('color-theme')) {
@@ -67,10 +124,6 @@ function App() {
     }
 
     const uploadFile = (projectName, file) => {
-        console.log("Project name given:")
-        console.log(projectName)
-        console.log(typeof file)
-        console.log("Upload function triggered.")
         const formData = new FormData();
         formData.append(
             "file",
@@ -96,7 +149,6 @@ function App() {
                 }
             })
             .catch(function (error) {
-                console.log("ERROR");
                 if (error.response) {
                     setError("The server could not process your request at this time. Apologies.");
                 } else if (error.request) {
@@ -148,8 +200,6 @@ function App() {
 
         // Check if the result has any vulnerabilities at all
         let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
-        let vulnerable_edges = result['graph']['total']['edges'].filter(edge => edge['vulnerable'] === true);
-
 
         // if so, extract contents
         if (vulnerable_nodes.length > 0) {
@@ -159,7 +209,6 @@ function App() {
             const files = await zip.loadAsync(f);
             files.forEach((relPath, file) => {
                 if (relPath.includes(".py")) {
-                    console.log(relPath);
                     vulnerable_nodes.forEach(async function (vul_node) {
                         let namer = vul_node['id'].split(".");
                         namer.pop();
@@ -183,26 +232,31 @@ function App() {
     }
 
     const graphNodeSelected = (node) => {
-        console.log(node);
-        console.log(extractedFiles);
-        if (extractedFiles.has(node)) {
-            console.log("OOGABOOGA");
-            const reader = new FileReader();
-
-            // This fires after the blob has been read/loaded.
-            reader.addEventListener('loadend', (e) => {
-                const text = reader.result;
-                const allLines = text.split('\r?\n');
-
-                let start = ""
-
-                setDisplayCodeText(text);
-            });
-
-            // Start reading the blob as text.
-            reader.readAsText(extractedFiles.get(node));
-            setDisplayCodeModuleName(node);
+        if (node === selectedNode) {
             setDisplayCode(true);
+        } else {
+            setSelectedNode(node);
+        }
+    }
+
+    const resetProcess = () => {
+        setFile(null);
+        setFileUploaded(false);
+
+        // send delete request to the backend
+        let uuid = sessionStorage.getItem('uuid');
+        if (uuid) {
+            axios
+                .post("http://127.0.0.1:5000/deletecode", {
+                    'uuid': uuid,
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .catch(function (error) {});
+
+            sessionStorage.removeItem('uuid');
         }
     }
 
@@ -213,7 +267,7 @@ function App() {
             <div className="mx-auto color4 z-50">
                 <button className="rounded-lg z-50 text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
             </div>
-            <PopUpCodeBlock display={displayCode} moduleName={displayCodeModuleName} code={displayCodeText} dark={dark} onDismiss={()=>setDisplayCode(false)}/>
+            <PopUpCodeBlock display={displayCode} {...codeViewProps} onDismiss={()=>setDisplayCode(false)} dark={dark}/>
             <div className='max-w-[1500px] mx-auto'>
                 <div>
                     {showError ? (
@@ -227,11 +281,17 @@ function App() {
                         <></>
                     )}
                 </div>
-                <div className='float-left p-5 mt-14 w-[350px] rounded shadow-lg'>
-                    <img className="w-[350px] h-[350px] rounded" src="/logofile.png" />
-                    <p className='mt-5 text-xl font-semibold'>Our Goals</p>
-                    <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
+                <div className='float-left mt-14 w-[350px] '>
+                    <div className='rounded p-5 shadow-lg w-full'>
+                        <img className="w-[350px] h-[350px] rounded" src="/logofile.png" />
+                        <p className='mt-5 text-xl font-semibold'>Our Goal</p>
+                        <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
+                    </div>
+                    <div className="mt-5 float-right">
+                        <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg my-4 mr-1 color2" onClick={resetProcess}>Reset</button>
+                    </div>
                 </div>
+
                 <div className='main-panel pt-16'>
                     { !fileUploaded ? (
                         <div className={`section-panel ml-16 md:w-[650px] sm:w-[400px] p-4 ${fileUploaded ? 'hidden': ''}`}>
@@ -241,9 +301,16 @@ function App() {
                         <></>
                     )
                     }
-                    <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
-                        <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={(node)=>graphNodeSelected(node)}/>
-                    </div>
+                    {
+                        fileUploaded ? (
+                            <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
+                                <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={(node)=>graphNodeSelected(node)}/>
+                            </div>
+                        ) : (
+                            <></>
+                        )
+                    }
+
                 </div>
             </div>
         </div>

@@ -28,7 +28,7 @@ def cleanup():
     Run upon program termination to delete all remaining files.
     """
     for uid, (path, _, _) in ID_DIR_MAPPING.items():
-        del_tmp(path, uid)
+        shutil.rmtree(path, ignore_errors=True)
 
     ID_DIR_MAPPING.clear()
 
@@ -43,6 +43,8 @@ def del_tmp(file: str, uuid: str):
     :param file: The file path
     :param uuid: The uid of the source code directory in memory
     """
+    print(file, uuid)
+
     del ID_DIR_MAPPING[uuid]
     shutil.rmtree(file, ignore_errors=True)
 
@@ -55,7 +57,7 @@ def file_upload_hook(prj_name: str):
 
     est_time = request.args.get("est_time")
     if est_time is None:
-        est_time = 60000.0
+        est_time = 6000000.0
 
     try:
         file = request.files['file']  # get the file from post request
@@ -83,26 +85,26 @@ def file_upload_hook(prj_name: str):
         }, 422)
 
 
-@app.route('/analyze', methods=['GET'])
+@app.route('/analyze', methods=['POST'])
 def analyze_file_hook():
     """
     Analyzes the contents of the code given.
     The code is identified with the uuid argument in the query.
     """
-    uid = request.args.get('uuid')
-    if uid is None:
+
+    try:
+        json = request.json
+        uid = json['uuid']
+        print(uid)
+    except Exception as e:
+        print(e)
         return make_response({
-            'message': 'No ID given'
+            'message': "Couldn't parse id from request, may not be in JSON form."
         }, 404)
 
     try:
-        print("HEREHERE")
         path, subdir, prj_name = ID_DIR_MAPPING[uid]
-        print(os.path.exists(path))
-        print(subdir)
         if len(os.listdir(subdir)) > 0:
-            print("CALLED")
-
             result = perform_analysis(
                 subdir,
                 path,
@@ -121,4 +123,24 @@ def analyze_file_hook():
         print(e)
         return make_response({
             'message': 'Unexpected error'
+        }, 500)
+
+
+@app.route('/deletecode', methods=['POST'])
+def remove_code():
+    try:
+        json = request.json
+        uid = json['uuid']
+    except Exception:
+        return make_response({
+            'message': "Couldn't parse id from request, may not be in JSON form."
+        }, 404)
+
+    try:
+        path, _, _ = ID_DIR_MAPPING[uid]
+        del_tmp(path, uid)
+    except Exception as e:
+        print(e)
+        return make_response({
+            'message': "Couldn't delete the code repository from the server."
         }, 500)

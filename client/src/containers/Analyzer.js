@@ -10,6 +10,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
 
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);
+    const [uuid, setUuid] = useState(null);
 
     const visJsRef = useRef(null);
 
@@ -50,15 +51,15 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
         const fetchResult = async () => {
             let result = null;
 
-            let uuid = sessionStorage.getItem('uuid');
-            if (uuid) {
-                const options = {
-                    headers: {"content-type": "application/json"},
-                    params: {"uuid": uuid}
-                }
-
+            if (uuid && ready) {
                 await axios
-                    .get("http://127.0.0.1:5000/analyze", options)
+                    .post("http://127.0.0.1:5000/analyze", {
+                        'uuid': uuid,
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
                     .then(function (res) {
                         const type = res.headers.get("Content-Type");
                         if (type.indexOf("application/json") !== -1) {
@@ -89,11 +90,18 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
             }
         };
 
-        if (ready) {
+        // stop it from being called all the time
+        if (uuid && ready && visJsRef) {
             fetchResult();
         }
+    }, [uuid])
+
+    // set the id to the session storage retrieval
+    useEffect(() => {
+        setUuid(sessionStorage.getItem('uuid'));
     }, [ready])
 
+    // draw the graph
     useEffect(() => {
         try {
             if (showResult && visJsRef && analysisResult) {
@@ -125,6 +133,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
         }
     }, [visJsRef, analysisResult])
 
+    // make the vulnerable report blocks
     const makeVulBlocks = () => {
         if (analysisResult && showResult) {
 
@@ -132,8 +141,6 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
 
             // collect vulnerable nodes
             let vul_nodes = nodes.filter((node) => node['vulnerable']===true);
-
-
 
             return Object.keys(vul_nodes).map((key) => {
                 let spl = vul_nodes[key]['id'].split(".");
