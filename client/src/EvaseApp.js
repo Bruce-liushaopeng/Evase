@@ -235,6 +235,9 @@ function App() {
     }
 
     const graphNodeSelected = (node) => {
+        console.log(node)
+        console.log(selectedNode)
+        console.log("Something: "+node===selectedNode)
         if (node === selectedNode) {
             setDisplayCode(true);
         } else {
@@ -307,7 +310,7 @@ function App() {
                     {
                         fileUploaded ? (
                             <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
-                                <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={(node)=>graphNodeSelected(node)}/>
+                                <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={graphNodeSelected}/>
                             </div>
                         ) : (
                             <></>

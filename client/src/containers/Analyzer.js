@@ -14,6 +14,8 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
 
     const visJsRef = useRef(null);
 
+    const doClick = (node)=>{onNodeClick(node)};
+
     const graph_options = {
         configure: {
             "enabled": false
@@ -122,7 +124,8 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                 network.on("click", function (params) {
                     if (params.nodes.length === 0 && params.edges.length > 0) {
                     } else if (params.nodes.length > 0) {
-                        onNodeClick(params.nodes[0]);
+                        console.log(params.nodes[0]);
+                        doClick(params.nodes[0]);
                     } else {
                     }
                 })
@@ -143,11 +146,11 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
             let vul_nodes = nodes.filter((node) => node['vulnerable']===true);
 
             return Object.keys(vul_nodes).map((key) => {
-                let spl = vul_nodes[key]['id'].split(".");
+                let spl = vul_nodes[key]['id'].replace(":", ".").split(".");
                 let fn = spl.pop();
                 spl = spl.join(".");
                 return (
-                    <CodeReportBlock doClick={()=>onNodeClick(vul_nodes[key].id)} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
+                    <CodeReportBlock doClick={()=>doClick(vul_nodes[key].id)} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
                 )
             })
         }
