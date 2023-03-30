@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState } from 'react';
 import Upload from './containers/Upload'
 import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
@@ -241,7 +241,7 @@ function App() {
         //setFileUploaded(false);
     }
 
-    const graphNodeSelected = (node) => {
+    const graphNodeSelected = async (node) => {
         console.log(node);
         console.log(nodeSelected);
         if (nodeSelected != null && node === nodeSelected) {

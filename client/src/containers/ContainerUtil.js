@@ -41,14 +41,38 @@ export const getNodeProperties = function(nodeObj) {
     }
 
     let endLine = parseInt(scope['end']) + LINE_BUFFER;
-
+    let maxCall = Math.max(...call_lines);
     if (endLine - startLine > MAX_LINES) {
-        let maxCall = Math.max(...call_lines);
+
         endLine = maxCall + LINE_BUFFER;
         if (endLine - startLine > MAX_LINES) {
             endLine = startLine + MAX_LINES;
         }
     }
+
+    if (maxCall <= startLine) {
+        if (startLine - LINE_BUFFER >= 0) {
+            startLine -= LINE_BUFFER;
+        }
+        if (endLine - LINE_BUFFER >=0) {
+            endLine -= LINE_BUFFER;
+        }
+    }
+
+    if (maxCall >= endLine) {
+        if (startLine + LINE_BUFFER >= MAX_LINES) {
+            startLine += LINE_BUFFER;
+        }
+        if (endLine + LINE_BUFFER >=MAX_LINES) {
+            endLine += LINE_BUFFER;
+        }
+    }
+
+    if (startLine - 1 >= 0) {
+        startLine -= 1;
+    }
+
+    console.log(endLine - startLine);
 
     let props = {
         moduleName: moduleName,
