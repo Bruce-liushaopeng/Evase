@@ -4,7 +4,7 @@ import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
 import PopUpCodeBlock from './containers/PopUpCodeBlock';
 import JSZip from 'jszip';
-import getModuleName from "./containers/ContainerUtil";
+import { getModuleName, getNodeProperties } from "./containers/ContainerUtil";
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -14,6 +14,8 @@ function App() {
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
     const [extractedFiles, setExtractedFiles] = useState(new Map());
+    const [extractedNodes, setExtractedNodes] = useState(new Map());
+
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const [showError, setShowError] = useState(false);
@@ -21,7 +23,7 @@ function App() {
     const [dark, setDark] = useState(localStorage.getItem('color-theme'));
     const [displayCode, setDisplayCode] = useState(false);
 
-    const [selectedNode, setSelectedNode] = useState(null);
+    const [nodeSelected, setNodeSelected] = useState("");
     const [codeViewProps, setCodeViewProps] = useState(null);
 
     // dismiss error bubble after time
@@ -52,20 +54,13 @@ function App() {
     // update the properties of the code view when a new node is selected
     useEffect(() => {
         const updateProps = async () => {
-            const names = getModuleName(selectedNode);
+            const names = getModuleName(nodeSelected);
             if (extractedFiles.has(names['module'])) {
-
-                let start = 0;
-                let end = 1000;
-                const cvprops = {
-                    startingLine: start+1,
-                    moduleName: names['module'],
-                    functionName: names['func'],
-                    endpoint: false,
-                    variables: ['etc'],
-                }
-
+                console.log(nodeSelected);
+                const cvprops = getNodeProperties(extractedNodes.get(nodeSelected));
                 const reader = new FileReader();
+
+                console.log(cvprops);
 
                 reader.onload = async (e) => {
                     const text = (e.target.result);
@@ -74,12 +69,17 @@ function App() {
                     let allLines = text.split('\r\n');
 
                     // safety fallback
-                    if (end > allLines.length) {
-                        end = allLines.length;
+                    if (cvprops['endLine'] > allLines.length) {
+                        cvprops['endLine'] = allLines.length;
                     }
 
+                    let between = allLines.slice(cvprops['startingLine'], cvprops['endLine']+1);
+                    console.log("Between");
+                    console.log(between);
+
+
                     // rejoin only the lines between start and end
-                    cvprops['code'] = allLines.slice(start, end+1).join("\n");
+                    cvprops['code'] = between.join("\n");
                     setCodeViewProps(cvprops);
                 }
 
@@ -89,10 +89,11 @@ function App() {
         }
 
         // only update if there is a selected node
-        if (selectedNode != null) {
+        if (nodeSelected != null) {
+            console.log("CALLED");
             updateProps();
         }
-    }, [selectedNode])
+    }, [nodeSelected])
 
     const changeTheme = (e) => {
         e.preventDefault();
@@ -201,6 +202,12 @@ function App() {
         // Check if the result has any vulnerabilities at all
         let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
 
+        let nodeObjs = new Map();
+        vulnerable_nodes.forEach(function (vul_node) {
+            nodeObjs.set(vul_node['id'], vul_node);
+        })
+        setExtractedNodes(nodeObjs);
+
         // if so, extract contents
         if (vulnerable_nodes.length > 0) {
             let f = file; // zip file to extract
@@ -235,13 +242,12 @@ function App() {
     }
 
     const graphNodeSelected = (node) => {
-        console.log(node)
-        console.log(selectedNode)
-        console.log("Something: "+node===selectedNode)
-        if (node === selectedNode) {
+        console.log(node);
+        console.log(nodeSelected);
+        if (nodeSelected != null && node === nodeSelected) {
             setDisplayCode(true);
         } else {
-            setSelectedNode(node);
+            setNodeSelected(node);
         }
     }
 

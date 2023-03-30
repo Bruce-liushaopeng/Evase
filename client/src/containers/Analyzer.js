@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from "react";
 import ReactJson from 'react-json-view';
-import { Network, Options } from 'vis-network';
+import { Network } from 'vis-network';
 import PopUpCodeBlock from "./PopUpCodeBlock";
 import CodeReportBlock from "./CodeReportBlock";
 
@@ -69,7 +69,6 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                                 result = res.data;
                                 setAnalysisResult(result);
                                 setShowResult(true);
-                                console.log("callback");
                                 readyCallback(result);
                                 infoMsg("Your vulnerabilities have been detected!");
                             }
@@ -121,11 +120,11 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                     },
                 );
                 network.setOptions(graph_options);
-                network.on("click", function (params) {
+                network.on("click", async function (params) {
                     if (params.nodes.length === 0 && params.edges.length > 0) {
                     } else if (params.nodes.length > 0) {
-                        console.log(params.nodes[0]);
-                        doClick(params.nodes[0]);
+                        let node_id = params.nodes[0];
+                        await doClick(node_id);         // for some reason this needs to be awaited
                     } else {
                     }
                 })
