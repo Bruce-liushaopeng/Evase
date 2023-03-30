@@ -35,7 +35,6 @@ def get_dir_from_uuid(unique_id: str):
 
 
 def save_code(file, label: str):
-    print("SAVE")
     filename = secure_filename(file.filename)
     label = secure_filename(label)
 
@@ -51,8 +50,6 @@ def save_code(file, label: str):
 
         with zipfile.ZipFile(file, 'r') as zip_file:
             zip_file.extractall(sub_dir_path)
-            print(tmp_upload)
-            print("ZIP", os.path.exists(sub_dir_path))
             return unique_id, tmp_upload, sub_dir_path
     elif file_extension == ".tar":
         with tarfile.open(fileobj=io.BytesIO(file.read())) as tar:
