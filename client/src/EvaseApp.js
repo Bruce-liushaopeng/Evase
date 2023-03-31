@@ -1,4 +1,4 @@
-import React, {useEffect, useState } from 'react';
+import React, {useEffect, useState, useMemo, useCallback } from 'react';
 import Upload from './containers/Upload'
 import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
@@ -25,6 +25,118 @@ function App() {
 
     const [nodeSelected, setNodeSelected] = useState("");
     const [codeViewProps, setCodeViewProps] = useState(null);
+    //const [codeViewProps, setCodeViewProps] = useState(null);
+    const generateCodeViewProps = useCallback(async (node) => {
+        const names = getModuleName(node);
+        if (extractedFiles.has(names['module'])) {
+            const cvprops = getNodeProperties(extractedNodes.get(node));
+            const text = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsText(extractedFiles.get(names['module']));
+            });
+
+            // split file line by line
+            let allLines = text.split('\r\n');
+
+            // safety fallback
+            if (cvprops['endLine'] > allLines.length) {
+                cvprops['endLine'] = allLines.length;
+            }
+
+            let between = allLines.slice(cvprops['startingLine'], cvprops['endLine']+1);
+
+            // rejoin only the lines between start and end
+            cvprops['code'] = between.join("\n");
+            return cvprops;
+        } else {
+            return null;
+        }
+    }, [extractedFiles, extractedNodes]);
+
+    useEffect(() => {
+      if (codeViewProps) {
+        setDisplayCode(true);
+      }
+    }, [codeViewProps]);
+
+    useEffect(() => {
+          const fetchData = async () => {
+            const newCodeViewProps = await generateCodeViewProps(nodeSelected);
+            setCodeViewProps(newCodeViewProps);
+          };
+          fetchData();
+    }, [generateCodeViewProps, nodeSelected]);
+
+    useEffect(() => {
+      const fetchData = async () => {
+        const newCodeViewProps = await generateCodeViewProps(nodeSelected);
+        setCodeViewProps(newCodeViewProps);
+      };
+      fetchData();
+    }, [generateCodeViewProps, nodeSelected]);
+
+    const graphNodeSelected = useCallback((node) => {
+        console.log("CALLED CALLBACK")
+        console.log(nodeSelected);
+        console.log(node);
+        if (node === nodeSelected) {
+            setDisplayCode(!displayCode); // toggle displayCode
+        } else {
+            setNodeSelected(node);
+        }
+    }, [nodeSelected, setDisplayCode, setNodeSelected]);
+
+    const caller = (node) => {
+        graphNodeSelected(node);
+    }
+
+    const cancelFile = () => {
+        setRespond("")
+    }
+
+    const onAnalysisDone = async (result) => {
+
+        // Check if the result has any vulnerabilities at all
+        let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
+
+        let nodeObjs = new Map();
+        vulnerable_nodes.forEach(function (vul_node) {
+            nodeObjs.set(vul_node['id'], vul_node);
+        })
+        setExtractedNodes(nodeObjs);
+
+        // if so, extract contents
+        if (vulnerable_nodes.length > 0) {
+            let f = file; // zip file to extract
+
+            const zip = new JSZip();
+            const files = await zip.loadAsync(f);
+            files.forEach((relPath, file) => {
+                if (relPath.includes(".py")) {
+                    vulnerable_nodes.forEach(async function (vul_node) {
+                        let namer = vul_node['id'].replace(":", ".");
+                        namer = namer.split(".");
+                        namer.pop()
+
+                        let altered_vul_node = namer.join(".");
+
+                        let relpath_pkg = relPath.replace(".py", "");
+                        relpath_pkg = relpath_pkg.replace("/", ".");
+
+                        if (relpath_pkg === altered_vul_node) {
+                            //console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
+                            setExtractedFiles(new Map(extractedFiles.set(altered_vul_node, await file.async("blob"))));
+                        }
+                    });
+                }
+            });
+        }
+
+        // reset the state after
+        setFile(null);
+        //setFileUploaded(false);
+    }
 
     // dismiss error bubble after time
     useEffect(() => {
@@ -41,59 +153,6 @@ function App() {
         }, 4000);
         return () => clearTimeout(timer);
     }, [showInfo]);
-
-    // trigger the code view when the display is not null
-    useEffect(() => {
-        if (codeViewProps != null) {
-            setDisplayCode(true);
-        } else {
-            setDisplayCode(false);
-        }
-    }, [codeViewProps])
-
-    // update the properties of the code view when a new node is selected
-    useEffect(() => {
-        const updateProps = async () => {
-            const names = getModuleName(nodeSelected);
-            if (extractedFiles.has(names['module'])) {
-                console.log(nodeSelected);
-                const cvprops = getNodeProperties(extractedNodes.get(nodeSelected));
-                const reader = new FileReader();
-
-                console.log(cvprops);
-
-                reader.onload = async (e) => {
-                    const text = (e.target.result);
-
-                    // split file line by line
-                    let allLines = text.split('\r\n');
-
-                    // safety fallback
-                    if (cvprops['endLine'] > allLines.length) {
-                        cvprops['endLine'] = allLines.length;
-                    }
-
-                    let between = allLines.slice(cvprops['startingLine'], cvprops['endLine']+1);
-                    console.log("Between");
-                    console.log(between);
-
-
-                    // rejoin only the lines between start and end
-                    cvprops['code'] = between.join("\n");
-                    setCodeViewProps(cvprops);
-                }
-
-                // Start reading the blob as text.
-                await reader.readAsText(extractedFiles.get(names['module']));
-            }
-        }
-
-        // only update if there is a selected node
-        if (nodeSelected != null) {
-            console.log("CALLED");
-            updateProps();
-        }
-    }, [nodeSelected])
 
     const changeTheme = (e) => {
         e.preventDefault();
@@ -124,7 +183,7 @@ function App() {
         }
     }
 
-    const uploadFile = (projectName, file) => {
+        const uploadFile = (projectName, file) => {
         const formData = new FormData();
         formData.append(
             "file",
@@ -161,8 +220,10 @@ function App() {
             });
     }
 
-    const cancelFile = () => {
-        setRespond("")
+
+    const dismissInfo = () => {
+        setInfo("");
+        setShowInfo(false);
     }
 
     const fileChanged = () => {
@@ -190,65 +251,6 @@ function App() {
     const dismissError = () => {
         setError("");
         setShowError(false);
-    }
-
-    const dismissInfo = () => {
-        setInfo("");
-        setShowInfo(false);
-    }
-
-    const onAnalysisDone = async (result) => {
-
-        // Check if the result has any vulnerabilities at all
-        let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
-
-        let nodeObjs = new Map();
-        vulnerable_nodes.forEach(function (vul_node) {
-            nodeObjs.set(vul_node['id'], vul_node);
-        })
-        setExtractedNodes(nodeObjs);
-
-        // if so, extract contents
-        if (vulnerable_nodes.length > 0) {
-            let f = file; // zip file to extract
-
-            const zip = new JSZip();
-            const files = await zip.loadAsync(f);
-            files.forEach((relPath, file) => {
-                if (relPath.includes(".py")) {
-                    console.log(relPath)
-                    vulnerable_nodes.forEach(async function (vul_node) {
-                        let namer = vul_node['id'].replace(":", ".");
-                        namer = namer.split(".");
-                        namer.pop()
-
-                        let altered_vul_node = namer.join(".");
-
-                        let relpath_pkg = relPath.replace(".py", "");
-                        relpath_pkg = relpath_pkg.replace("/", ".");
-
-                        if (relpath_pkg === altered_vul_node) {
-                            console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
-                            setExtractedFiles(new Map(extractedFiles.set(altered_vul_node, await file.async("blob"))));
-                        }
-                    });
-                }
-            });
-        }
-
-        // reset the state after
-        setFile(null);
-        //setFileUploaded(false);
-    }
-
-    const graphNodeSelected = async (node) => {
-        console.log(node);
-        console.log(nodeSelected);
-        if (nodeSelected != null && node === nodeSelected) {
-            setDisplayCode(true);
-        } else {
-            setNodeSelected(node);
-        }
     }
 
     const resetProcess = () => {
@@ -316,7 +318,7 @@ function App() {
                     {
                         fileUploaded ? (
                             <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
-                                <Analyzer ready={fileUploaded} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={graphNodeSelected}/>
+                                <Analyzer ready={fileUploaded} selected={nodeSelected} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={caller}/>
                             </div>
                         ) : (
                             <></>

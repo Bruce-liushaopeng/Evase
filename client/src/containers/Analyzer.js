@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from "react";
+import React, {useState, useEffect, useRef, useCallback } from "react";
 import ReactJson from 'react-json-view';
 import { Network } from 'vis-network';
 import PopUpCodeBlock from "./PopUpCodeBlock";
@@ -10,6 +10,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
 
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);
+    const [selectedNode, setSelectedNode] = useState(null);
     const [uuid, setUuid] = useState(null);
 
     const visJsRef = useRef(null);
@@ -100,7 +101,16 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
     // set the id to the session storage retrieval
     useEffect(() => {
         setUuid(sessionStorage.getItem('uuid'));
-    }, [ready])
+    }, [ready]);
+
+    const setNodeSelected = useCallback((node)=>{
+        onNodeClick(node);
+    }, []);
+
+
+    // the function isn't being updated inside of the network
+    // it is calling an old reference to the function?
+    // the vulnerable blocks don't have this issue because it's always being refreshed
 
     // draw the graph
     useEffect(() => {
@@ -120,11 +130,14 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                     },
                 );
                 network.setOptions(graph_options);
-                network.on("click", async function (params) {
+                network.on("click", function (params) {
+                    console.log(onNodeClick)
+
                     if (params.nodes.length === 0 && params.edges.length > 0) {
                     } else if (params.nodes.length > 0) {
                         let node_id = params.nodes[0];
-                        await doClick(node_id);         // for some reason this needs to be awaited
+                        //console.log("doClick node clicked: ", node_id);
+                        setNodeSelected(node_id);         // for some reason this needs to be awaited
                     } else {
                     }
                 })
@@ -134,6 +147,11 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
             errorMsg("There was an issue displaying the result of your analysis.");
         }
     }, [visJsRef, analysisResult])
+
+    const vulBlockClick = (node) => {
+        console.log(onNodeClick);
+        onNodeClick(node);
+    }
 
     // make the vulnerable report blocks
     const makeVulBlocks = () => {
@@ -148,8 +166,9 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                 let spl = vul_nodes[key]['id'].replace(":", ".").split(".");
                 let fn = spl.pop();
                 spl = spl.join(".");
+                console.log("doClick node clicked: ", vul_nodes[key].id);
                 return (
-                    <CodeReportBlock doClick={()=>doClick(vul_nodes[key].id)} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
+                    <CodeReportBlock doClick={()=>setNodeSelected(vul_nodes[key]['id'])} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
                 )
             })
         }

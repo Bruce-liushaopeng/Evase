@@ -57,7 +57,7 @@ def file_upload_hook(prj_name: str):
 
     est_time = request.args.get("est_time")
     if est_time is None:
-        est_time = 6000000.0
+        est_time = 60000.0
 
     try:
         file = request.files['file']  # get the file from post request
@@ -119,11 +119,7 @@ def analyze_file_hook():
         return make_response({
             'message': 'Invalid ID, not found'
         }, 422)
-    except Exception as e:
-        print(e)
-        return make_response({
-            'message': 'Unexpected error'
-        }, 500)
+
 
 
 @app.route('/deletecode', methods=['POST'])

@@ -72,8 +72,6 @@ export const getNodeProperties = function(nodeObj) {
         startLine -= 1;
     }
 
-    console.log(endLine - startLine);
-
     let props = {
         moduleName: moduleName,
         functionName: funcName,
