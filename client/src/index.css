@@ -15,11 +15,6 @@
     }
 }
 
-canvas {
-    width: 650px;
-    height: 650px;
-}
-
 .color1 {
     @apply bg-[#F4F4F2] dark:bg-[#6B728E];
 }

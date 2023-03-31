@@ -1,14 +1,19 @@
-import React from "react"
-import { useState } from "react"
+import React, {useMemo} from "react"
+import { useState, useEffect } from "react"
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import CodeReportBlockDismiss from "./CodeReportBlockDismiss";
 
-const PopUpCodeBlock = ({ display, moduleName, functionName, code, startingLine, dark, endpoint, variables, ref, onDismiss }) => {
+const PopUpCodeBlock = ({ display, moduleName, functionName, code, startingLine, dark, endpoint, variables, onDismiss }) => {
 
-  const onCancelClick = () => {
-    onDismiss();
-  }
+  const theme = useMemo(() => {
+    if (dark) {
+      return vscDarkPlus;
+    } else {
+      return vs;
+    }
+  }, [dark]);
+
 
   return (display ? (
     <div
@@ -17,7 +22,7 @@ const PopUpCodeBlock = ({ display, moduleName, functionName, code, startingLine,
       <div className="flex justify-between p-4 color2 flex-col rounded-xl">
         <CodeReportBlockDismiss moduleName={moduleName} functionName={functionName} endpoint={endpoint} variables={variables} doClick={onDismiss}/>
         <div className='w-[800px]'>
-          <SyntaxHighlighter language="python" showLineNumbers={true} startingLineNumber={startingLine} wrapLines={true} style={dark ? vscDarkPlus : vs} customStyle={{'maxHeight':'800px', 'minWidth': '100%'}}>
+          <SyntaxHighlighter className='md:max-h-[400px] lg:max-h-[600px]' language="python" showLineNumbers={true} startingLineNumber={startingLine} wrapLines={true} style={theme} >
             {code}
           </SyntaxHighlighter>
         </div>
@@ -29,4 +34,4 @@ const PopUpCodeBlock = ({ display, moduleName, functionName, code, startingLine,
   )
 }
 
-export default PopUpCodeBlock
+export default PopUpCodeBlock;

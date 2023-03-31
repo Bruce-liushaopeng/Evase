@@ -1,21 +1,23 @@
-import React, {useState, useEffect, useRef, useCallback } from "react";
+import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
 import ReactJson from 'react-json-view';
 import { Network } from 'vis-network';
 import PopUpCodeBlock from "./PopUpCodeBlock";
 import CodeReportBlock from "./CodeReportBlock";
+import {getModuleName, getNodeProperties} from "./ContainerUtil";
 
 const {default: axios} = require("axios");
 
-const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
+const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) => {
 
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);
-    const [selectedNode, setSelectedNode] = useState(null);
+    const [network, setNetwork] = useState(null);
     const [uuid, setUuid] = useState(null);
 
     const visJsRef = useRef(null);
+    const vulNodesRef = useRef([]);
 
-    const doClick = (node)=>{onNodeClick(node)};
+    const MemoCodeBlock = React.memo(CodeReportBlock);
 
     const graph_options = {
         configure: {
@@ -50,11 +52,31 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
         }
     };
 
+    const onNetworkClick = useCallback((params) => {
+        if (params.nodes.length === 0 && params.edges.length > 0) {
+        } else if (params.nodes.length > 0) {
+            let node_id = params.nodes[0];
+            //console.log("doClick node clicked: ", node_id);
+            onNodeClick(node_id);         // for some reason this needs to be awaited
+        } else {
+        }
+    }, [onNodeClick, network]);
+
+    useEffect(() => {
+
+        if (network != null) {
+            network.off("click");           // remove previous listener
+            network.on("click", onNetworkClick);
+        }
+
+    }, [onNetworkClick, network]);
+
+
     useEffect(() => {
         const fetchResult = async () => {
             let result = null;
 
-            if (uuid && ready) {
+            if (uuid && ready()) {
                 await axios
                     .post("http://127.0.0.1:5000/analyze", {
                         'uuid': uuid,
@@ -72,6 +94,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                                 setShowResult(true);
                                 readyCallback(result);
                                 infoMsg("Your vulnerabilities have been detected!");
+                                setUuid(null);
                             }
                         } else {
                             errorMsg("The server response could not be parsed. Apologies.");
@@ -93,7 +116,8 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
         };
 
         // stop it from being called all the time
-        if (uuid && ready && visJsRef) {
+        if (uuid && ready() && visJsRef) {
+            console.log()
             fetchResult();
         }
     }, [uuid])
@@ -102,15 +126,6 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
     useEffect(() => {
         setUuid(sessionStorage.getItem('uuid'));
     }, [ready]);
-
-    const setNodeSelected = useCallback((node)=>{
-        onNodeClick(node);
-    }, []);
-
-
-    // the function isn't being updated inside of the network
-    // it is calling an old reference to the function?
-    // the vulnerable blocks don't have this issue because it's always being refreshed
 
     // draw the graph
     useEffect(() => {
@@ -121,26 +136,15 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                 const nodes = analysisResult['graph']['total']['nodes'];
                 const edges = analysisResult['graph']['total']['edges'];
 
-                // set up network in vis js
-                const network = visJsRef.current && new Network(
+                const net = visJsRef.current && new Network(
                     visJsRef.current,
                     {
                         nodes: nodes,
                         edges: edges
                     },
                 );
-                network.setOptions(graph_options);
-                network.on("click", function (params) {
-                    console.log(onNodeClick)
-
-                    if (params.nodes.length === 0 && params.edges.length > 0) {
-                    } else if (params.nodes.length > 0) {
-                        let node_id = params.nodes[0];
-                        //console.log("doClick node clicked: ", node_id);
-                        setNodeSelected(node_id);         // for some reason this needs to be awaited
-                    } else {
-                    }
-                })
+                net.setOptions(graph_options);
+                setNetwork(net);
             }
         } catch (err) {
             console.log(err);
@@ -148,10 +152,27 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
         }
     }, [visJsRef, analysisResult])
 
-    const vulBlockClick = (node) => {
-        console.log(onNodeClick);
-        onNodeClick(node);
-    }
+    useEffect(() => {
+        if (analysisResult) {
+            // map the current data
+            vulNodesRef.current = analysisResult['graph']['total']['nodes'].filter(node => node['vulnerable'] === true).map(node => getNodeProperties(node));
+        }
+    }, [analysisResult])
+
+
+    const vulBlocks = useMemo(() => {
+        if (showResult && vulNodesRef.current.length > 0) {
+            console.log(vulNodesRef.current);
+            return vulNodesRef.current.map((node) => (
+            <MemoCodeBlock
+                id={node.moduleName+":"+node.functionName}
+                {...node}
+                doClick={() => onNodeClick(node.moduleName+":"+node.functionName)}
+            />
+            ));
+        }
+        return [];
+    }, [showResult, vulNodesRef.current, onNodeClick])
 
     // make the vulnerable report blocks
     const makeVulBlocks = () => {
@@ -166,13 +187,29 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                 let spl = vul_nodes[key]['id'].replace(":", ".").split(".");
                 let fn = spl.pop();
                 spl = spl.join(".");
-                console.log("doClick node clicked: ", vul_nodes[key].id);
                 return (
-                    <CodeReportBlock doClick={()=>setNodeSelected(vul_nodes[key]['id'])} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
+                    <MemoCodeBlock doClick={()=>onNodeClick(vul_nodes[key]['id'])} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
                 )
-            })
+            });
         }
     }
+
+    const myTheme = useMemo(() => {
+        if (dark) {
+            return 'codeschool';
+        } else {
+            return 'rjv-default';
+        }
+    }, [dark]);
+
+    const styler = {
+        width: '100%',
+        padding: '10px',
+        'border-radius': '0.75rem'
+    };
+
+
+
 
     return (
         <div className='w-full'>
@@ -182,12 +219,16 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick}) => {
                         <p className='font-semibold text-4xl'>Analysis Result</p>
                         <div className='flex flex-row w-full'>
                             <div className='w-1/3 flex flex-col mr-4'>
-                                {makeVulBlocks()}
+                                {vulBlocks}
                             </div>
                             <div className='textcolor w-2/3'>
                                 <div className='h-[650px] items-stretch my-4 shadow-md rounded-lg' ref={visJsRef}></div>
-                                <ReactJson className='textcolor' src={analysisResult ? analysisResult : {}} displayDataTypes={false} collapsed={1}
-                                           displayObjectSize={false}/>
+                                <div className="w">
+                                    <ReactJson className='color-1' src={analysisResult ? analysisResult['graph'] : {}} displayDataTypes={true} collapsed={1}
+                                           displayObjectSize={false} enableClipboard={false} name="graph" theme={myTheme} style={styler}/>
+                                </div>
+
+
                             </div>
                         </div>
                     </div>

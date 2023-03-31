@@ -5,6 +5,7 @@ import ErrorAlert from "./containers/ErrorAlert";
 import PopUpCodeBlock from './containers/PopUpCodeBlock';
 import JSZip from 'jszip';
 import { getModuleName, getNodeProperties } from "./containers/ContainerUtil";
+import { ImSpinner2 } from 'react-icons/im';
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -23,32 +24,39 @@ function App() {
     const [dark, setDark] = useState(localStorage.getItem('color-theme'));
     const [displayCode, setDisplayCode] = useState(false);
 
-    const [nodeSelected, setNodeSelected] = useState("");
+    const [nodeSelected, setNodeSelected] = useState(null);
     const [codeViewProps, setCodeViewProps] = useState(null);
-    //const [codeViewProps, setCodeViewProps] = useState(null);
+    const [analysisDone, setAnalysisDone] = useState(false);
+    const [processing, setProcessing] = useState(false);
+
     const generateCodeViewProps = useCallback(async (node) => {
-        const names = getModuleName(node);
-        if (extractedFiles.has(names['module'])) {
-            const cvprops = getNodeProperties(extractedNodes.get(node));
-            const text = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsText(extractedFiles.get(names['module']));
-            });
+        if (node) {
+            const names = getModuleName(node);
 
-            // split file line by line
-            let allLines = text.split('\r\n');
+            if (extractedFiles.has(names['module']) && extractedNodes.has(node)) {
+                const cvprops = getNodeProperties(extractedNodes.get(node));
+                const text = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsText(extractedFiles.get(names['module']));
+                });
 
-            // safety fallback
-            if (cvprops['endLine'] > allLines.length) {
-                cvprops['endLine'] = allLines.length;
+                // split file line by line
+                let allLines = text.split('\r\n');
+
+                // safety fallback
+                if (cvprops['endLine'] > allLines.length) {
+                    cvprops['endLine'] = allLines.length;
+                }
+
+                let between = allLines.slice(cvprops['startingLine'], cvprops['endLine'] + 1);
+
+                // rejoin only the lines between start and end
+                cvprops['code'] = between.join("\n");
+                return cvprops;
+            } else {
+                return null;
             }
-
-            let between = allLines.slice(cvprops['startingLine'], cvprops['endLine']+1);
-
-            // rejoin only the lines between start and end
-            cvprops['code'] = between.join("\n");
-            return cvprops;
         } else {
             return null;
         }
@@ -68,28 +76,36 @@ function App() {
           fetchData();
     }, [generateCodeViewProps, nodeSelected]);
 
-    useEffect(() => {
-      const fetchData = async () => {
-        const newCodeViewProps = await generateCodeViewProps(nodeSelected);
-        setCodeViewProps(newCodeViewProps);
-      };
-      fetchData();
-    }, [generateCodeViewProps, nodeSelected]);
+
 
     const graphNodeSelected = useCallback((node) => {
-        console.log("CALLED CALLBACK")
-        console.log(nodeSelected);
-        console.log(node);
         if (node === nodeSelected) {
             setDisplayCode(!displayCode); // toggle displayCode
         } else {
-            setNodeSelected(node);
+            if (extractedNodes.has(node)) {
+                setNodeSelected(node);
+            } else {
+                setNodeSelected(null);
+            }
         }
-    }, [nodeSelected, setDisplayCode, setNodeSelected]);
+    }, [nodeSelected, setDisplayCode, setNodeSelected, extractedNodes]);
 
-    const caller = (node) => {
-        graphNodeSelected(node);
-    }
+
+    const performAnalysisReady = useCallback(()=>{
+        if (fileUploaded && !analysisDone) {
+            return true;
+        } else {
+            return false;
+        }
+    }, [fileUploaded, analysisDone]);
+
+    useEffect(() => {
+        if (performAnalysisReady()) {
+            setProcessing(true);
+        } else {
+            setProcessing(false);
+        }
+    }, [performAnalysisReady]);
 
     const cancelFile = () => {
         setRespond("")
@@ -131,6 +147,10 @@ function App() {
                     });
                 }
             });
+
+            // set analysis done
+            setAnalysisDone(true);
+            setProcessing(false);
         }
 
         // reset the state after
@@ -153,6 +173,18 @@ function App() {
         }, 4000);
         return () => clearTimeout(timer);
     }, [showInfo]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (processing) {
+                if (!analysisDone) {
+                    receiveError("There was likely an issue with processing of your code, or a server availability issue.");
+                }
+                setProcessing(false);
+            }
+        }, 4000);
+        return () => clearTimeout(timer);
+    }, [processing]);
 
     const changeTheme = (e) => {
         e.preventDefault();
@@ -183,41 +215,44 @@ function App() {
         }
     }
 
-        const uploadFile = (projectName, file) => {
-        const formData = new FormData();
-        formData.append(
-            "file",
-            file,
-            file.name
-        );
-        axios
-            .post("http://127.0.0.1:5000/upload/"+projectName, formData, {timeout: 1000})
-            .then(res => {
-                if ('message' in res.data) {
-                    setRespond(res.data['message']);
-                } else {
-                    setRespond(res.data);
-                }
-                if ('uuid' in res.data) {
-                    sessionStorage.setItem('uuid', res.data['uuid']);
-                    receiveInfo("File upload success! Commencing analysis...")
-                    setFile(file);
-                    setFileUploaded(true);
-                } else {
-                    setFileUploaded(false);
-                    setError("Server didn't respond with required information.")
-                }
-            })
-            .catch(function (error) {
-                if (error.response) {
-                    setError("The server could not process your request at this time. Apologies.");
-                } else if (error.request) {
-                    setError("The server did not receive your request at this time. Apologies.");
-                } else {
-                    setError("The client could not assemble your request at this time. Apologies.");
-                }
-                setShowError(true);
-            });
+    const uploadFile = (projectName, file) => {
+
+        if (!fileUploaded) {
+            const formData = new FormData();
+            formData.append(
+                "file",
+                file,
+                file.name
+            );
+            axios
+                .post("http://127.0.0.1:5000/upload/"+projectName, formData, {timeout: 1000})
+                .then(res => {
+                    if ('message' in res.data) {
+                        setRespond(res.data['message']);
+                    } else {
+                        setRespond(res.data);
+                    }
+                    if ('uuid' in res.data) {
+                        sessionStorage.setItem('uuid', res.data['uuid']);
+                        receiveInfo("File upload success! Commencing analysis...")
+                        setFile(file);
+                        setFileUploaded(true);
+                    } else {
+                        setFileUploaded(false);
+                        setError("Server didn't respond with required information.")
+                    }
+                })
+                .catch(function (error) {
+                    if (error.response) {
+                        setError("The server could not process your request at this time. Apologies.");
+                    } else if (error.request) {
+                        setError("The server did not receive your request at this time. Apologies.");
+                    } else {
+                        setError("The client could not assemble your request at this time. Apologies.");
+                    }
+                    setShowError(true);
+                });
+        }
     }
 
 
@@ -254,6 +289,10 @@ function App() {
     }
 
     const resetProcess = () => {
+        setProcessing(false);
+        setAnalysisDone(false);
+        setNodeSelected(null);
+        setCodeViewProps(null);
         setFile(null);
         setFileUploaded(false);
 
@@ -301,8 +340,19 @@ function App() {
                         <p className='mt-5 text-xl font-semibold'>Our Goal</p>
                         <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
                     </div>
+                    {
+                        processing ? (
+                            <div className="inline-flex gap-x-2">
+                                <ImSpinner2 size={30} className="animate-spin" />
+                                <p>Processing...</p>
+                            </div>
+                        ) : (
+                            <></>
+                        )
+                    }
+
                     <div className="mt-5 float-right">
-                        <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg my-4 mr-1 color2" onClick={resetProcess}>Reset</button>
+                        <button className="rounded-md px-4 py-1 drop-shadow-md hover:drop-shadow-lg my-4 mr-1 color2" onClick={resetProcess}>Reset</button>
                     </div>
                 </div>
 
@@ -318,7 +368,7 @@ function App() {
                     {
                         fileUploaded ? (
                             <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
-                                <Analyzer ready={fileUploaded} selected={nodeSelected} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={caller}/>
+                                <Analyzer ready={performAnalysisReady} selected={nodeSelected} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={graphNodeSelected} dark={dark}/>
                             </div>
                         ) : (
                             <></>
