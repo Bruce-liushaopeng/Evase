@@ -10,7 +10,7 @@ import json
 from typing import Dict
 import logging
 
-from backend.controller_logic import perform_analysis, save_code
+from controller_logic import perform_analysis, save_code
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -340,6 +340,11 @@ def analysislog_file_hook():
         return make_response({
             'message': 'Invalid ID, not found.'
         }, 422)
+@app.route('/test', methods=['GET'])
+def test_docker():
+        return make_response({
+            'message': "healthy response"
+        }, 200)
 
 
 @app.route('/deletecode', methods=['POST'])
