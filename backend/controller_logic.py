@@ -3,17 +3,16 @@ import shutil
 
 from evase.structures.analysisperformer import AnalysisPerformer
 import tempfile
-import sched
 import os
 import zipfile
-import time
 import uuid
 import tarfile
+import json
+from pathlib import Path
 
 from werkzeug.utils import secure_filename
 
 TEMP_DIR = tempfile.gettempdir()
-FILE_DELETION_SCHED = sched.scheduler(time.time, time.sleep)
 
 
 def perform_analysis(
@@ -27,6 +26,14 @@ def perform_analysis(
 
     analysis_performer.perform_analysis()
     results = analysis_performer.get_results()
+
+    # attempt to write the file to the temp folder
+    try:
+        with open(str(Path(output_folder, 'results.json')), "w") as jsonfile:
+            jsonfile.write(json.dumps(results))
+    except Exception as e:
+        pass
+
     return results
 
 
@@ -47,7 +54,6 @@ def save_code(file, label: str):
 
     # ensure upload type
     if file_extension == ".zip":
-
         with zipfile.ZipFile(file, 'r') as zip_file:
             zip_file.extractall(sub_dir_path)
             return unique_id, tmp_upload, sub_dir_path

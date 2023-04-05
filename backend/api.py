@@ -5,59 +5,156 @@ import logging
 import shutil
 import threading
 import atexit
+from pathlib import Path
+import json
+from typing import Dict
 
 from backend.controller_logic import perform_analysis, save_code
 
-ID_DIR_MAPPING = {}
-
 logging.basicConfig(level=logging.INFO)
 
-logger = logging.getLogger('HELLO WORLD')
-
-CURR_LOC = os.path.dirname(os.path.realpath(__file__))
-UPLOAD_FOLDER = os.path.join(CURR_LOC, 'user_files')
-ANALYSIS_RESULTS_PATH = os.path.join(UPLOAD_FOLDER, 'analysis_results.json')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 cors = CORS(app)
 
+class ProjectRepo:
+
+    def __init__(self, uuid: str, dir_path: str, root_path: str, label: str):
+        """
+        Deletes a temp directory stored in our memory.
+
+        :param uuid: The uid of the source code directory in memory
+        :param dir_path: The main directory of the repo
+        :param root_path: The root directory of the source code
+        :param label: The project label given to this repository (not unique)
+        """
+        self._uuid = uuid
+        self._dirpath = Path(dir_path)
+        self._root_path = Path(root_path)
+        self._label = label
+        self._analyzed = False
+
+    @property
+    def uuid(self) -> str:
+        """
+        Retrieve the unique identifier for the code.
+
+        :return: Repository identifier
+        """
+        return self._uuid
+    
+    @property
+    def label(self) -> str:
+        """
+        Retrieve the label given to the repository.
+
+        :return: Repository label
+        """
+        return self._label
+    
+    @property
+    def folder(self) -> Path:
+        """
+        Retrieve the main folder of the repository.
+        Analysis results are output here.
+
+        :return: Repository folder
+        """
+        return self._dirpath
+    
+    @property
+    def root(self) -> Path:
+        """
+        Retrieve the root of the source code for the repository.
+        
+        :return: Root of source code
+        """
+        return self._root_path
+    
+    @property
+    def analyzed(self) -> bool:
+        """
+        Retrieve whether the repository has been analyzed or not.
+
+        :return: Analysis status
+        """
+        return self._analyzed
+    
+    def mark(self):
+        """
+        Marks the status as analyzed.
+        """
+        self._analyzed = True
+
+    def __str__(self) -> str:
+        """
+        String representation of the repository.
+
+        :return: String representation
+        """
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        """
+        String representation of the repository.
+
+        :return: String representation
+        """
+        return f'REPO({self._uuid}):{self._label}@{self._dirpath}'
+
+# internal mapping of project repositories
+ID_REPO_MAPPING: Dict[str, ProjectRepo] = {}
 
 def cleanup():
     """
     Run upon program termination to delete all remaining files.
     """
-    for uid, (path, _, _) in ID_DIR_MAPPING.items():
-        shutil.rmtree(path, ignore_errors=True)
+    logger.info("Cleanup process began.")
+    for uid, repo in ID_REPO_MAPPING.items():
+        try:
+            shutil.rmtree(repo.folder)
+            logger.info(f"Removal of {repo} was successful.")
+        except Exception:
+            logger.critical(f"Removal of {repo} ended in FAILURE.")
 
-    ID_DIR_MAPPING.clear()
+    ID_REPO_MAPPING.clear()
 
 
+# at program exit, allow the remaining code to be purged
 atexit.register(cleanup)
 
 
-def del_tmp(file: str, uuid: str):
+def del_tmp(repo: ProjectRepo):
     """
     Deletes a temp directory stored in our memory.
 
     :param file: The file path
     :param uuid: The uid of the source code directory in memory
     """
-    print(file, uuid)
-
-    del ID_DIR_MAPPING[uuid]
-    shutil.rmtree(file, ignore_errors=True)
+    try:
+        del ID_REPO_MAPPING[repo.uuid]
+        shutil.rmtree(repo.folder, ignore_errors=True)
+        logger.info(f"Removal of {repo} was successful.")
+    except KeyError:
+        logger.critical(f"Removal of {repo} ended in FAILURE.")
 
 
 @app.route('/upload/<prj_name>', methods=['POST'])
 def file_upload_hook(prj_name: str):
     """
-    Hook that is called when the frontend pushes attempts to push a file to backend
+    Hook that is called when the frontend pushes attempts to push a file to backend.
     """
 
-    est_time = request.args.get("est_time")
-    if est_time is None:
-        est_time = 60000.0
+    # parse the JSON arguments from the request.
+    est_time = request.args.get("est_time", 60000.0)
+    try:
+        est_time = float(est_time)
+    except:
+        return make_response({
+            'message': "Couldn't parse the est_time parameter."
+        }, 500)
+    
 
     try:
         file = request.files['file']  # get the file from post request
@@ -67,13 +164,17 @@ def file_upload_hook(prj_name: str):
         }, 500)
 
     try:
+        # attempt a save of the code
         uid, dirpath, subdir_path = save_code(file, prj_name)
-        ID_DIR_MAPPING[uid] = (dirpath, subdir_path, prj_name)
 
-        print("CHECK", os.path.exists(dirpath))
+        # make the new repository and store in memory
+        new_repo = ProjectRepo(uid, dirpath, subdir_path, prj_name)
+        ID_REPO_MAPPING[uid] = new_repo
 
-        timer = threading.Timer(est_time, lambda: del_tmp(dirpath, uid))
+        # schedule repository for deletion
+        timer = threading.Timer(est_time, lambda: del_tmp(new_repo))
         timer.start()
+        logger.info(f'{new_repo} scheduled for deletion in {est_time} seconds.')
 
         return make_response({
             'uuid': uid,
@@ -92,51 +193,121 @@ def analyze_file_hook():
     The code is identified with the uuid argument in the query.
     """
 
+    # parse the JSON arguments from the request.
     try:
-        json = request.json
-        uid = json['uuid']
-        print(uid)
+        request_body = request.json
+
+        # get the unique identifier
+        try:
+            uid = request_body['uuid']
+
+            # unique identifier may only be a string or an integer
+            try:
+                uid = str(uid)
+            except:
+                return make_response({
+                'message': "Couldn't parse id from request, it must be either a string or integer."
+                }, 404)
+        except KeyError:
+            return make_response({
+                'message': "Couldn't parse id from request, it was not present in the request."
+            }, 404)
+
+        # get force parameter
+        # if set to true, the analysis will be performed again from scratch
+        try:
+            force = request_body['force']
+            if not isinstance(force, bool):
+                return make_response({
+                'message': "Force parameter was set incorrecly, it must be a boolean."
+                }, 404)
+        except Exception:
+            force = False
     except Exception as e:
-        print(e)
         return make_response({
-            'message': "Couldn't parse id from request, may not be in JSON form."
+            'message': "Couldn't process the request, may not be in JSON form."
         }, 404)
 
     try:
-        path, subdir, prj_name = ID_DIR_MAPPING[uid]
-        if len(os.listdir(subdir)) > 0:
-            result = perform_analysis(
-                subdir,
-                path,
-                project_name=prj_name,
-            )
+        repo: ProjectRepo = ID_REPO_MAPPING[uid]
 
-            del_tmp(path, uid)
+        # check if the repository exists on the system
+        if repo.folder.exists():
 
-            return make_response(result, 200)
+            # if it has already been analyzed, retrieve the last result
+            if repo.analyzed and not force:
+                print("HERE")
+
+                result_path = Path(repo.folder, 'results.json')
+                if result_path.exists():
+                    with result_path.open("r") as rf:
+                        result = json.load(rf)
+                    return make_response(result, 200)    
+                else:
+                    pass
+
+            # if not, perform the analysis and mark the repo as analyzed
+            if len(os.listdir(str(repo.root))) > 0:
+                result = perform_analysis(
+                    str(repo.root),
+                    str(repo.folder),
+                    project_name=repo.label,
+                )
+                repo.mark()
+                return make_response(result, 200)
+            
+        return make_response({
+            'message': "Repository was not previously analyzed, nor could the directory for it be found."
+        }, 500)
 
     except KeyError:
         return make_response({
-            'message': 'Invalid ID, not found'
+            'message': 'Invalid ID, not found.'
         }, 422)
 
 
 
 @app.route('/deletecode', methods=['POST'])
 def remove_code():
+    """
+    This endpoint allows the user to delete their repository from the server.
+    """
+
     try:
         json = request.json
-        uid = json['uuid']
+        try:
+            uid = json['uuid']
+            try:
+                uid = str(uid)
+            except:
+                return make_response({
+                    'message': "Couldn't parse id from request, it must be either a string or integer."
+                }, 404)
+                
+        except KeyError:
+            return make_response({
+                'message': "Couldn't parse id from request, no id given."
+            }, 404)
     except Exception:
         return make_response({
             'message': "Couldn't parse id from request, may not be in JSON form."
         }, 404)
 
     try:
-        path, _, _ = ID_DIR_MAPPING[uid]
-        del_tmp(path, uid)
+        repo = ID_REPO_MAPPING[uid]
+        del_tmp(repo)
+
+        return make_response({
+            'message': "Repository was deleted."
+        }, 200)
+    except KeyError:
+        return make_response({
+            'message': "The unique identifier given was not found on the server."
+        }, 404)
     except Exception as e:
         print(e)
         return make_response({
             'message': "Couldn't delete the code repository from the server."
         }, 500)
+    
+
