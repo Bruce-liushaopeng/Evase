@@ -1,11 +1,15 @@
-FROM python:3.9
+FROM ubuntu:latest
 
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN apt-get update -y
+RUN apt-get install -y python3
+RUN apt-get install -y python3-pip
 
-COPY . /app/
-WORKDIR /app/
+COPY . /app
+WORKDIR /app
 
-EXPOSE 5050
+RUN pip3 install -r requirements.txt
 
-CMD ["python3", "-m", "flask", "run", "--port", "5050"]
+EXPOSE 5000
+
+ENTRYPOINT ["python3"]
+CMD ["-m", "flask", "run"]
