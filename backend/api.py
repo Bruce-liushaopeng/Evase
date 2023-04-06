@@ -144,6 +144,10 @@ def del_tmp(repo: ProjectRepo):
         logger.critical(f"Removal of {repo} ended in FAILURE.")
         pass
 
+@app.route('/')
+def hello_world():
+    return 'Hello World!'
+
 
 @app.route('/upload/<prj_name>', methods=['POST'])
 def file_upload_hook(prj_name: str):
@@ -396,3 +400,6 @@ def remove_code():
         return make_response({
             'message': "Couldn't delete the code repository from the server."
         }, 500)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5050)
