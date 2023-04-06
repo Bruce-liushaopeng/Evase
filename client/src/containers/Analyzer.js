@@ -1,9 +1,10 @@
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
 import ReactJson from 'react-json-view';
 import { Network } from 'vis-network';
-import PopUpCodeBlock from "./PopUpCodeBlock";
 import CodeReportBlock from "./CodeReportBlock";
-import {getModuleName, getNodeProperties} from "./ContainerUtil";
+import {getNodeProperties} from "./ContainerUtil";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const {default: axios} = require("axios");
 
@@ -13,6 +14,8 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
     const [showResult, setShowResult] = useState(false);
     const [network, setNetwork] = useState(null);
     const [uuid, setUuid] = useState(null);
+    const [logContents, setLogContents] = useState(null);
+    const [showLog, setShowLog] = useState(false);
 
     const visJsRef = useRef(null);
     const vulNodesRef = useRef([]);
@@ -127,6 +130,13 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         setUuid(sessionStorage.getItem('uuid'));
     }, [ready]);
 
+    // show log contents only when set
+    useEffect(() => {
+        if (logContents != null) {
+            setShowLog(true);
+        }
+    }, [logContents]);
+
     // draw the graph
     useEffect(() => {
         try {
@@ -174,25 +184,52 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         return [];
     }, [showResult, vulNodesRef.current, onNodeClick])
 
-    // make the vulnerable report blocks
-    const makeVulBlocks = () => {
-        if (analysisResult && showResult) {
-
-            const nodes = analysisResult['graph']['total']['nodes'];
-
-            // collect vulnerable nodes
-            let vul_nodes = nodes.filter((node) => node['vulnerable']===true);
-
-            return Object.keys(vul_nodes).map((key) => {
-                let spl = vul_nodes[key]['id'].replace(":", ".").split(".");
-                let fn = spl.pop();
-                spl = spl.join(".");
-                return (
-                    <MemoCodeBlock doClick={()=>onNodeClick(vul_nodes[key]['id'])} moduleName={spl} startLine={1} endLine={1} functionName={fn} />
-                )
-            });
+    const logTheme = useMemo(() => {
+        if (dark) {
+          return vscDarkPlus;
+        } else {
+          return vs;
         }
-    }
+        }, [dark]);
+
+    const logDisplay = useMemo(() => {
+        if (logContents != null) {
+            return (
+                <div className='w-full'>
+                    <SyntaxHighlighter className='rounded-xl md:max-h-[400px] lg:max-h-[600px]' wrapLines={true} style={logTheme}>
+                        {logContents}
+                    </SyntaxHighlighter>
+                </div>
+            )
+        }
+    }, [logContents, logTheme])
+
+    // function used to get the contents of the log from the backend
+    const getLogContents = useCallback(() => {
+        axios.post("/analysislog",
+            {
+                'uuid': uuid
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        ).then(function (response) {
+            setLogContents(response.data);
+        })
+        .catch(function (error) {
+            if (error.response) {
+                errorMsg("The server could not process your request at this time. Apologies.");
+            } else if (error.request) {
+                errorMsg("The server did not receive your request at this time. Apologies.");
+            } else {
+                errorMsg("The client could not assemble your request at this time. Apologies.");
+            }
+        })
+    }, [uuid, setLogContents]);
+
+
 
     const myTheme = useMemo(() => {
         if (dark) {
@@ -209,8 +246,6 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
     };
 
 
-
-
     return (
         <div className='w-full'>
             <div>
@@ -223,6 +258,12 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
                             </div>
                             <div className='textcolor w-2/3'>
                                 <div className='h-[650px] items-stretch my-4 shadow-md rounded-lg' ref={visJsRef}></div>
+                                <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={getLogContents}>Show Log</button>
+                                {
+                                    (showLog) ? (
+                                        logDisplay
+                                    ): (<></>)
+                                }
                                 <div className="w">
                                     <ReactJson className='color-1' src={analysisResult ? analysisResult['graph'] : {}} displayDataTypes={true} collapsed={1}
                                            displayObjectSize={false} enableClipboard={false} name="graph" theme={myTheme} style={styler}/>

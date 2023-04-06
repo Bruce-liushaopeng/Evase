@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { DropzoneDialog } from "material-ui-dropzone"
 
 const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
@@ -8,7 +8,6 @@ const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
     const [isFilePicked, setIsFilePicked] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [attemptCount, setAttemptCount] = useState(0);
-    const [respMsg, setRespMsg] = useState("");
 
     const cancelFile = (e) => {
         e.preventDefault();
@@ -18,25 +17,24 @@ const Upload = ({onCancel, onSubmission, backendInformation, infoMsg}) => {
         setAttemptCount(0);
     }
 
-    const handleSubmission = (e) => {
+    const handleSubmission = useCallback((e) => {
         e.preventDefault();
         setAttemptCount(attemptCount+1);
         if (projectName.length === 0) {
             infoMsg("You must name your project!");
         } else {
-            setRespMsg(onSubmission(projectName, selectedFile));
+            onSubmission(projectName, selectedFile);
             setProjectName("");
             setSelectedFile(null);
             setIsFilePicked(null);
         }
-    }
+    }, [selectedFile, projectName]);
 
     const showDialog = () => {
         setDialogOpen(true);
     }
 
     const handleSave = (files) => {
-
         setDialogOpen(false);
         setSelectedFile(files[0]);
         setIsFilePicked(true);
