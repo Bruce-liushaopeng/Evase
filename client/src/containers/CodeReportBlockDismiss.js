@@ -20,12 +20,19 @@ const CodeReportBlockDismiss = ({moduleName, functionName, variables, endpoint, 
                                     <p className='font-bold text-md ml-1 textcolor'>{moduleName}</p>
                                 </span>
                             </div>
-                            <div>
-                                <span className='inline-flex'>
-                                    <AiOutlineSecurityScan size={20}></AiOutlineSecurityScan>
-                                    <p className='font-semibold text-sm ml-1 textcolor'>{functionName}</p>
-                                </span>
-                            </div>
+                            {
+                                functionName ? (
+                                    <div>
+                                        <span className='inline-flex'>
+                                            <AiOutlineSecurityScan size={20}></AiOutlineSecurityScan>
+                                            <p className='font-semibold text-sm ml-1 textcolor'>{functionName}</p>
+                                        </span>
+                                    </div>
+                                ): (
+                                    <></>
+                                )
+                            }
+
                         </div>
                     </div>
                     <div>
@@ -34,15 +41,21 @@ const CodeReportBlockDismiss = ({moduleName, functionName, variables, endpoint, 
                         </button>
                     </div>
                 </div>
-                <div >
-                    <details>
-                        <summary className="font-semibold cursor-pointer">More info</summary>
-                        <div className='pl-1 text-sm'>
-                            <p>Variables: {variablesString}</p>
-                            <p>Endpoint: {endpointString}</p>
+                {
+                    (variables || endpoint) ? (
+                        <div>
+                            <details>
+                                <summary className="font-semibold cursor-pointer">More info</summary>
+                                <div className='pl-1 text-sm'>
+                                    <p>Variables: {variablesString}</p>
+                                    <p>Endpoint: {endpointString}</p>
+                                </div>
+                            </details>
                         </div>
-                    </details>
-                </div>
+                    ) : (
+                        <></>
+                    )
+                }
             </div>
         </div>
     );
