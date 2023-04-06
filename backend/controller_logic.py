@@ -29,7 +29,7 @@ def perform_analysis(
     if project_name is None:
         project_name = "UNKNOWN"
 
-    analysis_performer = AnalysisPerformer(project_name=project_name, project_root=folder)
+    analysis_performer = AnalysisPerformer(project_name=project_name, project_root=folder, output_path=output_folder)
 
     analysis_performer.perform_analysis()
     results = analysis_performer.get_results()
