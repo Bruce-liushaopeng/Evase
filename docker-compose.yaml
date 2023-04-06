@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - BACKEND_URL=http://backend:5050
+      - BACKEND_URL=http://localhost:5050
     networks:
       - my-network
     depends_on:

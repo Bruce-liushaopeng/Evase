@@ -10,7 +10,7 @@ export function uploadFile(file, callback) {
         file.name
     );
     axios
-        .post(`http://backend:5050/upload`, formData)
+        .post(`http://localhost:5050/upload`, formData)
         .then(res => {
             console.log(res.data);
             callback(res.data);
