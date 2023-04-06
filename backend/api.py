@@ -150,6 +150,8 @@ def file_upload_hook(prj_name: str):
     est_time = request.args.get("est_time", 60000.0)
     try:
         est_time = float(est_time)
+
+    # estimated time not convertible to float
     except:
         return make_response({
             'message': "Couldn't parse the est_time parameter."
@@ -158,6 +160,8 @@ def file_upload_hook(prj_name: str):
 
     try:
         file = request.files['file']  # get the file from post request
+
+    # file was not passed
     except KeyError:
         return make_response({
             'message': 'Expected file in body (file)'
@@ -180,6 +184,8 @@ def file_upload_hook(prj_name: str):
             'uuid': uid,
             'message': 'File uploaded successfully'
         }, 201)
+    
+    # value error occurs
     except ValueError as e:
         return make_response({
             'message': str(e)
@@ -200,14 +206,15 @@ def analyze_file_hook():
         # get the unique identifier
         try:
             uid = request_body['uuid']
-
-            # unique identifier may only be a string or an integer
             try:
                 uid = str(uid)
+
+            # uuid not convertible to string
             except:
                 return make_response({
                 'message': "Couldn't parse id from request, it must be either a string or integer."
                 }, 404)
+        # uuid not passed at all
         except KeyError:
             return make_response({
                 'message': "Couldn't parse id from request, it was not present in the request."
@@ -221,8 +228,10 @@ def analyze_file_hook():
                 return make_response({
                 'message': "Force parameter was set incorrecly, it must be a boolean."
                 }, 404)
-        except Exception:
+        # force parameter was not passed
+        except KeyError:
             force = False
+    # request json couldn't be parsed
     except Exception as e:
         return make_response({
             'message': "Couldn't process the request, may not be in JSON form."
@@ -233,17 +242,17 @@ def analyze_file_hook():
 
         # check if the repository exists on the system
         if repo.folder.exists():
-
-            # if it has already been analyzed, retrieve the last result
+            
+            # if results previously exist extract and send them back
+            # force makes the results be regenerated either way
             if repo.analyzed and not force:
-                print("HERE")
-
                 result_path = Path(repo.folder, 'results.json')
                 if result_path.exists():
                     with result_path.open("r") as rf:
                         result = json.load(rf)
                     return make_response(result, 200)    
                 else:
+                    # if the results couldn't be found, generate them (shouldn't happen)
                     pass
 
             # if not, perform the analysis and mark the repo as analyzed
@@ -259,7 +268,7 @@ def analyze_file_hook():
         return make_response({
             'message': "Repository was not previously analyzed, nor could the directory for it be found."
         }, 500)
-
+    # keyerror when uuid not found
     except KeyError:
         return make_response({
             'message': 'Invalid ID, not found.'
@@ -274,20 +283,25 @@ def remove_code():
     """
 
     try:
+        # attempt to parse out the uuid
         json = request.json
         try:
             uid = json['uuid']
             try:
                 uid = str(uid)
+
+            # uuid isn't convertible to string
             except:
                 return make_response({
                     'message': "Couldn't parse id from request, it must be either a string or integer."
                 }, 404)
                 
+        # uuid was not passed in body
         except KeyError:
             return make_response({
                 'message': "Couldn't parse id from request, no id given."
             }, 404)
+    # request json couldn't be retrieved
     except Exception:
         return make_response({
             'message': "Couldn't parse id from request, may not be in JSON form."
@@ -300,12 +314,14 @@ def remove_code():
         return make_response({
             'message': "Repository was deleted."
         }, 200)
+
+    # keyerror when uuid passed not found
     except KeyError:
         return make_response({
             'message': "The unique identifier given was not found on the server."
         }, 404)
+    # other exceptions when the code couldn't be deleted
     except Exception as e:
-        print(e)
         return make_response({
             'message': "Couldn't delete the code repository from the server."
         }, 500)

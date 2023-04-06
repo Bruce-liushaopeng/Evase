@@ -12,13 +12,20 @@ from pathlib import Path
 
 from werkzeug.utils import secure_filename
 
-TEMP_DIR = tempfile.gettempdir()
-
-
 def perform_analysis(
         folder: str,
         output_folder: str,
-        project_name: str = None):
+        project_name: str = None
+    ) -> dict:
+    """
+    Performs SQL injection analysis using the EvaseAnalysis package.
+
+    :param folder: The root of the project
+    :param output_folder: The location to output results
+    :param project_name: The name given to the project
+    :return: Results of analysis (currently dict)
+    """
+
     if project_name is None:
         project_name = "UNKNOWN"
 
@@ -37,11 +44,14 @@ def perform_analysis(
     return results
 
 
-def get_dir_from_uuid(unique_id: str):
-    return os.path.join(TEMP_DIR, unique_id)
-
-
 def save_code(file, label: str):
+    """
+    Service function to save code.
+
+    :param file: The file to save
+    :param label: The label to incorporate in the path
+    :return: unique ID given, main folder, and inner code folder
+    """
     filename = secure_filename(file.filename)
     label = secure_filename(label)
 
