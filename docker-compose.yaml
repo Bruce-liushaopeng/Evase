@@ -1,25 +1,25 @@
-version: "3"
+version: '3'
 
 services:
   frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
+    build: ./client
     ports:
       - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:5000
     networks:
       - my-network
     depends_on:
       - backend
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
+    environment:
+      - FLASK_ENV=production
     ports:
-      - "5000:5000"
+      - "5050:5050"
     networks:
       - my-network
-
 networks:
   my-network:
+    driver: bridge

@@ -81,7 +81,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
 
             if (uuid && ready()) {
                 await axios
-                    .post("http://127.0.0.1:5000/analyze", {
+                    .post(`http://backend:5000/analyze`, {
                         'uuid': uuid,
                     }, {
                         headers: {

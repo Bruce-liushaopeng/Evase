@@ -216,6 +216,9 @@ function App() {
     }
 
     const uploadFile = (projectName, file) => {
+        console.log("upload function called ")
+        console.log("environment url: ")
+        console.log(`http://backend:5000/upload/${projectName}`)
 
         if (!fileUploaded) {
             const formData = new FormData();
@@ -225,7 +228,7 @@ function App() {
                 file.name
             );
             axios
-                .post("http://127.0.0.1:5000/upload/"+projectName, formData, {timeout: 1000})
+                .post(`http://backend:5000/upload/${projectName}`, formData, {timeout: 1000})
                 .then(res => {
                     if ('message' in res.data) {
                         setRespond(res.data['message']);
@@ -300,7 +303,7 @@ function App() {
         let uuid = sessionStorage.getItem('uuid');
         if (uuid) {
             axios
-                .post("http://127.0.0.1:5000/deletecode", {
+                .post(`http://backend:5000/deletecode`, {
                     'uuid': uuid,
                 }, {
                     headers: {

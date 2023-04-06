@@ -6,6 +6,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY . /app/
 WORKDIR /app/
 
-EXPOSE 5000
+EXPOSE 5050
 
-CMD ["python3", "-m", "flask", "run"]
+CMD ["python3", "-m", "flask", "run", "--port", "5050"]
