@@ -11,13 +11,8 @@
 
 @layer base {
     body {
-        @apply font-[Inter];
+        @apply font-[Raleway];
     }
-}
-
-canvas {
-    width: 650px;
-    height: 650px;
 }
 
 .color1 {
@@ -31,6 +26,9 @@ canvas {
 }
 .color4 {
     @apply bg-[#495464] dark:bg-[#404258];
+}
+.color5 {
+    @apply bg-[#d9dadd] dark:bg-[#8b91a6];
 }
 .textcolor {
     @apply text-slate-900 dark:text-[#F4F4F2];
@@ -47,7 +45,9 @@ canvas {
     @apply flex flex-col space-x-2 text-base items-center;
 }
 
-
+.codeblock {
+    @apply max-h-[600px]
+}
 
 
 
