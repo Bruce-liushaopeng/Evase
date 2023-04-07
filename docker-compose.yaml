@@ -20,6 +20,7 @@ services:
       - "5050:5050"
     networks:
       - my-network
+    restart: always
 networks:
   my-network:
     driver: bridge
