@@ -1,6 +1,5 @@
 import os
 from flask import Flask, request, make_response, send_file
-
 from flask_cors import CORS
 import shutil
 import threading
@@ -282,6 +281,9 @@ def analyze_file_hook2():
             'message': 'Invalid ID, not found.'
         }, 422)
 
+@app.route('/error', methods=['GET'])
+def createError():
+    myvar["a"] = f
 
 @app.route('/analysislog', methods=['POST'])
 def analysislog_file_hook():
