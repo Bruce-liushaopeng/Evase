@@ -6,7 +6,7 @@ if install==2 npm install --force
 
 cd ../backend
 
-START python -m flask run
+START python -m flask run -h localhost -p 5050
 
 cd ../client
 
