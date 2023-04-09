@@ -11,10 +11,10 @@ import Ping from "./Ping";
 const {default: axios} = require("axios");
 
 const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) => {
-    // if the app is run in docker, we use the ENV defined in docker
+    // if the app is running in docker, we use the ENV defined in docker
     // otherwise the fixed port is used
-    console.log("docker ENV" + process.env.REACT_APP_BACKEND_URL)
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5050";
+    const BACKEND_PORT = process.env.REACT_APP_BACKEND_PORT || '5050'
+    const BACKEND_URL = `http://localhost:${BACKEND_PORT}`
 
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);

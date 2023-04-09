@@ -14,8 +14,9 @@ axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 function App() {
     // if the app is run in docker, we use the ENV defined in docker
     // otherwise the fixed port is used
-    console.log("docker ENV" + process.env.REACT_APP_BACKEND_URL)
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5050";
+    console.log("docker ENV" + process.env.REACT_APP_BACKEND_PORT)
+    const BACKEND_PORT = process.env.REACT_APP_BACKEND_PORT || '5050'
+    const BACKEND_URL = `http://localhost:${BACKEND_PORT}`
     console.log(`${BACKEND_URL}/test`)
     fetch(`${BACKEND_URL}/test`).then(res => console.log(res.json()));
     const [respond, setRespond] = useState("");
