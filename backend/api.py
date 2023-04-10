@@ -1,5 +1,6 @@
 import os
-from flask import Flask, request, make_response, send_file
+from flask import Flask, request, make_response, send_file, jsonify
+
 from flask_cors import CORS
 import shutil
 import threading
@@ -9,7 +10,7 @@ import json
 from typing import Dict
 import logging
 
-from controller_logic import perform_analysis, save_code
+from backend.controller_logic import perform_analysis, save_code
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ class ProjectRepo:
     def root(self) -> Path:
         """
         Retrieve the root of the source code for the repository.
-        
+
         :return: Root of source code
         """
         return self._root_path
@@ -104,48 +105,33 @@ class ProjectRepo:
         return f'REPO({self._uuid}):{self._label}@{self._dirpath}'
 
 
-# internal mapping of project repositories
-ID_REPO_MAPPING: Dict[str, ProjectRepo] = {}
-
-
 def cleanup():
-    """
-    Run upon program termination to delete all remaining files.
-    """
-    # logger.info("Cleanup process began.")
-    for uid, repo in ID_REPO_MAPPING.items():
-        try:
-            shutil.rmtree(repo.folder)
-            logger.info(f"Removal of {repo} was successful.")
-        except Exception:
-            logger.critical(f"Removal of {repo} ended in FAILURE.")
-            pass
-
-    ID_REPO_MAPPING.clear()
+    pass
 
 
-# at program exit, allow the remaining code to be purged
-atexit.register(cleanup)
+with app.app_context():
+    # internal mapping of project repositories
+    ID_REPO_MAPPING: Dict[str, ProjectRepo] = {}
+    lock = threading.Lock()
+    timers = []
+    stop_event = threading.Event()
+    atexit.register(cleanup)  # at program exit, allow the remaining code to be purged
 
 
 def del_tmp(repo: ProjectRepo):
     """
     Deletes a temp directory stored in our memory.
 
-    :param file: The file path
-    :param uuid: The uid of the source code directory in memory
+    :param repo: The repository object to delete
     """
-    try:
-        del ID_REPO_MAPPING[repo.uuid]
-        shutil.rmtree(repo.folder, ignore_errors=True)
-        logger.info(f"Removal of {repo} was successful.")
-    except KeyError:
-        logger.critical(f"Removal of {repo} ended in FAILURE.")
-        pass
-
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
+    with lock:
+        try:
+            del ID_REPO_MAPPING[repo.uuid]
+            shutil.rmtree(repo.folder, ignore_errors=True)
+            logger.info(f"Removal of {repo} was successful.")
+        except KeyError:
+            logger.critical(f"Removal of {repo} ended in FAILURE.")
+            pass
 
 
 @app.route('/upload/<prj_name>', methods=['POST'])
@@ -155,24 +141,27 @@ def file_upload_hook(prj_name: str):
     """
 
     # parse the JSON arguments from the request.
-    est_time = request.args.get("est_time", 60000.0)
+    est_time = request.args.get("est_time", 30.0)
     try:
         est_time = float(est_time)
 
     # estimated time not convertible to float
     except:
-        return make_response({
+        response = make_response(jsonify({
             'message': "Couldn't parse the est_time parameter."
-        }, 500)
-
+        }), 400)
+        response.headers['Content-Type'] = 'application/json'
+        return response
     try:
         file = request.files['file']  # get the file from post request
 
     # file was not passed
     except KeyError:
-        return make_response({
+        response = make_response(jsonify({
             'message': 'Expected file in body (file)'
-        }, 500)
+        }), 400)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     try:
         # attempt a save of the code
@@ -180,27 +169,34 @@ def file_upload_hook(prj_name: str):
 
         # make the new repository and store in memory
         new_repo = ProjectRepo(uid, dirpath, subdir_path, prj_name)
-        ID_REPO_MAPPING[uid] = new_repo
+        with lock:
+            ID_REPO_MAPPING[uid] = new_repo
 
         # schedule repository for deletion
-        timer = threading.Timer(est_time, lambda: del_tmp(new_repo))
+        timer = threading.Timer(est_time, lambda: thread_clean(new_repo))
+        timer.daemon = True  # daemon threads to stop when program exits
+        timers.append(timer)
         timer.start()
         logger.info(f'{new_repo} scheduled for deletion in {est_time} seconds.')
 
-        return make_response({
+        response = make_response(jsonify({
             'uuid': uid,
             'message': 'File uploaded successfully'
-        }, 201)
+        }), 201)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     # value error occurs
     except ValueError as e:
-        return make_response({
+        response = make_response(jsonify({
             'message': str(e)
-        }, 422)
+        }), 422)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
 
 @app.route('/analyze', methods=['POST'])
-def analyze_file_hook2():
+def analyze_file_hook():
     """
     Analyzes the contents of the code given.
     The code is identified with the uuid argument in the query.
@@ -218,34 +214,42 @@ def analyze_file_hook2():
 
             # uuid not convertible to string
             except:
-                return make_response({
+                response = make_response(jsonify({
                     'message': "Couldn't parse id from request, it must be either a string or integer."
-                }, 404)
+                }), 400)
+                response.headers['Content-Type'] = 'application/json'
+                return response
         # uuid not passed at all
         except KeyError:
-            return make_response({
+            response = make_response(jsonify({
                 'message': "Couldn't parse id from request, it was not present in the request."
-            }, 404)
+            }), 400)
+            response.headers['Content-Type'] = 'application/json'
+            return response
 
         # get force parameter
         # if set to true, the analysis will be performed again from scratch
         try:
             force = request_body['force']
             if not isinstance(force, bool):
-                return make_response({
+                response = make_response(jsonify({
                     'message': "Force parameter was set incorrecly, it must be a boolean."
-                }, 404)
+                }), 400)
+                response.headers['Content-Type'] = 'application/json'
+                return response
         # force parameter was not passed
         except KeyError:
             force = False
     # request json couldn't be parsed
     except Exception as e:
-        return make_response({
+        response = make_response(jsonify({
             'message': "Couldn't process the request, may not be in JSON form."
-        }, 404)
-
+        }), 400)
+        response.headers['Content-Type'] = 'application/json'
+        return response
     try:
-        repo: ProjectRepo = ID_REPO_MAPPING[uid]
+        with lock:
+            repo: ProjectRepo = ID_REPO_MAPPING[uid]
 
         # check if the repository exists on the system
         if repo.folder.exists():
@@ -257,7 +261,9 @@ def analyze_file_hook2():
                 if result_path.exists():
                     with result_path.open("r") as rf:
                         result = json.load(rf)
-                    return make_response(result, 200)
+                    response = make_response(jsonify(result), 200)
+                    response.headers['Content-Type'] = 'application/json'
+                    return response
                 else:
                     # if the results couldn't be found, generate them (shouldn't happen)
                     pass
@@ -270,20 +276,21 @@ def analyze_file_hook2():
                     project_name=repo.label,
                 )
                 repo.mark()
-                return make_response(result, 200)
+                response = make_response(jsonify(result), 200)
+                response.headers['Content-Type'] = 'application/json'
+                return response
 
         return make_response({
             'message': "Repository was not previously analyzed, nor could the directory for it be found."
         }, 500)
     # keyerror when uuid not found
     except KeyError:
-        return make_response({
+        response = make_response(jsonify({
             'message': 'Invalid ID, not found.'
-        }, 422)
+        }), 404)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
-@app.route('/error', methods=['GET'])
-def createError():
-    myvar["a"] = f
 
 @app.route('/analysislog', methods=['POST'])
 def analysislog_file_hook():
@@ -304,20 +311,26 @@ def analysislog_file_hook():
 
             # uuid not convertible to string
             except:
-                return make_response({
+                response = make_response(jsonify({
                     'message': "Couldn't parse id from request, it must be either a string or integer."
-                }, 404)
+                }), 400)
+                response.headers['Content-Type'] = 'application/json'
+                return response
         # uuid not passed at all
         except KeyError:
-            return make_response({
+            response = make_response(jsonify({
                 'message': "Couldn't parse id from request, it was not present in the request."
-            }, 404)
+            }), 400)
+            response.headers['Content-Type'] = 'application/json'
+            return response
 
     # request json couldn't be parsed
     except Exception as e:
-        return make_response({
+        response = make_response(jsonify({
             'message': "Couldn't process the request, may not be in JSON form."
-        }, 404)
+        }), 400)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     try:
         repo: ProjectRepo = ID_REPO_MAPPING[uid]
@@ -333,24 +346,25 @@ def analysislog_file_hook():
                     return send_file(log_path, as_attachment=False, mimetype='text/plain',
                                      download_name='analysis-log.log'), 200
                 else:
-                    return make_response({
+                    response = make_response(jsonify({
                         'message': "Log file coudn't be found."
-                    }, 500)
+                    }), 404)
+                    response.headers['Content-Type'] = 'application/json'
+                    return response
             else:
-                return make_response({
+                response = make_response(jsonify({
                     'message': "The code has yet to be analyzed."
-                }, 404)
+                }), 400)
+                response.headers['Content-Type'] = 'application/json'
+                return response
 
     # keyerror when uuid not found
     except KeyError:
-        return make_response({
+        response = make_response(jsonify({
             'message': 'Invalid ID, not found.'
-        }, 422)
-@app.route('/test', methods=['GET'])
-def test_docker():
-        return make_response({
-            'message': "healthy response"
-        }, 200)
+        }), 404)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
 
 @app.route('/deletecode', methods=['POST'])
@@ -403,5 +417,42 @@ def remove_code():
             'message': "Couldn't delete the code repository from the server."
         }, 500)
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5050)
+
+def thread_clean(repo):
+    """
+    Remove a repository (with a thread).
+
+    :param repo: Repository to delete
+    """
+    if stop_event.is_set():
+        return
+
+    del_tmp(repo)
+
+
+def cleanup():
+    """
+    Run upon program termination to delete all remaining files.
+    """
+    logger.info("Cleanup process began.")
+
+    stop_event.set()  # ensure that callbacks are stopped
+    logger.info("Cancelling deletion threads.")
+    for timer in timers:
+        timer.cancel()
+
+    for uid, repo in ID_REPO_MAPPING.items():
+        with lock:
+            try:
+                shutil.rmtree(repo.folder)
+                logger.info(f"Removal of {repo} was successful.")
+            except Exception:
+                logger.critical(f"Removal of {repo} ended in FAILURE.")
+                pass
+
+    ID_REPO_MAPPING.clear()
+    atexit.unregister(cleanup)
+
+    for thread in threading.enumerate():
+        if thread is not threading.current_thread():
+            thread.join()

@@ -5,6 +5,8 @@ import CodeReportBlock from "./CodeReportBlock";
 import {getNodeProperties} from "./ContainerUtil";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { getLogContents, getAnalysisResult } from '../util/Hooks';
+import Ping from "./Ping";
 
 const {default: axios} = require("axios");
 
@@ -55,6 +57,12 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         }
     };
 
+    /**
+     * OnClick event handler for nodes in the Network graph being clicked.
+     * useCallback to update whenever the network or prop is updated.
+     *
+     * @param  {Object} params The object containing nodes and edges clicked
+     */
     const onNetworkClick = useCallback((params) => {
         if (params.nodes.length === 0 && params.edges.length > 0) {
         } else if (params.nodes.length > 0) {
@@ -76,54 +84,37 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
 
 
     useEffect(() => {
-        const fetchResult = async () => {
-            let result = null;
-
-            if (uuid && ready()) {
-                await axios
-                    .post(`http://localhost:5050/analyze`, {
-                        'uuid': uuid,
-                    }, {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(function (res) {
-                        const type = res.headers.get("Content-Type");
-                        if (type.indexOf("application/json") !== -1) {
-                            if (res.data) {
-                                result = res.data;
-                                setAnalysisResult(result);
-                                setShowResult(true);
-                                readyCallback(result);
-                                infoMsg("Your vulnerabilities have been detected!");
-                                setUuid(null);
-                            }
-                        } else {
-                            errorMsg("The server response could not be parsed. Apologies.");
-                        }
-                    })
-                    .catch(function (error) {
-                        if (error.response) {
-                            errorMsg("The server could not process your request at this time. Apologies.");
-                        } else if (error.request) {
-                            errorMsg("The server did not receive your request at this time. Apologies.");
-                        } else {
-                            errorMsg("The client could not assemble your request at this time. Apologies.");
-                        }
-
-                    });
-            } else {
-                errorMsg("Couldn't attempt analysis, project id not known.")
-            }
-        };
 
         // stop it from being called all the time
         if (uuid && ready() && visJsRef) {
-            console.log()
-            fetchResult();
+
+            getAnalysisResult(uuid)
+                .then(function (res) {
+                    const type = res.headers.get("Content-Type");
+                    if (type.indexOf("application/json") !== -1) {
+                        if (res.data) {
+                            setAnalysisResult(res.data);
+                            setShowResult(true);
+                            readyCallback(res.data);
+                            infoMsg("Your vulnerabilities have been detected!");
+                            setUuid(null);
+                        }
+                    } else {
+                        errorMsg("The server response could not be parsed. Apologies.");
+                    }
+                })
+                .catch(function (error) {
+                    if (error.response) {
+                        errorMsg("The server could not process your request at this time. Apologies.");
+                    } else if (error.request) {
+                        errorMsg("The server did not receive your request at this time. Apologies.");
+                    } else {
+                        errorMsg("The client could not assemble your request at this time. Apologies.");
+                    }
+
+                });
         }
-    }, [uuid])
+    }, [uuid]);
 
     // set the id to the session storage retrieval
     useEffect(() => {
@@ -167,12 +158,14 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
             // map the current data
             vulNodesRef.current = analysisResult['graph']['total']['nodes'].filter(node => node['vulnerable'] === true).map(node => getNodeProperties(node));
         }
-    }, [analysisResult])
+    }, [analysisResult]);
 
-
+    /**
+     * Function to generate vulnerable report blocks.
+     * Memoized components to stop unnecessary refreshes.
+     */
     const vulBlocks = useMemo(() => {
         if (showResult && vulNodesRef.current.length > 0) {
-            console.log(vulNodesRef.current);
             return vulNodesRef.current.map((node) => (
             <MemoCodeBlock
                 id={node.moduleName+":"+node.functionName}
@@ -184,6 +177,12 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         return [];
     }, [showResult, vulNodesRef.current, onNodeClick])
 
+    /**
+     * The current theme for the log.
+     * Updates when the dark prop is changed.
+     *
+     * @type {Object}
+     */
     const logTheme = useMemo(() => {
         if (dark) {
           return vscDarkPlus;
@@ -192,6 +191,10 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         }
         }, [dark]);
 
+    /**
+     * Log file display elements.
+     * Only refreshes when contents of log or general theme is changed.
+     */
     const logDisplay = useMemo(() => {
         if (logContents != null) {
             return (
@@ -202,35 +205,37 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
                 </div>
             )
         }
-    }, [logContents, logTheme])
+    }, [logContents, logTheme]);
+
 
     // function used to get the contents of the log from the backend
-    const getLogContents = useCallback(() => {
-        axios.post("/analysislog",
-            {
-                'uuid': uuid
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json'
+    /**
+     * Function to request log contents from the backend.
+     * Throws errors
+     */
+    const getLogContentsSub = useCallback(() => {
+
+        getLogContents(uuid)
+            .then(response => setLogContents(response.data))
+            .catch(function (error) {
+                if (error.response) {
+                    errorMsg("The server could not process your request at this time. Apologies.");
+                } else if (error.request) {
+                    errorMsg("The server did not receive your request at this time. Apologies.");
+                } else {
+                    errorMsg("The client could not assemble your request at this time. Apologies.");
                 }
-            }
-        ).then(function (response) {
-            setLogContents(response.data);
-        })
-        .catch(function (error) {
-            if (error.response) {
-                errorMsg("The server could not process your request at this time. Apologies.");
-            } else if (error.request) {
-                errorMsg("The server did not receive your request at this time. Apologies.");
-            } else {
-                errorMsg("The client could not assemble your request at this time. Apologies.");
-            }
-        })
+            })
+
     }, [uuid, setLogContents]);
 
 
-
+    /**
+     * The current theme for the JSON display.
+     * Changes when the dark prop is set.
+     *
+     * @type {Object}
+     */
     const myTheme = useMemo(() => {
         if (dark) {
             return 'codeschool';
@@ -239,12 +244,12 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         }
     }, [dark]);
 
+    // style for the JSON view
     const styler = {
         width: '100%',
         padding: '10px',
         'border-radius': '0.75rem'
     };
-
 
     return (
         <div className='w-full'>
@@ -258,7 +263,10 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
                             </div>
                             <div className='textcolor w-2/3'>
                                 <div className='h-[650px] items-stretch my-4 shadow-md rounded-lg' ref={visJsRef}></div>
-                                <button className="rounded-md p-1 drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={getLogContents}>Show Log</button>
+                                <button className="rounded-md drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={getLogContentsSub}>
+                                    <Ping></Ping>
+                                    <p className="px-4 py-1">Show Log</p>
+                                </button>
                                 {
                                     (showLog) ? (
                                         logDisplay
@@ -268,8 +276,6 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
                                     <ReactJson className='color-1' src={analysisResult ? analysisResult['graph'] : {}} displayDataTypes={true} collapsed={1}
                                            displayObjectSize={false} enableClipboard={false} name="graph" theme={myTheme} style={styler}/>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>

@@ -4,8 +4,9 @@ import Analyzer from './containers/Analyzer'
 import ErrorAlert from "./containers/ErrorAlert";
 import PopUpCodeBlock from './containers/PopUpCodeBlock';
 import JSZip from 'jszip';
-import { getModuleName, getNodeProperties } from "./containers/ContainerUtil";
+import { getNodeProperties } from "./containers/ContainerUtil";
 import { ImSpinner2 } from 'react-icons/im';
+import { uploadFile } from './util/Hooks';
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -14,7 +15,7 @@ function App() {
     const [respond, setRespond] = useState("");
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
-    const [extractedFiles, setExtractedFiles] = useState(new Map());
+    const [extractedModules, setExtractedModules] = useState(new Map());
     const [extractedNodes, setExtractedNodes] = useState(new Map());
 
     const [error, setError] = useState("");
@@ -29,51 +30,46 @@ function App() {
     const [analysisDone, setAnalysisDone] = useState(false);
     const [processing, setProcessing] = useState(false);
 
-    const generateCodeViewProps = useCallback(async (node) => {
+    const generateCodeViewProps = useCallback((node) => {
         if (node) {
-            const names = getModuleName(node);
+            if (extractedNodes.has(node)) {
+                const pr = extractedNodes.get(node);    // get node properties (line numbers, etc.)
 
-            if (extractedFiles.has(names['module']) && extractedNodes.has(node)) {
-                const cvprops = getNodeProperties(extractedNodes.get(node));
-                const text = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsText(extractedFiles.get(names['module']));
-                });
+                // now get the text for that module
+                if (extractedModules.has(pr['moduleName'])) {
 
-                // split file line by line
-                let allLines = text.split('\r\n');
+                    let text = extractedModules.get(pr['moduleName']);
 
-                // safety fallback
-                if (cvprops['endLine'] > allLines.length) {
-                    cvprops['endLine'] = allLines.length;
+                    // safety fallback
+                    if (pr['startLine'] < 0) {
+                        pr['startLine'] = 0;
+                    }
+
+                    if (pr['endLine'] > text.length) {
+                        pr['endLine'] = text.length;
+                    }
+
+                    let between = text.slice(pr['startingLine'], pr['endLine'] + 1);
+
+                    // rejoin only the lines between start and end
+                    pr['code'] = between.join("\n");
+                    return pr;
                 }
-
-                let between = allLines.slice(cvprops['startingLine'], cvprops['endLine'] + 1);
-
-                // rejoin only the lines between start and end
-                cvprops['code'] = between.join("\n");
-                return cvprops;
-            } else {
-                return null;
             }
-        } else {
-            return null;
         }
-    }, [extractedFiles, extractedNodes]);
+        return null;
+    }, [extractedNodes, setExtractedNodes]);
 
     useEffect(() => {
       if (codeViewProps) {
-        setDisplayCode(true);
+          setDisplayCode(true);
       }
     }, [codeViewProps]);
 
     useEffect(() => {
-          const fetchData = async () => {
-            const newCodeViewProps = await generateCodeViewProps(nodeSelected);
-            setCodeViewProps(newCodeViewProps);
-          };
-          fetchData();
+        if (nodeSelected != null) {
+            setCodeViewProps(generateCodeViewProps(nodeSelected));
+        }
     }, [generateCodeViewProps, nodeSelected]);
 
 
@@ -111,16 +107,21 @@ function App() {
         setRespond("")
     }
 
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+    }
+
     const onAnalysisDone = async (result) => {
 
         // Check if the result has any vulnerabilities at all
         let vulnerable_nodes = result['graph']['total']['nodes'].filter(node => node['vulnerable'] === true);
-
-        let nodeObjs = new Map();
-        vulnerable_nodes.forEach(function (vul_node) {
-            nodeObjs.set(vul_node['id'], vul_node);
-        })
-        setExtractedNodes(nodeObjs);
 
         // if so, extract contents
         if (vulnerable_nodes.length > 0) {
@@ -128,6 +129,9 @@ function App() {
 
             const zip = new JSZip();
             const files = await zip.loadAsync(f);
+
+            const extracted = new Map();
+
             files.forEach((relPath, file) => {
                 if (relPath.includes(".py")) {
                     vulnerable_nodes.forEach(async function (vul_node) {
@@ -140,13 +144,23 @@ function App() {
                         let relpath_pkg = relPath.replace(".py", "");
                         relpath_pkg = relpath_pkg.replace("/", ".");
 
+                        const cvprops = getNodeProperties(vul_node);
+
+                        if (!extracted.has(cvprops['moduleName'])) {
+                            // if the text is new, then read it
+                            const text = await readFileAsText(await file.async("blob"));
+                            extracted.set(cvprops['moduleName'], text.split('\r\n'));   // store the split text for efficiency
+                        }
+
+                        // if a file was found for the given node
                         if (relpath_pkg === altered_vul_node) {
-                            //console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
-                            setExtractedFiles(new Map(extractedFiles.set(altered_vul_node, await file.async("blob"))));
+                            // console.log("FOUND MATCH FOR " + vul_node['id'] + "   " + relpath_pkg);
+                            setExtractedNodes(new Map(extractedNodes.set(vul_node['id'], cvprops)));
                         }
                     });
                 }
             });
+            setExtractedModules(extracted);
 
             // set analysis done
             setAnalysisDone(true);
@@ -215,46 +229,46 @@ function App() {
         }
     }
 
-    const uploadFile = (projectName, file) => {
-        console.log("upload function called ")
-        console.log("environment url: ")
-        console.log(`http://localhost:5050/upload/${projectName}`)
+    /**
+     * Called when a file has been submitted for uploading.
+     *
+     * @param projectName The name of the project to upload
+     * @param file The file blob itself
+     */
+    const uploadFileSub = (projectName, file) => {
+
+        function onSuccess(data) {
+            if ('message' in data) {
+                setRespond(data['message']);
+            } else {
+                setRespond(data);
+            }
+            if ('uuid' in data) {
+                sessionStorage.setItem('uuid', data['uuid']);
+                receiveInfo("File upload success! Commencing analysis...")
+                setFile(file);
+                setFileUploaded(true);
+            } else {
+                setFileUploaded(false);
+                setError("Server didn't respond with required information.")
+            }
+        }
+
+        function onError(error) {
+            if (error.response) {
+                setError("The server could not process your request at this time. Apologies.");
+            } else if (error.request) {
+                setError("The server did not receive your request at this time. Apologies.");
+            } else {
+                setError("The client could not assemble your request at this time. Apologies.");
+            }
+            setShowError(true);
+        }
 
         if (!fileUploaded) {
-            const formData = new FormData();
-            formData.append(
-                "file",
-                file,
-                file.name
-            );
-            axios
-                .post(`http://localhost:5050/upload/${projectName}`, formData, {timeout: 1000})
-                .then(res => {
-                    if ('message' in res.data) {
-                        setRespond(res.data['message']);
-                    } else {
-                        setRespond(res.data);
-                    }
-                    if ('uuid' in res.data) {
-                        sessionStorage.setItem('uuid', res.data['uuid']);
-                        receiveInfo("File upload success! Commencing analysis...")
-                        setFile(file);
-                        setFileUploaded(true);
-                    } else {
-                        setFileUploaded(false);
-                        setError("Server didn't respond with required information.")
-                    }
-                })
-                .catch(function (error) {
-                    if (error.response) {
-                        setError("The server could not process your request at this time. Apologies.");
-                    } else if (error.request) {
-                        setError("The server did not receive your request at this time. Apologies.");
-                    } else {
-                        setError("The client could not assemble your request at this time. Apologies.");
-                    }
-                    setShowError(true);
-                });
+            uploadFile(projectName, file)
+                .then(res => onSuccess(res.data))
+                .catch(onError);
         }
     }
 
@@ -362,7 +376,7 @@ function App() {
                 <div className='main-panel pt-16'>
                     { !fileUploaded ? (
                         <div className={`section-panel ml-16 md:w-[650px] sm:w-[400px] p-4 ${fileUploaded ? 'hidden': ''}`}>
-                            <Upload onSubmission={uploadFile} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
+                            <Upload onSubmission={uploadFileSub} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
                         </div>
                     ) : (
                         <></>

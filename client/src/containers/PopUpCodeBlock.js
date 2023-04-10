@@ -1,4 +1,4 @@
-import React, {useMemo} from "react"
+import React, {useEffect, useMemo} from "react"
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import CodeReportBlockDismiss from "./CodeReportBlockDismiss";
@@ -12,7 +12,6 @@ const PopUpCodeBlock = ({ display, moduleName, language, functionName, code, sta
       return vs;
     }
   }, [dark]);
-
 
   return (display ? (
     <div
