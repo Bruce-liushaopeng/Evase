@@ -17,8 +17,6 @@ function App() {
     console.log("docker ENV" + process.env.REACT_APP_BACKEND_PORT)
     const BACKEND_PORT = process.env.REACT_APP_BACKEND_PORT || '5050'
     const BACKEND_URL = `http://localhost:${BACKEND_PORT}`
-    console.log(`${BACKEND_URL}/test`)
-    fetch(`${BACKEND_URL}/test`).then(res => console.log(res.json()));
     const [respond, setRespond] = useState("");
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);

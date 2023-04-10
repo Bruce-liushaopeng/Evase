@@ -8,14 +8,7 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { getLogContents, getAnalysisResult } from '../util/Hooks';
 import Ping from "./Ping";
 
-const {default: axios} = require("axios");
-
 const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) => {
-    // if the app is running in docker, we use the ENV defined in docker
-    // otherwise the fixed port is used
-    const BACKEND_PORT = process.env.REACT_APP_BACKEND_PORT || '5050'
-    const BACKEND_URL = `http://localhost:${BACKEND_PORT}`
-
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [network, setNetwork] = useState(null);

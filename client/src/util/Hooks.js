@@ -1,5 +1,10 @@
 const {default: axios} = require("axios");
 
+// if the app is running in docker, we use the ENV defined in docker
+// otherwise the fixed port is used
+const BACKEND_PORT = process.env.REACT_APP_BACKEND_PORT || '5050'
+const BACKEND_URL = `http://localhost:${BACKEND_PORT}`
+
 /**
  * Uploads a project file to the backend.
  *
@@ -16,7 +21,7 @@ export const uploadFile = (projectName, file) => {
             file.name
         );
         return axios
-            .post("http://127.0.0.1:5000/upload/"+projectName, formData, {timeout: 1000})
+            .post(`${BACKEND_URL}/upload/${projectName}`, formData, {timeout: 1000})
 }
 
 /**
@@ -45,7 +50,7 @@ export const getLogContents = (uuid) => {
  * @returns {Promise<AxiosResponse<any>>} Promise of the request
  */
 export const getAnalysisResult = (uuid) => {
-    return axios.post("http://127.0.0.1:5000/analyze", {
+    return axios.post(`${BACKEND_URL}/analyze`, {
         'uuid': uuid,
     }, {
         headers: {
