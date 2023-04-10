@@ -1,7 +1,7 @@
 import io
 import shutil
 
-from evase.structures.analysisperformer import AnalysisPerformer
+from evase.structures.analysisperformer import AnalysisPerformer, SQLInjectionBehaviourAnalyzer
 import tempfile
 import os
 import zipfile
@@ -30,6 +30,7 @@ def perform_analysis(
         project_name = "UNKNOWN"
 
     analysis_performer = AnalysisPerformer(project_name=project_name, project_root=folder, output_path=output_folder)
+    analysis_performer.strategy = SQLInjectionBehaviourAnalyzer()
 
     analysis_performer.perform_analysis()
     results = analysis_performer.get_results()
