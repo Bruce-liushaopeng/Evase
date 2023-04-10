@@ -14,6 +14,9 @@ Welcome to the Evase project! Our aim is to detect attack vulnerabilities in you
     - This provides more separation of concerns
     - Await calls have been removed wherever used and replaced with `.then` calls on Promises
   - The user can see the `processing...` icon when the code is being loaded
+  - Code deletion threads are actually now thread-safe!
+    - They are now `daemon` threads
+    - In case of faults, they are manually cancelled at program exit
 
 
 ## Installation and Setup Instructions

@@ -68,7 +68,7 @@ class ProjectRepo:
     def root(self) -> Path:
         """
         Retrieve the root of the source code for the repository.
-        
+
         :return: Root of source code
         """
         return self._root_path
@@ -105,44 +105,33 @@ class ProjectRepo:
         return f'REPO({self._uuid}):{self._label}@{self._dirpath}'
 
 
-# internal mapping of project repositories
-ID_REPO_MAPPING: Dict[str, ProjectRepo] = {}
-
-
 def cleanup():
-    """
-    Run upon program termination to delete all remaining files.
-    """
-    # logger.info("Cleanup process began.")
-    for uid, repo in ID_REPO_MAPPING.items():
-        try:
-            shutil.rmtree(repo.folder)
-            logger.info(f"Removal of {repo} was successful.")
-        except Exception:
-            logger.critical(f"Removal of {repo} ended in FAILURE.")
-            pass
-
-    ID_REPO_MAPPING.clear()
+    pass
 
 
-# at program exit, allow the remaining code to be purged
-atexit.register(cleanup)
+with app.app_context():
+    # internal mapping of project repositories
+    ID_REPO_MAPPING: Dict[str, ProjectRepo] = {}
+    lock = threading.Lock()
+    timers = []
+    stop_event = threading.Event()
+    atexit.register(cleanup)  # at program exit, allow the remaining code to be purged
 
 
 def del_tmp(repo: ProjectRepo):
     """
     Deletes a temp directory stored in our memory.
 
-    :param file: The file path
-    :param uuid: The uid of the source code directory in memory
+    :param repo: The repository object to delete
     """
-    try:
-        del ID_REPO_MAPPING[repo.uuid]
-        shutil.rmtree(repo.folder, ignore_errors=True)
-        logger.info(f"Removal of {repo} was successful.")
-    except KeyError:
-        logger.critical(f"Removal of {repo} ended in FAILURE.")
-        pass
+    with lock:
+        try:
+            del ID_REPO_MAPPING[repo.uuid]
+            shutil.rmtree(repo.folder, ignore_errors=True)
+            logger.info(f"Removal of {repo} was successful.")
+        except KeyError:
+            logger.critical(f"Removal of {repo} ended in FAILURE.")
+            pass
 
 
 @app.route('/upload/<prj_name>', methods=['POST'])
@@ -152,7 +141,7 @@ def file_upload_hook(prj_name: str):
     """
 
     # parse the JSON arguments from the request.
-    est_time = request.args.get("est_time", 60000.0)
+    est_time = request.args.get("est_time", 30.0)
     try:
         est_time = float(est_time)
 
@@ -180,10 +169,13 @@ def file_upload_hook(prj_name: str):
 
         # make the new repository and store in memory
         new_repo = ProjectRepo(uid, dirpath, subdir_path, prj_name)
-        ID_REPO_MAPPING[uid] = new_repo
+        with lock:
+            ID_REPO_MAPPING[uid] = new_repo
 
         # schedule repository for deletion
-        timer = threading.Timer(est_time, lambda: del_tmp(new_repo))
+        timer = threading.Timer(est_time, lambda: thread_clean(new_repo))
+        timer.daemon = True  # daemon threads to stop when program exits
+        timers.append(timer)
         timer.start()
         logger.info(f'{new_repo} scheduled for deletion in {est_time} seconds.')
 
@@ -256,7 +248,8 @@ def analyze_file_hook():
         response.headers['Content-Type'] = 'application/json'
         return response
     try:
-        repo: ProjectRepo = ID_REPO_MAPPING[uid]
+        with lock:
+            repo: ProjectRepo = ID_REPO_MAPPING[uid]
 
         # check if the repository exists on the system
         if repo.folder.exists():
@@ -423,3 +416,43 @@ def remove_code():
         return make_response({
             'message': "Couldn't delete the code repository from the server."
         }, 500)
+
+
+def thread_clean(repo):
+    """
+    Remove a repository (with a thread).
+
+    :param repo: Repository to delete
+    """
+    if stop_event.is_set():
+        return
+
+    del_tmp(repo)
+
+
+def cleanup():
+    """
+    Run upon program termination to delete all remaining files.
+    """
+    logger.info("Cleanup process began.")
+
+    stop_event.set()  # ensure that callbacks are stopped
+    logger.info("Cancelling deletion threads.")
+    for timer in timers:
+        timer.cancel()
+
+    for uid, repo in ID_REPO_MAPPING.items():
+        with lock:
+            try:
+                shutil.rmtree(repo.folder)
+                logger.info(f"Removal of {repo} was successful.")
+            except Exception:
+                logger.critical(f"Removal of {repo} ended in FAILURE.")
+                pass
+
+    ID_REPO_MAPPING.clear()
+    atexit.unregister(cleanup)
+
+    for thread in threading.enumerate():
+        if thread is not threading.current_thread():
+            thread.join()

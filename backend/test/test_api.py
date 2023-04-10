@@ -1,7 +1,6 @@
 import io
 import json
 import os
-import tempfile
 
 import pytest
 
@@ -12,14 +11,10 @@ RES_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources'
 
 @pytest.fixture
 def client():
-    db_fd, api.app.config['DATABASE'] = tempfile.mkstemp()
     api.app.config['TESTING'] = True
 
     with api.app.test_client() as client:
         yield client
-
-    os.close(db_fd)
-    os.unlink(api.app.config['DATABASE'])
 
 
 def test_file_upload(client):
@@ -48,6 +43,7 @@ def test_file_upload_analyze(client):
         data = {}
         data['file'] = (io.BytesIO(file_data.read()), 'backend.zip')
         res = client.post(f'/upload/{test_prj_name}', data=data, content_type='multipart/form-data')
+
         #json.dump()
         unique_id = res.json['uuid']
         res = client.post(f'/analyze', data=json.dumps({
