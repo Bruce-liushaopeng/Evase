@@ -27,12 +27,19 @@ To download the project itself and run it without docker you can do:
 - In the backend directory run `pip install -r requirements.txt`
 - In the client directory run `npm install .` (use the force parameter if required)
 
-## How to run it with docker
+## How to run Evase in local environment 
+
+- Install all dependencies as described above
+- In the backend directory run `python3 api.py` or `py api.py`
+- In the frontend directory run `npm start`
+
+## How to run Evase with docker
+
 - Start docker desktop and wait for Docker and Kubernetes fully start
 - go to .env file to define the ports that frontend and backend application will be listen to
 - nevigate to home folder in the terminal
-- run command "docker-compose build", if not work, try "docker compose build"
-- when build is finished, run command "docker-compose up" or "docker compose up"
+- run command `docker-compose build`, if not work, try `docker compose build`
+- when build is finished, run command `docker-compose up` or `docker compose up`
 - Go to browser and interact with the application
 - To stop the running containers, run command "docker-compose down"
 
