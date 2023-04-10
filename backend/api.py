@@ -1,22 +1,23 @@
 import os
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, send_file
+
 from flask_cors import CORS
-import logging
 import shutil
 import threading
 import atexit
 from pathlib import Path
 import json
 from typing import Dict
+import logging
 
 from backend.controller_logic import perform_analysis, save_code
 
 logging.basicConfig(level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 cors = CORS(app)
+
 
 class ProjectRepo:
 
@@ -43,7 +44,7 @@ class ProjectRepo:
         :return: Repository identifier
         """
         return self._uuid
-    
+
     @property
     def label(self) -> str:
         """
@@ -52,7 +53,7 @@ class ProjectRepo:
         :return: Repository label
         """
         return self._label
-    
+
     @property
     def folder(self) -> Path:
         """
@@ -62,7 +63,7 @@ class ProjectRepo:
         :return: Repository folder
         """
         return self._dirpath
-    
+
     @property
     def root(self) -> Path:
         """
@@ -71,7 +72,7 @@ class ProjectRepo:
         :return: Root of source code
         """
         return self._root_path
-    
+
     @property
     def analyzed(self) -> bool:
         """
@@ -80,7 +81,7 @@ class ProjectRepo:
         :return: Analysis status
         """
         return self._analyzed
-    
+
     def mark(self):
         """
         Marks the status as analyzed.
@@ -103,20 +104,23 @@ class ProjectRepo:
         """
         return f'REPO({self._uuid}):{self._label}@{self._dirpath}'
 
+
 # internal mapping of project repositories
 ID_REPO_MAPPING: Dict[str, ProjectRepo] = {}
+
 
 def cleanup():
     """
     Run upon program termination to delete all remaining files.
     """
-    logger.info("Cleanup process began.")
+    # logger.info("Cleanup process began.")
     for uid, repo in ID_REPO_MAPPING.items():
         try:
             shutil.rmtree(repo.folder)
             logger.info(f"Removal of {repo} was successful.")
         except Exception:
             logger.critical(f"Removal of {repo} ended in FAILURE.")
+            pass
 
     ID_REPO_MAPPING.clear()
 
@@ -138,6 +142,7 @@ def del_tmp(repo: ProjectRepo):
         logger.info(f"Removal of {repo} was successful.")
     except KeyError:
         logger.critical(f"Removal of {repo} ended in FAILURE.")
+        pass
 
 
 @app.route('/upload/<prj_name>', methods=['POST'])
@@ -156,7 +161,6 @@ def file_upload_hook(prj_name: str):
         return make_response({
             'message': "Couldn't parse the est_time parameter."
         }, 500)
-    
 
     try:
         file = request.files['file']  # get the file from post request
@@ -184,7 +188,7 @@ def file_upload_hook(prj_name: str):
             'uuid': uid,
             'message': 'File uploaded successfully'
         }, 201)
-    
+
     # value error occurs
     except ValueError as e:
         return make_response({
@@ -193,7 +197,7 @@ def file_upload_hook(prj_name: str):
 
 
 @app.route('/analyze', methods=['POST'])
-def analyze_file_hook():
+def analyze_file_hook2():
     """
     Analyzes the contents of the code given.
     The code is identified with the uuid argument in the query.
@@ -212,7 +216,7 @@ def analyze_file_hook():
             # uuid not convertible to string
             except:
                 return make_response({
-                'message': "Couldn't parse id from request, it must be either a string or integer."
+                    'message': "Couldn't parse id from request, it must be either a string or integer."
                 }, 404)
         # uuid not passed at all
         except KeyError:
@@ -226,7 +230,7 @@ def analyze_file_hook():
             force = request_body['force']
             if not isinstance(force, bool):
                 return make_response({
-                'message': "Force parameter was set incorrecly, it must be a boolean."
+                    'message': "Force parameter was set incorrecly, it must be a boolean."
                 }, 404)
         # force parameter was not passed
         except KeyError:
@@ -242,7 +246,7 @@ def analyze_file_hook():
 
         # check if the repository exists on the system
         if repo.folder.exists():
-            
+
             # if results previously exist extract and send them back
             # force makes the results be regenerated either way
             if repo.analyzed and not force:
@@ -250,7 +254,7 @@ def analyze_file_hook():
                 if result_path.exists():
                     with result_path.open("r") as rf:
                         result = json.load(rf)
-                    return make_response(result, 200)    
+                    return make_response(result, 200)
                 else:
                     # if the results couldn't be found, generate them (shouldn't happen)
                     pass
@@ -264,7 +268,7 @@ def analyze_file_hook():
                 )
                 repo.mark()
                 return make_response(result, 200)
-            
+
         return make_response({
             'message': "Repository was not previously analyzed, nor could the directory for it be found."
         }, 500)
@@ -274,6 +278,68 @@ def analyze_file_hook():
             'message': 'Invalid ID, not found.'
         }, 422)
 
+
+@app.route('/analysislog', methods=['POST'])
+def analysislog_file_hook():
+    """
+    Retrieves the log of the analysis.
+    The code is identified with the uuid argument in the query.
+    """
+
+    # parse the JSON arguments from the request.
+    try:
+        request_body = request.json
+
+        # get the unique identifier
+        try:
+            uid = request_body['uuid']
+            try:
+                uid = str(uid)
+
+            # uuid not convertible to string
+            except:
+                return make_response({
+                    'message': "Couldn't parse id from request, it must be either a string or integer."
+                }, 404)
+        # uuid not passed at all
+        except KeyError:
+            return make_response({
+                'message': "Couldn't parse id from request, it was not present in the request."
+            }, 404)
+
+    # request json couldn't be parsed
+    except Exception as e:
+        return make_response({
+            'message': "Couldn't process the request, may not be in JSON form."
+        }, 404)
+
+    try:
+        repo: ProjectRepo = ID_REPO_MAPPING[uid]
+
+        # check if the repository exists on the system
+        if repo.folder.exists():
+
+            # if results previously exist extract and send them back
+            # force makes the results be regenerated either way
+            if repo.analyzed:
+                log_path = Path(repo.folder, 'analysis-log.log')
+                if log_path.exists():
+                    return send_file(log_path, as_attachment=False, mimetype='text/plain',
+                                     download_name='analysis-log.log'), 200
+                else:
+                    return make_response({
+                        'message': "Log file coudn't be found."
+                    }, 500)
+            else:
+                return make_response({
+                    'message': "The code has yet to be analyzed."
+                }, 404)
+
+    # keyerror when uuid not found
+    except KeyError:
+        return make_response({
+            'message': 'Invalid ID, not found.'
+        }, 422)
 
 
 @app.route('/deletecode', methods=['POST'])
@@ -295,7 +361,7 @@ def remove_code():
                 return make_response({
                     'message': "Couldn't parse id from request, it must be either a string or integer."
                 }, 404)
-                
+
         # uuid was not passed in body
         except KeyError:
             return make_response({
@@ -325,5 +391,3 @@ def remove_code():
         return make_response({
             'message': "Couldn't delete the code repository from the server."
         }, 500)
-    
-

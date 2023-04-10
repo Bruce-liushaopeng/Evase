@@ -320,7 +320,7 @@ function App() {
             <div className="mx-auto color4 z-50">
                 <button className="rounded-lg z-50 text-sm px-5 py-2.5 mx-2 mb-2 color2" onClick={changeTheme}></button>
             </div>
-            <PopUpCodeBlock display={displayCode} {...codeViewProps} onDismiss={()=>setDisplayCode(false)} dark={dark}/>
+            <PopUpCodeBlock display={displayCode} language="python" {...codeViewProps} onDismiss={()=>setDisplayCode(false)} dark={dark}/>
             <div className='max-w-[1500px] mx-auto'>
                 <div>
                     {showError ? (
