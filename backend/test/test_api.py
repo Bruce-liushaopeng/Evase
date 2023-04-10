@@ -50,9 +50,13 @@ def test_file_upload_analyze(client):
 
         unique_id = res.json['uuid']
         res = client.get(f'/analyze?uuid={unique_id}')
-        assert res.is_json
 
-        assert 'graph' in res.json
+        try:
+            json_res = res.json
+        except Exception as e:
+            pytest.fail(f"Failed to parse response as JSON: {res.get_data(as_text=True)}. Error: {e}")
+
+        assert 'graph' in json_res
 
         # try the analysis again... file should be deleted
         res = client.get(f'/analyze?uuid={unique_id}')
