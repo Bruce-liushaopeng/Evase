@@ -52,6 +52,12 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         }
     };
 
+    /**
+     * OnClick event handler for nodes in the Network graph being clicked.
+     * useCallback to update whenever the network or prop is updated.
+     *
+     * @param  {Object} params The object containing nodes and edges clicked
+     */
     const onNetworkClick = useCallback((params) => {
         if (params.nodes.length === 0 && params.edges.length > 0) {
         } else if (params.nodes.length > 0) {
@@ -159,7 +165,10 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         }
     }, [analysisResult])
 
-
+    /**
+     * Function to generate vulnerable report blocks.
+     * Memoized components to stop unnecessary refreshes.
+     */
     const vulBlocks = useMemo(() => {
         if (showResult && vulNodesRef.current.length > 0) {
             console.log(vulNodesRef.current);
