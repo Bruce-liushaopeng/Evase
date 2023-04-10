@@ -10,7 +10,7 @@ import json
 from typing import Dict
 import logging
 
-from controller_logic import perform_analysis, save_code
+from backend.controller_logic import perform_analysis, save_code
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
