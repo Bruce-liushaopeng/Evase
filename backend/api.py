@@ -294,7 +294,7 @@ def analyze_file_hook():
     except KeyError:
         response = make_response(jsonify({
             'message': 'Invalid ID, not found.'
-        }), 422)
+        }), 404)
         response.headers['Content-Type'] = 'application/json'
         return response
 

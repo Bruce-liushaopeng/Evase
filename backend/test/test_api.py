@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import tempfile
 
@@ -47,17 +48,51 @@ def test_file_upload_analyze(client):
         data = {}
         data['file'] = (io.BytesIO(file_data.read()), 'backend.zip')
         res = client.post(f'/upload/{test_prj_name}', data=data, content_type='multipart/form-data')
-
+        #json.dump()
         unique_id = res.json['uuid']
-        res = client.get(f'/analyze?uuid={unique_id}')
+        res = client.post(f'/analyze', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 200
 
         try:
+            print(res)
             json_res = res.json
+            assert res.is_json
         except Exception as e:
             pytest.fail(f"Failed to parse response as JSON: {res.get_data(as_text=True)}. Error: {e}")
 
         assert 'graph' in json_res
 
-        # try the analysis again... file should be deleted
-        res = client.get(f'/analyze?uuid={unique_id}')
-        assert res.status_code == 422
+        # try the analysis again... file should be ok
+        res = client.post(f'/analyze', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 200
+
+        # try to get the analysis log
+        res = client.post(f'/analysislog', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 200
+
+        res = client.post(f'/deletecode', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 200
+
+        # AFTER DELETION ALL SHOULD RETURN 404
+        res = client.post(f'/deletecode', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 404
+
+        res = client.post(f'/analysislog', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 404
+
+        res = client.post(f'/analyze', data=json.dumps({
+            'uuid': unique_id
+        }), content_type='application/json')
+        assert res.status_code == 404
