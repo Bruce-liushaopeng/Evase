@@ -1,5 +1,5 @@
 *.idea/
-/backend/user_files
+backend/backend_logic/test/.pytest_cache
 
 # dependencies
 /node_modules
