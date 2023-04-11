@@ -141,7 +141,7 @@ def file_upload_hook(prj_name: str):
     """
 
     # parse the JSON arguments from the request.
-    est_time = request.args.get("est_time", 30.0)
+    est_time = request.args.get("est_time", 600.0)
     try:
         est_time = float(est_time)
 
