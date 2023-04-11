@@ -9,7 +9,7 @@ const CodeReportBlock = React.memo(({moduleName, functionName, startingLine, end
     const endpointString = (endpoint ? "True": "False");
 
     return (
-        <div className="max-h-min w-full mx-auto my-2 color1 hover:shadow-xl text-inherit bg-inherit rounded-lg textcolor shadow-lg" >
+        <div className="max-h-min flex w-full mx-auto my-2 color1 hover:shadow-xl text-inherit bg-inherit rounded-lg textcolor shadow-lg" >
             <Ping />
             <div className='p-4'>
                 <div onClick={doClick} className="cursor-pointer group">

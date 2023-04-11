@@ -7,6 +7,8 @@ import JSZip from 'jszip';
 import { getNodeProperties } from "./containers/ContainerUtil";
 import { ImSpinner2 } from 'react-icons/im';
 import { uploadFile } from './util/Hooks';
+import Ping from "./containers/Ping";
+import Reporter from "./containers/Reporter";
 
 const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
@@ -24,11 +26,14 @@ function App() {
     const [showInfo, setShowInfo] = useState(false);
     const [dark, setDark] = useState(localStorage.getItem('color-theme'));
     const [displayCode, setDisplayCode] = useState(false);
+    const [displayReport, setDisplayReport] = useState(false);
 
     const [nodeSelected, setNodeSelected] = useState(null);
     const [codeViewProps, setCodeViewProps] = useState(null);
     const [analysisDone, setAnalysisDone] = useState(false);
     const [processing, setProcessing] = useState(false);
+
+    const MemoReport = React.memo(Reporter);
 
     const generateCodeViewProps = useCallback((node) => {
         if (node) {
@@ -339,7 +344,6 @@ function App() {
             </div>
             <PopUpCodeBlock display={displayCode} language="python" {...codeViewProps} onDismiss={()=>setDisplayCode(false)} dark={dark}/>
             <div className='max-w-[1500px] mx-auto'>
-                <div>
                     {showError ? (
                         <ErrorAlert className='my-4' message={error} high={true} onDismiss={dismissError}></ErrorAlert>
                     ) : (
@@ -350,44 +354,70 @@ function App() {
                     ) :(
                         <></>
                     )}
-                </div>
-                <div className='float-left mt-14 w-[350px] '>
-                    <div className='rounded p-5 shadow-lg w-full'>
-                        <img className="w-[350px] h-[350px] rounded" src="/logofile.png" />
-                        <p className='mt-5 text-xl font-semibold'>Our Goal</p>
-                        <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
+            </div>
+            <div className="flex flex-col max-w-[1500px] mx-auto">
+                <div className='w-full'>
+                    <div className='float-left mt-14 w-[350px] '>
+                        <div className='rounded p-5 shadow-lg w-full'>
+                            <img className="w-[350px] h-[350px] rounded" src="/logofile.png" />
+                            <p className='mt-5 text-xl font-semibold'>Our Goal</p>
+                            <p className='mt-5'>Evase is a tool that helps you analyze your Python Backend code for SQL injection vulnerabilities. The goal of Evase is to provide adequate detection of such vulnerabilites such that developers can secure their code.</p>
+                        </div>
+                        {
+                            processing ? (
+                                <div className="inline-flex gap-x-2">
+                                    <ImSpinner2 size={30} className="animate-spin" />
+                                    <p>Processing...</p>
+                                </div>
+                            ) : (
+                                <></>
+                            )
+                        }
+
+                        <div className="mt-5 float-right">
+                            <button className="rounded-md px-4 py-1 drop-shadow-md hover:drop-shadow-lg my-4 mr-1 color2" onClick={resetProcess}>Reset</button>
+                        </div>
                     </div>
-                    {
-                        processing ? (
-                            <div className="inline-flex gap-x-2">
-                                <ImSpinner2 size={30} className="animate-spin" />
-                                <p>Processing...</p>
+
+                    <div className='main-panel pt-16'>
+                        { !fileUploaded ? (
+                            <div className={`section-panel ml-16 md:w-[650px] sm:w-[400px] p-4 ${fileUploaded ? 'hidden': ''}`}>
+                                <Upload onSubmission={uploadFileSub} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
                             </div>
                         ) : (
                             <></>
                         )
-                    }
+                        }
+                        {
+                            fileUploaded ? (
+                                <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
+                                    <Analyzer ready={performAnalysisReady} selected={nodeSelected} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={graphNodeSelected} dark={dark}/>
+                                </div>
+                            ) : (
+                                <></>
+                            )
+                        }
 
-                    <div className="mt-5 float-right">
-                        <button className="rounded-md px-4 py-1 drop-shadow-md hover:drop-shadow-lg my-4 mr-1 color2" onClick={resetProcess}>Reset</button>
                     </div>
                 </div>
-
-                <div className='main-panel pt-16'>
-                    { !fileUploaded ? (
-                        <div className={`section-panel ml-16 md:w-[650px] sm:w-[400px] p-4 ${fileUploaded ? 'hidden': ''}`}>
-                            <Upload onSubmission={uploadFileSub} onCancel={cancelFile} onChange={fileChanged} backendInformation={backendInformation()} infoMsg={receiveInfo}/>
-                        </div>
-                    ) : (
-                        <></>
-                    )
-                    }
+                {/* PDF report and other utilities */}
+                <div className="w-full">
                     {
-                        fileUploaded ? (
-                            <div className='section-panel lg:w-[1500px] md:w-[850] ml-8 pl-4 pr-4 pb-5'>
-                                <Analyzer ready={performAnalysisReady} selected={nodeSelected} readyCallback={onAnalysisDone} errorMsg={receiveError} infoMsg={receiveInfo} onNodeClick={graphNodeSelected} dark={dark}/>
+                        analysisDone ? (
+                            <div className="flex flex-col lg:w-[500px] md:w-[850] ml-8 pl-4 pr-4 pb-5">
+                                <button className="max-w-fit flex items-start rounded-md drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={()=>setDisplayReport(!displayReport)}>
+                                    <Ping></Ping>
+                                    <p className="pl-1 pr-2 py-2">{displayReport ? "Hide PDF Report" : "Show PDF Report"}</p>
+                                </button>
+                                {
+                                    displayReport ? (
+                                        <MemoReport nodes={extractedNodes} dark={dark}></MemoReport>
+                                    ) : (
+                                        <></>
+                                    )
+                                }
                             </div>
-                        ) : (
+                        ): (
                             <></>
                         )
                     }

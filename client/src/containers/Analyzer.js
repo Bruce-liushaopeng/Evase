@@ -18,6 +18,8 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
     const [uuid, setUuid] = useState(null);
     const [logContents, setLogContents] = useState(null);
     const [showLog, setShowLog] = useState(false);
+    const [logGettable, setLogGettable] = useState(false);
+    const [showJSON, setShowJSON] = useState(false);
 
     const visJsRef = useRef(null);
     const vulNodesRef = useRef([]);
@@ -98,12 +100,14 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
                             readyCallback(res.data);
                             infoMsg("Your vulnerabilities have been detected!");
                             setUuid(null);
+                            setLogGettable(true);
                         }
                     } else {
                         errorMsg("The server response could not be parsed. Apologies.");
                     }
                 })
                 .catch(function (error) {
+                    setLogGettable(false);
                     if (error.response) {
                         errorMsg("The server could not process your request at this time. Apologies.");
                     } else if (error.request) {
@@ -199,7 +203,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         if (logContents != null) {
             return (
                 <div className='w-full'>
-                    <SyntaxHighlighter className='rounded-xl md:max-h-[400px] lg:max-h-[600px]' wrapLines={true} style={logTheme}>
+                    <SyntaxHighlighter className='rounded-xl max-w-full lg:max-h-[700px] md:max-h-[500px]' wrapLines={true} style={logTheme}>
                         {logContents}
                     </SyntaxHighlighter>
                 </div>
@@ -214,11 +218,14 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
      * Throws errors
      */
     const getLogContentsSub = useCallback(() => {
-
         getLogContents(uuid)
-            .then(response => setLogContents(response.data))
+            .then(response => {
+                setLogContents(response.data)
+                setLogGettable(false);
+            })
             .catch(function (error) {
                 if (error.response) {
+                    console.log(error)
                     errorMsg("The server could not process your request at this time. Apologies.");
                 } else if (error.request) {
                     errorMsg("The server did not receive your request at this time. Apologies.");
@@ -248,7 +255,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
     const styler = {
         width: '100%',
         padding: '10px',
-        'border-radius': '0.75rem'
+        'borderRadius': '0.75rem'
     };
 
     return (
@@ -263,18 +270,30 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
                             </div>
                             <div className='textcolor w-2/3'>
                                 <div className='h-[650px] items-stretch my-4 shadow-md rounded-lg' ref={visJsRef}></div>
-                                <button className="rounded-md drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={getLogContentsSub}>
-                                    <Ping></Ping>
-                                    <p className="px-4 py-1">Show Log</p>
-                                </button>
+                                <div className="w-full flex flex-row shadow-lg rounded-lg p-4">
+                                    <button className="max-w-fit flex items-start rounded-md drop-shadow-md hover:drop-shadow-lg mr-3 color2" onClick={logGettable ? getLogContentsSub : ()=>setShowLog(!showLog)}>
+                                        <Ping></Ping>
+                                        <p className="pl-1 pr-2 py-2">{logGettable ? "Retrieve Log" : (showLog ? "Hide Log": "Show Log")}</p>
+                                    </button>
+                                    <button className="max-w-fit flex items-start rounded-md drop-shadow-md hover:drop-shadow-lg mr-2 color2" onClick={()=>setShowJSON(!showJSON)}>
+                                        <Ping></Ping>
+                                        <p className="pl-1 pr-2 py-2">{showJSON ? "Hide JSON": "Show JSON"}</p>
+                                    </button>
+                                </div>
                                 {
                                     (showLog) ? (
                                         logDisplay
                                     ): (<></>)
                                 }
-                                <div className="w">
-                                    <ReactJson className='color-1' src={analysisResult ? analysisResult['graph'] : {}} displayDataTypes={true} collapsed={1}
+                                <div className="w-full my-2.5">
+                                    {
+                                        showJSON ? (
+                                            <ReactJson className='color-1' src={analysisResult ? analysisResult['graph'] : {}} displayDataTypes={true} collapsed={1}
                                            displayObjectSize={false} enableClipboard={false} name="graph" theme={myTheme} style={styler}/>
+                                        ) : (
+                                            <></>
+                                        )
+                                    }
                                 </div>
                             </div>
                         </div>
