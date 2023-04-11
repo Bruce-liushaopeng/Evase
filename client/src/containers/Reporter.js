@@ -1,7 +1,5 @@
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
-import { Document, Page, Text, Paragraph, View, StyleSheet } from '@react-pdf/renderer';
-
-const {default: axios} = require("axios");
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
 const Reporter = React.memo(({nodes, dark}) => {
 
@@ -40,7 +38,7 @@ const Reporter = React.memo(({nodes, dark}) => {
         section: {
             marginBottom: 10,
             flexGrow: 1,
-            flexDirection: 'row'
+            flexDirection: 'column'
         },
         sectionTitle: {
             fontSize: 14,
@@ -50,7 +48,7 @@ const Reporter = React.memo(({nodes, dark}) => {
         subsection: {
             marginLeft: 10,
             marginBottom: 5,
-            flexDirection: 'row',
+            flexDirection: 'column',
             flexGrow: 1,
         },
         subsectionTitle: {
@@ -69,7 +67,7 @@ const Reporter = React.memo(({nodes, dark}) => {
         for (let [key, value] of groups.entries()) {
             let groupnew = (
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{key + "\n"}</Text>
+                    <Text style={styles.sectionTitle}>{key}</Text>
                     {value.map(node => {
 
                         const variablesString = (node['variables'] ? node['variables'].join(", ") : "");
@@ -77,7 +75,7 @@ const Reporter = React.memo(({nodes, dark}) => {
 
                         return (
                             <View style={styles.subsection}>
-                                <Text style={styles.subsectionTitle}>{node['functionName'] + "\n"}</Text>
+                                <Text style={styles.subsectionTitle}>{node['functionName']}</Text>
                                 <Text style={styles.subsectionDetails}>
                                     { node['endpoint']? "The function is an API endpoint": "" }
                                     The function is vulnerable due to its use of the variables {variablesString}, as they

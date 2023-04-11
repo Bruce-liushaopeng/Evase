@@ -405,9 +405,9 @@ function App() {
                     {
                         analysisDone ? (
                             <div className="flex flex-col lg:w-[500px] md:w-[850] ml-8 pl-4 pr-4 pb-5">
-                                <button className="max-w-fit rounded-md drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={()=>setDisplayReport(!displayReport)}>
+                                <button className="max-w-fit flex items-start rounded-md drop-shadow-md hover:drop-shadow-lg mr-10 my-4 color2" onClick={()=>setDisplayReport(!displayReport)}>
                                     <Ping></Ping>
-                                    <p className="px-4 py-1">{displayReport ? "Hide PDF Report" : "Show PDF Report"}</p>
+                                    <p className="pl-1 pr-2 py-2">{displayReport ? "Hide PDF Report" : "Show PDF Report"}</p>
                                 </button>
                                 {
                                     displayReport ? (
