@@ -203,7 +203,7 @@ const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) 
         if (logContents != null) {
             return (
                 <div className='w-full'>
-                    <SyntaxHighlighter className='rounded-xl md:max-h-[400px] lg:max-h-[600px]' wrapLines={true} style={logTheme}>
+                    <SyntaxHighlighter className='rounded-xl max-w-full lg:max-h-[700px] md:max-h-[500px]' wrapLines={true} style={logTheme}>
                         {logContents}
                     </SyntaxHighlighter>
                 </div>
