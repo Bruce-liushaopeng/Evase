@@ -14,9 +14,11 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
     "axios": "^1.1.2",
+    "cross-env": "^7.0.3",
     "form-data": "^4.0.0",
     "framer-motion": "^7.6.5",
     "jszip": "^3.10.1",
+    "lodash": "^4.17.21",
     "material-ui-dropzone": "^3.5.0",
     "prismjs": "^1.29.0",
     "react": "^18.2.0",
@@ -34,7 +36,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "cross-env PORT=${REACT_APP_FRONTEND_PORT:-3000} react-scripts start",
     "build": "react-scripts build",
     "start-backend": "cd .. && cd backend && python -m flask run",
     "test": "react-scripts test",

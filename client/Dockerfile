@@ -1,6 +1,8 @@
 # Use an official Node.js runtime as a parent image
 FROM node:16.13.2-alpine
 
+ENV REACT_APP_TEST=env_set_success
+
 # Set the working directory to /app
 WORKDIR /app
 

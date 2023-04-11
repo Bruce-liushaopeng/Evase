@@ -14,6 +14,11 @@ const axios = require('axios').default;
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
 function App() {
+    // if the app is run in docker, we use the ENV defined in docker
+    // otherwise the fixed port is used
+    console.log("docker ENV" + process.env.REACT_APP_BACKEND_PORT)
+    const BACKEND_PORT = process.env.REACT_APP_BACKEND_PORT || '5050'
+    const BACKEND_URL = `http://localhost:${BACKEND_PORT}`
     const [respond, setRespond] = useState("");
     const [file, setFile] = useState(null);
     const [fileUploaded, setFileUploaded] = useState(false);
@@ -322,7 +327,7 @@ function App() {
         let uuid = sessionStorage.getItem('uuid');
         if (uuid) {
             axios
-                .post(`http://localhost:5050/deletecode`, {
+                .post(`${BACKEND_URL}/deletecode`, {
                     'uuid': uuid,
                 }, {
                     headers: {

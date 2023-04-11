@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-import backend.api as api
+import backend_logic.api as api
 
 RES_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 

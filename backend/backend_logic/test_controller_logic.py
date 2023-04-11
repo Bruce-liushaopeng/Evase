@@ -1,4 +1,4 @@
-from backend.controller_logic import perform_analysis
+from backend_logic.controller_logic import perform_analysis
 import os
 
 

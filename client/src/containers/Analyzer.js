@@ -8,10 +8,7 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { getLogContents, getAnalysisResult } from '../util/Hooks';
 import Ping from "./Ping";
 
-const {default: axios} = require("axios");
-
 const Analyzer = ({ready, readyCallback, errorMsg, infoMsg, onNodeClick, dark}) => {
-
     const [analysisResult, setAnalysisResult] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [network, setNetwork] = useState(null);
