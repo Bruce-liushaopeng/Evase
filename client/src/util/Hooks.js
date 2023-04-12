@@ -31,7 +31,7 @@ export const uploadFile = (projectName, file) => {
  * @returns {Promise<AxiosResponse<any>>} Promise of the request
  */
 export const getLogContents = (uuid) => {
-    return axios.post("http://127.0.0.1:5000/analysislog",
+    return axios.post(`${BACKEND_URL}/analysislog`,
             {
                 'uuid': uuid
             },
